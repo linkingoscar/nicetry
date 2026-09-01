@@ -1,0 +1,346 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/empirical-result-bundle.schema.json",
+  "title": "ResearchPath EmpiricalResultBundle",
+  "description": "Top-level contract gate for persisted questionnaire empirical reports (report.json). Structural validation of stable core fields; segment details remain loosely typed so valid variant reports are not rejected.",
+  "type": "object",
+  "additionalProperties": true,
+  "$defs": {
+    "studyPlanBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "studyPlanVersionId",
+        "studyPlanHash",
+        "hypothesisId",
+        "estimandId",
+        "analysisDeclarationId",
+        "status",
+        "currentEvidence",
+        "staleReasons"
+      ],
+      "properties": {
+        "studyPlanVersionId": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" },
+        "studyPlanHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "hypothesisId": { "type": "string", "minLength": 1 },
+        "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "estimandId": { "type": "string", "minLength": 1 },
+        "analysisDeclarationId": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["current", "stale"] },
+        "currentEvidence": { "type": "boolean" },
+        "staleReasons": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "datasetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sampleVersionId": { "type": "string", "minLength": 1 },
+        "sampleHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementVersionId": { "type": "string", "minLength": 1 },
+        "measurementHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "specHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "declarationStatus": { "enum": ["declared", "deviated"] },
+        "deviationReason": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "publicationEligible": { "type": "boolean" }
+      }
+    },
+    "resultEvidenceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["studyPlanVersionId", "studyPlanHash", "hypothesisIds", "estimandId", "analysisDeclarationId", "datasetSha256", "sampleVersionId", "sampleHash", "measurementVersionId", "measurementHash", "specHash", "declarationStatus", "deviationReason", "publicationEligible", "status", "currentEvidence", "staleReasons"],
+      "properties": {
+        "studyPlanVersionId": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" },
+        "studyPlanHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "hypothesisId": { "type": "string", "minLength": 1 },
+        "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "estimandId": { "type": "string", "minLength": 1 },
+        "analysisDeclarationId": { "type": "string", "minLength": 1 },
+        "datasetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sampleVersionId": { "type": "string", "minLength": 1 },
+        "sampleHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementVersionId": { "type": "string", "minLength": 1 },
+        "measurementHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "specHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "declarationStatus": { "enum": ["declared", "deviated"] },
+        "deviationReason": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "publicationEligible": { "type": "boolean" },
+        "status": { "enum": ["current", "stale"] },
+        "currentEvidence": { "type": "boolean" },
+        "staleReasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "evidenceGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "studyPlanVersion", "hypotheses", "estimands", "analysisDeclarations", "resultBinding"],
+      "properties": {
+        "schemaVersion": { "const": "2.0.0" },
+        "studyPlanVersion": { "type": "object", "additionalProperties": false, "required": ["id", "hash", "revision", "status"], "properties": { "id": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" }, "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "revision": { "type": "integer", "minimum": 1 }, "status": { "const": "frozen" } } },
+        "hypotheses": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "estimandIds"], "properties": { "id": { "type": "string", "minLength": 1 }, "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "estimands": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "quantity", "hypothesisIds"], "properties": { "id": { "type": "string", "minLength": 1 }, "quantity": { "type": "string", "minLength": 1 }, "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "analysisDeclarations": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "role", "estimandIds", "capabilitySliceId", "requestedMethod"], "properties": { "id": { "type": "string", "minLength": 1 }, "role": { "enum": ["primary", "robustness", "exploratory"] }, "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }, "capabilitySliceId": { "type": "string", "minLength": 1 }, "requestedMethod": { "type": "string", "minLength": 1 } } } },
+        "resultBinding": { "$ref": "#/$defs/resultEvidenceBinding" }
+      }
+    },
+    "numericalFallback": {
+      "type": "object",
+      "required": ["stage", "requested", "used", "reason"],
+      "properties": {
+        "stage": { "type": "string" },
+        "requested": { "type": "string" },
+        "used": { "type": "string" },
+        "reason": { "type": "string" }
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "reportId",
+    "datasetId",
+    "measurementVersionId",
+    "jobStatus",
+    "estimationStatus",
+    "inferenceStatus",
+    "publicationEligibility",
+    "sample",
+    "options",
+    "warnings",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "reportId": { "type": "string", "pattern": "^empirical_[a-f0-9]{16}$" },
+    "datasetId": { "type": "string", "minLength": 1 },
+    "measurementVersionId": { "type": ["string", "null"], "minLength": 1, "description": "Null for explicit raw-variable procedures without a measurement version." },
+    "jobStatus": { "enum": ["queued", "running", "completed", "failed", "cancelled"] },
+    "estimationStatus": { "enum": ["not_run", "succeeded", "failed", "non_converged", "boundary_solution"] },
+    "inferenceStatus": { "enum": ["not_available", "reliable", "needs_review", "not_reliable"] },
+    "publicationEligibility": { "enum": ["ineligible", "conditional", "eligible"] },
+    "createdAt": { "type": "string" },
+    "studyPlanBinding": { "$ref": "#/$defs/studyPlanBinding" },
+    "evidenceGraph": { "$ref": "#/$defs/evidenceGraph" },
+    "sample": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["rowCount"],
+      "properties": {
+        "rowCount": { "type": "integer", "minimum": 0 },
+        "itemCompleteCases": { "type": "integer", "minimum": 0 },
+        "constructCount": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "options": {"type": "object", "properties": {"procedure": {"enum": ["descriptives", "frequencies", "missing", "correlation", "reliability", "efa", "cfa", "validity", "common_method", "invariance", "groups", "aggregation", "regression", "relative_importance", "response_surface", "longitudinal", "diary", null]}, "analysisVariableIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "maxItems": 800}, "constructIds": {"type": "array", "items": {"type": "string"}, "uniqueItems": true, "maxItems": 100}}},
+    "reliability": { "type": ["object", "null"], "properties": { "method": { "type": "string" }, "constructs": { "type": "array", "items": { "type": "object", "required": ["constructId", "label", "n", "itemCount", "statistics", "items"] } } } },
+    "descriptives": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "n", "missing", "mean", "sd", "minimum", "maximum"],
+        "properties": {
+          "label": { "type": "string" },
+          "n": { "type": "integer", "minimum": 0 },
+          "missing": { "type": "integer", "minimum": 0 },
+          "mean": { "type": ["number", "null"] },
+          "sd": { "type": ["number", "null"] },
+          "minimum": { "type": ["number", "null"] },
+          "maximum": { "type": ["number", "null"] },
+          "skewness": { "type": ["number", "null"] },
+          "kurtosis": { "type": ["number", "null"] },
+          "outlierCount": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "frequencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["label", "levels"],
+        "properties": {
+          "label": { "type": "string" },
+          "levels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["level", "count", "proportion"],
+              "properties": {
+                "level": { "type": ["string", "number"] },
+                "count": { "type": "integer", "minimum": 0 },
+                "proportion": { "type": "number", "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "correlations": { "type": ["array", "object"] },
+    "paperSummaryTable": { "type": ["array", "object", "null"] },
+    "missingDataReport": { "type": ["object", "null"] },
+    "commonMethodBias": { "type": "object" },
+    "factorability": { "type": "object" },
+    "efa": {
+      "type": "object",
+      "properties": {
+        "factorCount": { "type": "integer", "minimum": 0 },
+        "reason": { "type": ["string", "null"] },
+        "loadings": { "type": "array" },
+        "methodExecution": { "type": "object" },
+        "correlationType": { "type": "string", "enum": ["pearson", "polychoric"] },
+        "requestedCorrelationType": { "type": "string", "enum": ["pearson", "polychoric"] },
+        "executedCorrelationType": { "type": "string", "enum": ["pearson", "polychoric"] },
+        "requestedExtractionMethod": { "type": "string" },
+        "executedExtractionMethod": { "type": "string" },
+        "requestedRotation": { "type": "string" },
+        "executedRotation": { "type": "string" },
+        "diagnostics": {
+          "type": "object",
+          "properties": {
+            "items": { "type": "array" },
+            "numericalFallbacks": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/numericalFallback" }
+            }
+          }
+        },
+        "parallelAnalysis": {
+          "type": ["object", "null"],
+          "properties": {
+            "available": { "type": "boolean" },
+            "reason": { "type": ["string", "null"] },
+            "sampleEigenvalues": { "type": "array", "items": { "type": "number" } },
+            "simulatedEigenvalues": { "type": "array", "items": { "type": "number" } },
+            "recommendedFactorCount": { "type": ["integer", "null"], "minimum": 0 },
+            "iterations": { "type": "integer", "minimum": 1 },
+            "quantile": { "type": "number" },
+            "seed": { "type": "integer" },
+            "correlationType": { "type": "string", "enum": ["pearson", "polychoric"] },
+            "simulationType": {
+              "type": "string",
+              "enum": ["continuous_pearson", "ordinal_threshold_preserving"]
+            }
+          }
+        },
+        "splitValidation": {
+          "type": "object",
+          "properties": {
+            "available": { "type": "boolean" },
+            "reason": { "type": ["string", "null"] },
+            "method": { "type": "string" },
+            "correlationType": { "type": ["string", "null"] },
+            "extractionMethod": { "type": ["string", "null"] },
+            "rotation": { "type": "string" },
+            "requestedCorrelationType": { "type": ["string", "null"] },
+            "executedCorrelationType": { "type": ["string", "null"] },
+            "requestedExtractionMethod": { "type": ["string", "null"] },
+            "executedExtractionMethod": { "type": ["string", "null"] },
+            "requestedRotation": { "type": ["string", "null"] },
+            "executedRotation": { "type": ["string", "null"] },
+            "executionFingerprints": { "type": "object" },
+            "trainSampleCount": { "type": "integer", "minimum": 0 },
+            "validationSampleCount": { "type": "integer", "minimum": 0 },
+            "tuckerCongruence": { "type": ["number", "null"] },
+            "numericalFallbacks": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/numericalFallback" }
+            }
+          }
+        }
+      }
+    },
+    "cfa": {
+      "type": "object",
+      "properties": {
+        "available": { "type": "boolean" },
+        "converged": { "type": "boolean" },
+        "reason": { "type": ["string", "null"] },
+        "methodExecution": { "type": "object" },
+        "completeCases": { "type": ["integer", "null"] },
+        "standardizedLoadings": { "type": "array" },
+        "itemIds": { "type": "array" }
+      }
+    },
+    "validity": {
+      "type": "object",
+      "properties": {
+        "constructs": { "type": "array" },
+        "constructLabels": { "type": "array" },
+        "htmtAvailable": { "type": "boolean" },
+        "htmtReason": { "type": ["string", "null"] },
+        "htmtCorrelationSource": {
+          "enum": ["pearson", "polychoric", "unavailable_mixed_item_scales"]
+        },
+        "htmtMethodExecution": { "type": "object" },
+        "htmtInferenceAvailable": { "type": "boolean" },
+        "htmtInferenceReason": { "type": ["string", "null"] },
+        "htmtConfidenceLevel": { "type": "number", "exclusiveMinimum": 0.5, "exclusiveMaximum": 1 },
+        "htmtConfidenceIntervalMethod": { "type": "string", "minLength": 1 }
+      }
+    },
+    "measurementInvariance": { "type": ["object", "null"] },
+    "advancedMeasurementBoundary": {
+      "type": "object",
+      "required": ["executedInBaseReport", "availableThrough", "sliceId", "methods", "requirement"],
+      "properties": {
+        "executedInBaseReport": { "const": false },
+        "availableThrough": { "const": "advanced_workbench" },
+        "sliceId": { "const": "questionnaire_measurement.esem_bifactor_irt" },
+        "methods": { "type": "array", "items": { "enum": ["ESEM", "Bifactor", "IRT", "DIF"] } },
+        "requirement": { "type": "string", "minLength": 1 }
+      }
+    },
+    "groupComparison": { "type": ["object", "null"] },
+    "aggregationDiagnostics": { "type": ["object", "null"] },
+    "hierarchicalRegression": { "type": ["object", "null"] },
+    "responseSurface": { "type": ["object", "null"] },
+    "longitudinalPanel": { "type": ["object", "null"] },
+    "diaryMultilevel": { "type": ["object", "null"] },
+    "academicInterpretation": { "type": ["string", "null"] },
+    "apaTables": { "type": ["string", "array", "null"] },
+    "reportFacts": { "type": "array", "items": { "type": "object" } },
+    "reportingProfileAssessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["profileId", "purpose", "qualityCertified", "causalCertified", "publicationEligibilityGranted"],
+        "properties": {
+          "profileId": { "type": "string" },
+          "purpose": { "const": "disclosure_completeness_only" },
+          "qualityCertified": { "const": false },
+          "causalCertified": { "const": false },
+          "publicationEligibilityGranted": { "const": false }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "severity", "message"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["info", "warning"] },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "required": ["engine"],
+      "properties": {
+        "engine": { "type": "string", "minLength": 1 },
+        "rVersion": { "type": "string" },
+        "executionMode": { "type": "string" },
+        "nonFiniteValues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "originalKind"],
+            "properties": {
+              "path": { "type": "string", "pattern": "^/" },
+              "originalKind": { "enum": ["NaN", "Inf", "-Inf"] }
+            }
+          }
+        },
+        "studyPlanBinding": { "$ref": "#/$defs/studyPlanBinding" }
+      }
+    },
+    "replay": { "type": "object" },
+    "publicationGate": { "type": "object" }
+  }
+}

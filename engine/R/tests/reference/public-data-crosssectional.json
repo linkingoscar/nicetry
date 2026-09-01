@@ -1,0 +1,234 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "data": "Hayes (2022) glbwarm (815 x 7), official data pack",
+    "generator": "output/validation-datasets/build_crosssectional_oracle.R",
+    "oracle": "base R lm/anova/t.test/aov/TukeyHSD + textbook Hedges g, eta^2, omega^2, Games-Howell",
+    "tolerance": {
+      "estimate": 1e-09,
+      "se": 1e-08,
+      "statistic": 1e-07,
+      "pValue": 1e-07,
+      "effectSize": 1e-09,
+      "rSquared": 1e-09,
+      "groupSummary": 1e-09
+    }
+  },
+  "hierarchical": {
+    "n": 815,
+    "block1": {
+      "rSquared": 0.178051927568935,
+      "adjustedRSquared": 0.175011429150571,
+      "coefficients": [
+        {
+          "term": "(Intercept)",
+          "estimate": 6.05068318711483,
+          "standardError": 0.163632959065732,
+          "statistic": 36.9771665907737,
+          "pValue": 3.53558410309873e-176,
+          "lower": 5.72948913185306,
+          "upper": 6.3718772423766
+        },
+        {
+          "term": "posemot",
+          "estimate": 0.0347644729581404,
+          "standardError": 0.0322785834023896,
+          "statistic": 1.077013589003,
+          "pValue": 0.281794455916901,
+          "lower": -0.0285949453418988,
+          "upper": 0.0981238912581796
+        },
+        {
+          "term": "ideology",
+          "estimate": -0.369972336717248,
+          "standardError": 0.0289280719770596,
+          "statistic": -12.7893880038269,
+          "pValue": 2.9977324830435e-34,
+          "lower": -0.426755058256152,
+          "upper": -0.313189615178345
+        },
+        {
+          "term": "sex",
+          "estimate": -0.12658914238333,
+          "standardError": 0.0876390646542919,
+          "statistic": -1.44443739652727,
+          "pValue": 0.149002196757946,
+          "lower": -0.298615283916059,
+          "upper": 0.0454369991493984
+        }
+      ]
+    },
+    "block2": {
+      "rSquared": 0.388088488659786,
+      "adjustedRSquared": 0.385066703418599,
+      "coefficients": [
+        {
+          "term": "(Intercept)",
+          "estimate": 4.01648211245158,
+          "standardError": 0.186658559017328,
+          "statistic": 21.5178030602857,
+          "pValue": 1.39634007419756e-81,
+          "lower": 3.65009058297488,
+          "upper": 4.38287364192828
+        },
+        {
+          "term": "posemot",
+          "estimate": -0.0273281943264761,
+          "standardError": 0.0281156185245804,
+          "statistic": -0.971993353181406,
+          "pValue": 0.331344017533985,
+          "lower": -0.0825162581775859,
+          "upper": 0.0278598695246337
+        },
+        {
+          "term": "ideology",
+          "estimate": -0.221154188853253,
+          "standardError": 0.0265220393546687,
+          "statistic": -8.33850617201212,
+          "pValue": 3.2163104144075e-16,
+          "lower": -0.273214220898696,
+          "upper": -0.16909415680781
+        },
+        {
+          "term": "sex",
+          "estimate": -0.0160016451772946,
+          "standardError": 0.075953850119281,
+          "statistic": -0.210675892692273,
+          "pValue": 0.833193173471219,
+          "lower": -0.165091231325144,
+          "upper": 0.133087940970555
+        },
+        {
+          "term": "negemot",
+          "estimate": 0.440415009716421,
+          "standardError": 0.0264129229434424,
+          "statistic": 16.6742246081388,
+          "pValue": 6.9057640817957e-54,
+          "lower": 0.388569161949538,
+          "upper": 0.492260857483304
+        }
+      ]
+    },
+    "change": {
+      "deltaRSquared": 0.21003656109085,
+      "statistic": 278.02976628266,
+      "df1": 1,
+      "df2": 810,
+      "pValue": 6.90576408179798e-54
+    }
+  },
+  "group2": {
+    "statistic": 2.80824900443592,
+    "df": 741.554656541073,
+    "pValue": 0.00511212601313304,
+    "effectSize": -0.197831015150948,
+    "effectSizeCiLower": -0.335387189663309,
+    "effectSizeCiUpper": -0.0602748406385873,
+    "groups": [
+      {
+        "level": "0",
+        "n": 417,
+        "mean": 4.71798561151079,
+        "sd": 1.16465898350951
+      },
+      {
+        "level": "1",
+        "n": 398,
+        "mean": 4.44974874371859,
+        "sd": 1.52858158092972
+      }
+    ]
+  },
+  "group3": {
+    "statistic": 61.2425344967564,
+    "df1": 2,
+    "df2": 812,
+    "pValue": 1.68797880854807e-25,
+    "etaSquared": 0.131072258998676,
+    "omegaSquared": 0.128794219156424,
+    "brownForsythe": {
+      "statistic": 26.3935730817104,
+      "df1": 2,
+      "df2": 812,
+      "pValue": 7.84516692596854e-12
+    },
+    "welch": {
+      "statistic": 55.6058468111296,
+      "df1": 2,
+      "df2": 432.81936241287,
+      "pValue": 3.21245661003778e-22
+    },
+    "tukey": [
+      {
+        "comparison": "2-1",
+        "difference": -0.458858519034358,
+        "lower": -0.725411218709063,
+        "upper": -0.192305819359653,
+        "pValue": 0.000171401725293618
+      },
+      {
+        "comparison": "3-1",
+        "difference": -1.1390668523677,
+        "lower": -1.38077982547445,
+        "upper": -0.897353879260937,
+        "pValue": 2.06501482580279e-13
+      },
+      {
+        "comparison": "3-2",
+        "difference": -0.680208333333338,
+        "lower": -0.962979398790618,
+        "upper": -0.397437267876058,
+        "pValue": 6.72200259899114e-08
+      }
+    ],
+    "gamesHowell": [
+      {
+        "comparison": "2-1",
+        "difference": -0.458858519034354,
+        "standardError": 0.105953582377624,
+        "degreesOfFreedom": 331.409810491314,
+        "lower": -0.708304240584923,
+        "upper": -0.209412797483786,
+        "pValue": 5.84664584734051e-05
+      },
+      {
+        "comparison": "3-1",
+        "difference": -1.13906685236769,
+        "standardError": 0.10936190108585,
+        "degreesOfFreedom": 432.126838522209,
+        "lower": -1.3962659921027,
+        "upper": -0.881867712632672,
+        "pValue": 0
+      },
+      {
+        "comparison": "3-2",
+        "difference": -0.680208333333334,
+        "standardError": 0.131188626914138,
+        "degreesOfFreedom": 447.823969707128,
+        "lower": -0.988702504943977,
+        "upper": -0.37171416172269,
+        "pValue": 9.80457338428664e-07
+      }
+    ],
+    "groups": [
+      {
+        "level": "1",
+        "n": 359,
+        "mean": 5.06406685236769,
+        "sd": 1.03568515954812
+      },
+      {
+        "level": "2",
+        "n": 192,
+        "mean": 4.60520833333333,
+        "sd": 1.25767755643135
+      },
+      {
+        "level": "3",
+        "n": 264,
+        "mean": 3.925,
+        "sd": 1.53904197152452
+      }
+    ]
+  }
+}

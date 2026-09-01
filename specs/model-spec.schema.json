@@ -1,0 +1,410 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/model-spec.schema.json",
+  "title": "ResearchPath ModelSpec",
+  "description": "观测变量与潜变量中介、调节、回归及结构方程模型的规范中间表示。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "modelId",
+    "name",
+    "datasetVersionId",
+    "design",
+    "nodes",
+    "edges",
+    "moderations",
+    "covariates",
+    "estimation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "enum": ["1.0.0", "0.3.0"]
+    },
+    "modelId": {
+      "$ref": "#/$defs/id"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2000,
+      "default": ""
+    },
+    "datasetVersionId": {
+      "$ref": "#/$defs/id"
+    },
+    "contextHash": {
+      "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "sampleVersionId": {
+      "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+    },
+    "sampleHash": {
+      "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "structureVersionId": {
+      "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+    },
+    "structureHash": {
+      "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "measurementVersionId": {
+      "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+    },
+    "measurementHash": {
+      "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "datasetSha256": {
+      "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }]
+    },
+    "estimandSpec": {
+      "oneOf": [{ "$ref": "#/$defs/estimandSpec" }, { "type": "null" }]
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timeStructure", "clustering", "claimMode"],
+      "properties": {
+        "timeStructure": {
+          "enum": ["cross_sectional", "longitudinal", "experimental"]
+        },
+        "clustering": {
+          "enum": ["none", "known_clustered"]
+        },
+        "claimMode": {
+          "enum": ["associational", "causal_with_assumptions"]
+        }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/node"
+      }
+    },
+    "edges": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/edge"
+      }
+    },
+    "moderations": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/moderation"
+      }
+    },
+    "covariates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/covariateAssignment"
+      }
+    },
+    "latents": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "indicators"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "level": {
+            "enum": ["first_order", "higher_order"],
+            "default": "first_order"
+          },
+          "indicators": {
+            "type": "array",
+            "minItems": 2,
+            "uniqueItems": true,
+            "items": { "$ref": "#/$defs/id" }
+          }
+        }
+      }
+    },
+    "estimation": {
+      "$ref": "#/$defs/estimation"
+    },
+    "canvas": {
+      "type": "object",
+      "description": "仅影响显示，不参与统计模型哈希。",
+      "additionalProperties": false,
+      "properties": {
+        "positions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["x", "y"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "allOf": [{
+    "if": { "properties": { "estimation": { "properties": { "family": { "const": "sem" } } } } },
+    "then": { "required": ["latents"], "properties": { "latents": { "minItems": 1 } } },
+    "else": { "properties": { "nodes": { "minItems": 2 }, "edges": { "minItems": 1 } } }
+  }],
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z][A-Za-z0-9_-]{2,63}$"
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "role", "dataType"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "variableId": { "$ref": "#/$defs/id" },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "kind": {
+          "enum": ["observed", "scale_score", "latent"]
+        },
+        "role": {
+          "enum": ["x", "m", "y", "w", "z", "covariate"]
+        },
+        "dataType": {
+          "enum": ["continuous", "binary", "nominal", "ordinal"]
+        },
+        "encoding": {
+          "$ref": "#/$defs/variableEncoding"
+        }
+      }
+    },
+    "variableEncoding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["method"],
+      "properties": {
+        "method": {
+          "enum": ["as_is", "mean_center", "standardize", "binary_indicator", "ordinal_score", "treatment"]
+        },
+        "referenceLevel": {
+          "type": ["string", "null"]
+        },
+        "levels": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "from", "to", "kind"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "kind": { "const": "regression" },
+        "label": {
+          "type": "string",
+          "maxLength": 40
+        },
+        "hypothesis": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "estimand": {
+          "type": "string",
+          "maxLength": 240
+        }
+      }
+    },
+    "moderation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "moderatorNodeId", "targetEdgeId", "productTermId"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "moderatorNodeId": { "$ref": "#/$defs/id" },
+        "secondaryModeratorNodeId": { "$ref": "#/$defs/id" },
+        "targetEdgeId": { "$ref": "#/$defs/id" },
+        "productTermId": { "$ref": "#/$defs/id" },
+        "moderatorProductTermId": { "$ref": "#/$defs/id" }
+      }
+    },
+    "covariateAssignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "outcomeNodeIds"],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/id" },
+        "outcomeNodeIds": {
+          "type": "array",
+          "minItems": 0,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/id" }
+        }
+      }
+    },
+    "estimation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "family",
+        "standardErrors",
+        "confidenceLevel",
+        "bootstrap",
+        "missing",
+        "centering",
+        "reportScale"
+      ],
+      "properties": {
+        "family": {
+          "enum": ["ols", "sem"]
+        },
+        "estimator": {
+          "enum": ["ML", "MLR", "WLSMV"]
+        },
+        "groupVariableId": {
+          "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+        },
+        "invariance": {
+          "type": "boolean"
+        },
+        "multiGroup": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["compareStructuralPaths", "estimateLatentMeans"],
+          "properties": {
+            "compareStructuralPaths": { "type": "boolean" },
+            "estimateLatentMeans": { "type": "boolean" },
+            "partialInvarianceReleases": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["stage", "constraint", "latentId", "indicatorId", "rationale"],
+                "properties": {
+                  "stage": { "enum": ["metric", "scalar", "strict"] },
+                  "constraint": { "enum": ["loading", "intercept_or_threshold", "residual"] },
+                  "latentId": {
+                    "oneOf": [{ "$ref": "#/$defs/id" }, { "type": "null" }]
+                  },
+                  "indicatorId": { "$ref": "#/$defs/id" },
+                  "rationale": { "type": "string", "minLength": 8, "maxLength": 500 }
+                }
+              }
+            }
+          }
+        },
+        "standardErrors": {
+          "enum": ["classical", "hc3", "standard", "robust", "bootstrap"]
+        },
+        "confidenceLevel": {
+          "type": "number",
+          "exclusiveMinimum": 0.5,
+          "exclusiveMaximum": 1,
+          "default": 0.95
+        },
+        "bootstrap": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["enabled", "replicates", "method", "seed"],
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "replicates": {
+              "type": "integer",
+              "minimum": 1000,
+              "maximum": 100000,
+              "default": 5000
+            },
+            "method": {
+              "enum": ["percentile", "bias_corrected"]
+            },
+            "seed": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        },
+        "missing": {
+          "enum": ["complete_cases_per_model", "fiml"]
+        },
+        "centering": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "nodeIds"],
+          "properties": {
+            "method": {
+              "enum": ["none", "mean"]
+            },
+            "nodeIds": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": { "$ref": "#/$defs/id" }
+            }
+          }
+        },
+        "probe": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "representativeValues": {
+              "enum": ["mean_plus_minus_sd", "percentiles"]
+            },
+            "johnsonNeyman": {
+              "type": "boolean"
+            }
+          }
+        },
+        "reportScale": {
+          "enum": ["unstandardized_primary", "unstandardized_only"]
+        }
+      }
+    },
+    "estimandSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["analysisRole", "causalTarget", "identificationAssumptions", "effectScale"],
+      "properties": {
+        "analysisRole": {
+          "enum": [
+            "preregistered_primary",
+            "preregistered_secondary",
+            "planned_not_preregistered",
+            "exploratory_post_data"
+          ]
+        },
+        "causalTarget": { "type": "boolean" },
+        "identificationAssumptions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "effectScale": {
+          "enum": [
+            "mean_difference",
+            "standardized_difference",
+            "odds_ratio",
+            "indirect_effect",
+            "within_person_slope",
+            "regression_coefficient"
+          ]
+        }
+      }
+    }
+  }
+}

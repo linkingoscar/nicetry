@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/study-context.schema.json",
+  "title": "StudyContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "timeStructure", "dependenceStructure", "design"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "timeStructure": {
+      "enum": ["cross_sectional", "panel", "intensive_longitudinal"]
+    },
+    "dependenceStructure": { "enum": ["independent", "nested"] },
+    "design": {
+      "enum": ["observational", "randomized", "quasi_experimental"]
+    }
+  }
+}

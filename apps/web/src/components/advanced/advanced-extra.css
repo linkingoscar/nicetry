@@ -1,0 +1,128 @@
+/* Status chips */
+.adv-status-chip {
+  display: inline-flex;
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.adv-status-chip.status-queued {
+  color: #5c5016;
+  background: #fff4d4;
+}
+
+.adv-status-chip.status-running {
+  color: #174f84;
+  background: #e4f0ff;
+}
+
+.adv-status-chip.status-cancelling {
+  color: #7b5d23;
+  background: #fff4da;
+}
+
+.adv-status-chip.status-succeeded {
+  color: #1d2b5a;
+  background: #dfe3f0;
+}
+
+.adv-status-chip.status-failed {
+  color: #8c3030;
+  background: #fce4e4;
+}
+
+.adv-status-chip.status-cancelled {
+  color: #6b5e4e;
+  background: #f0ece6;
+}
+
+.adv-progress-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.adv-cancelling-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #7b5d23;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.adv-cancelling-label .adv-btn-spinner {
+  border-color: rgba(123, 93, 35, 0.2);
+  border-top-color: #7b5d23;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .adv-capability-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .adv-result-header {
+    flex-direction: column;
+  }
+
+  .adv-result-actions {
+    width: 100%;
+  }
+
+  .adv-result-actions button {
+    flex: 1;
+  }
+
+  .adv-step-label {
+    display: none;
+  }
+
+  .adv-progress-stage {
+    grid-template-columns: 1fr;
+  }
+
+  .adv-capability-card {
+    grid-template-columns: 40px 1fr 16px;
+    padding: 16px;
+  }
+
+  .adv-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .adv-main { padding-inline: 12px; }
+  .adv-wizard-panel,
+  .adv-result-header,
+  .adv-result-section,
+  .adv-progress-panel { padding: 16px; }
+  .adv-form-grid-two,
+  .adv-form-grid-three { grid-template-columns: 1fr; }
+  .adv-wizard-actions { align-items: stretch; flex-direction: column-reverse; }
+  .adv-wizard-actions button { width: 100%; justify-content: center; }
+}
+
+/* ── Reduced motion ─────────────────────────────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-spinner,
+  .adv-btn-spinner,
+  .adv-live-dot,
+  .adv-progress-bar.is-active {
+    animation: none;
+  }
+
+  .adv-capability-card {
+    animation: none;
+  }
+
+  .adv-progress-bar {
+    transition: none;
+  }
+}

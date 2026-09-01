@@ -1,0 +1,775 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "user-provided official PROCESS for R v5.0 macro (not distributed)",
+    "macroSha256": "3D02E6BBEC08A4A3EE9EDEB8E6300678D717A7A08E41E11C8149C04AB64B8648",
+    "dataSource": "Hayes (2022) official data pack hayes2022data.zip (SHA-256 8459974f96eda74430edc609cfe1f02f881ca59a240cfd3c552120ca2719692a)",
+    "specs": "verbatim from official SPSS code.sps; seeds kept; unseeded runs use 280417",
+    "bootstrap": "5000 percentile, 95% CI",
+    "centering": "none (macro center=0; engine spec omits mean centering)",
+    "excludedRuns": "protest_m4_mcx3 / protest_m8_mcx3 (multicategorical X: engine rejects by design; boundary documented in docs/00 and docs/02)",
+    "tolerance": {
+      "coefficient": 0.0001,
+      "effect": 0.0001,
+      "bootstrapSE": 0.03,
+      "bootstrapInterval": 0.03,
+      "jnEffect": 0.005
+    }
+  },
+  "runs": {
+    "pmi_m4": {
+      "tag": "pmi_m4",
+      "model": 4,
+      "seed": 31216,
+      "bootstrap": true,
+      "equations": {
+        "pmi": [
+          {
+            "term": "constant",
+            "coeff": 5.3769
+          },
+          {
+            "term": "cond",
+            "coeff": 0.4765
+          }
+        ],
+        "reaction": [
+          {
+            "term": "constant",
+            "coeff": 0.5269
+          },
+          {
+            "term": "cond",
+            "coeff": 0.2544
+          },
+          {
+            "term": "pmi",
+            "coeff": 0.5064
+          }
+        ]
+      },
+      "effects": {
+        "total": {
+          "effect": 0.4957,
+          "se": 0.2775,
+          "t": 1.786,
+          "p": 0.0766,
+          "llci": -0.0538,
+          "ulci": 1.0452
+        },
+        "direct": {
+          "effect": 0.2544,
+          "se": 0.2558,
+          "t": 0.9943,
+          "p": 0.3221,
+          "llci": -0.2522,
+          "ulci": 0.7609
+        },
+        "indirect": [
+          {
+            "label": "pmi",
+            "effect": 0.2413,
+            "bootSE": 0.1322,
+            "bootLLCI": 0.0143,
+            "bootULCI": 0.5254
+          }
+        ]
+      },
+      "conditionalIndirect": []
+    },
+    "pmi_m6_serial": {
+      "tag": "pmi_m6_serial",
+      "model": 6,
+      "seed": 31216,
+      "bootstrap": true,
+      "equations": {
+        "import": [
+          {
+            "term": "constant",
+            "coeff": 3.9077
+          },
+          {
+            "term": "cond",
+            "coeff": 0.6268
+          }
+        ],
+        "pmi": [
+          {
+            "term": "constant",
+            "coeff": 4.6104
+          },
+          {
+            "term": "cond",
+            "coeff": 0.3536
+          },
+          {
+            "term": "import",
+            "coeff": 0.1961
+          }
+        ],
+        "reaction": [
+          {
+            "term": "constant",
+            "coeff": -0.1498
+          },
+          {
+            "term": "cond",
+            "coeff": 0.1034
+          },
+          {
+            "term": "import",
+            "coeff": 0.3244
+          },
+          {
+            "term": "pmi",
+            "coeff": 0.3965
+          }
+        ]
+      },
+      "effects": {
+        "total": {
+          "effect": 0.4957,
+          "se": 0.2775,
+          "t": 1.786,
+          "p": 0.0766,
+          "llci": -0.0538,
+          "ulci": 1.0452
+        },
+        "direct": {
+          "effect": 0.1034,
+          "se": 0.2391,
+          "t": 0.4324,
+          "p": 0.6662,
+          "llci": -0.37,
+          "ulci": 0.5768
+        },
+        "indirect": [
+          {
+            "label": "TOTAL",
+            "effect": 0.3923,
+            "bootSE": 0.1653,
+            "bootLLCI": 0.0864,
+            "bootULCI": 0.7396
+          },
+          {
+            "label": "Ind1",
+            "effect": 0.2033,
+            "bootSE": 0.1137,
+            "bootLLCI": 0.0048,
+            "bootULCI": 0.4471
+          },
+          {
+            "label": "Ind2",
+            "effect": 0.1402,
+            "bootSE": 0.1004,
+            "bootLLCI": -0.0437,
+            "bootULCI": 0.3572
+          },
+          {
+            "label": "Ind3",
+            "effect": 0.0488,
+            "bootSE": 0.0354,
+            "bootLLCI": -0.0003,
+            "bootULCI": 0.1354
+          },
+          {
+            "label": "(C1)",
+            "effect": 0.0631,
+            "bootSE": 0.156,
+            "bootLLCI": -0.2404,
+            "bootULCI": 0.3786
+          },
+          {
+            "label": "(C2)",
+            "effect": 0.1546,
+            "bootSE": 0.0979,
+            "bootLLCI": -0.0029,
+            "bootULCI": 0.3783
+          },
+          {
+            "label": "(C3)",
+            "effect": 0.0915,
+            "bootSE": 0.1076,
+            "bootLLCI": -0.1214,
+            "bootULCI": 0.3168
+          }
+        ]
+      },
+      "conditionalIndirect": []
+    },
+    "estress_m4_cov": {
+      "tag": "estress_m4_cov",
+      "model": 4,
+      "seed": 100770,
+      "bootstrap": true,
+      "equations": {
+        "affect": [
+          {
+            "term": "constant",
+            "coeff": 1.7855
+          },
+          {
+            "term": "estress",
+            "coeff": 0.1593
+          },
+          {
+            "term": "ese",
+            "coeff": -0.1549
+          },
+          {
+            "term": "sex",
+            "coeff": 0.0148
+          },
+          {
+            "term": "tenure",
+            "coeff": -0.0108
+          }
+        ],
+        "withdraw": [
+          {
+            "term": "constant",
+            "coeff": 2.7461
+          },
+          {
+            "term": "estress",
+            "coeff": -0.0935
+          },
+          {
+            "term": "affect",
+            "coeff": 0.7071
+          },
+          {
+            "term": "ese",
+            "coeff": -0.2121
+          },
+          {
+            "term": "sex",
+            "coeff": 0.1274
+          },
+          {
+            "term": "tenure",
+            "coeff": -0.0021
+          }
+        ]
+      },
+      "effects": {
+        "total": {
+          "effect": 0.0191,
+          "se": 0.0541,
+          "t": 0.3535,
+          "p": 0.724,
+          "llci": -0.0874,
+          "ulci": 0.1257
+        },
+        "direct": {
+          "effect": -0.0935,
+          "se": 0.0527,
+          "t": -1.7751,
+          "p": 0.0771,
+          "llci": -0.1973,
+          "ulci": 0.0102
+        },
+        "indirect": [
+          {
+            "label": "affect",
+            "effect": 0.1127,
+            "bootSE": 0.0292,
+            "bootLLCI": 0.0594,
+            "bootULCI": 0.1734
+          }
+        ]
+      },
+      "conditionalIndirect": []
+    },
+    "disaster_m1_jn": {
+      "tag": "disaster_m1_jn",
+      "model": 1,
+      "seed": 280417,
+      "bootstrap": false,
+      "equations": {
+        "justify": [
+          {
+            "term": "constant",
+            "coeff": 2.4515
+          },
+          {
+            "term": "frame",
+            "coeff": -0.5625
+          },
+          {
+            "term": "skeptic",
+            "coeff": 0.1051
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.2012
+          }
+        ]
+      },
+      "effects": []
+    },
+    "glbwarm_m1_jn": {
+      "tag": "glbwarm_m1_jn",
+      "model": 1,
+      "seed": 280417,
+      "bootstrap": false,
+      "equations": {
+        "govact": [
+          {
+            "term": "constant",
+            "coeff": 5.1738
+          },
+          {
+            "term": "negemot",
+            "coeff": 0.1196
+          },
+          {
+            "term": "age",
+            "coeff": -0.0239
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0063
+          },
+          {
+            "term": "posemot",
+            "coeff": -0.0214
+          },
+          {
+            "term": "ideology",
+            "coeff": -0.2115
+          },
+          {
+            "term": "sex",
+            "coeff": -0.0112
+          }
+        ]
+      },
+      "effects": []
+    },
+    "glbwarm_m2": {
+      "tag": "glbwarm_m2",
+      "model": 2,
+      "seed": 280417,
+      "bootstrap": false,
+      "equations": {
+        "govact": [
+          {
+            "term": "constant",
+            "coeff": 5.2716
+          },
+          {
+            "term": "negemot",
+            "coeff": 0.0931
+          },
+          {
+            "term": "sex",
+            "coeff": -0.7417
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.2045
+          },
+          {
+            "term": "age",
+            "coeff": -0.0182
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.0047
+          },
+          {
+            "term": "posemot",
+            "coeff": -0.0235
+          },
+          {
+            "term": "ideology",
+            "coeff": -0.2068
+          }
+        ]
+      },
+      "effects": []
+    },
+    "glbwarm_m3_jn": {
+      "tag": "glbwarm_m3_jn",
+      "model": 3,
+      "seed": 280417,
+      "bootstrap": false,
+      "equations": {
+        "govact": [
+          {
+            "term": "constant",
+            "coeff": 4.5595
+          },
+          {
+            "term": "negemot",
+            "coeff": 0.2728
+          },
+          {
+            "term": "sex",
+            "coeff": 0.5294
+          },
+          {
+            "term": "int_1",
+            "coeff": -0.1308
+          },
+          {
+            "term": "age",
+            "coeff": -0.0034
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.0009
+          },
+          {
+            "term": "int_3",
+            "coeff": -0.0253
+          },
+          {
+            "term": "int_4",
+            "coeff": 0.0067
+          },
+          {
+            "term": "posemot",
+            "coeff": -0.0206
+          },
+          {
+            "term": "ideology",
+            "coeff": -0.2055
+          }
+        ]
+      },
+      "effects": []
+    },
+    "disaster_m8": {
+      "tag": "disaster_m8",
+      "model": 8,
+      "seed": 280417,
+      "bootstrap": true,
+      "equations": {
+        "justify": [
+          {
+            "term": "constant",
+            "coeff": 2.4515
+          },
+          {
+            "term": "frame",
+            "coeff": -0.5625
+          },
+          {
+            "term": "skeptic",
+            "coeff": 0.1051
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.2012
+          }
+        ],
+        "donate": [
+          {
+            "term": "constant",
+            "coeff": 7.2915
+          },
+          {
+            "term": "frame",
+            "coeff": 0.1603
+          },
+          {
+            "term": "justify",
+            "coeff": -0.9227
+          },
+          {
+            "term": "skeptic",
+            "coeff": -0.0426
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0149
+          }
+        ]
+      },
+      "effects": [],
+      "conditionalIndirect": [
+        {
+          "moderatorValue": 1.592,
+          "effect": 0.2235,
+          "bootSE": 0.1431,
+          "bootLLCI": -0.0494,
+          "bootULCI": 0.5114
+        },
+        {
+          "moderatorValue": 2.8,
+          "effect": -0.0008,
+          "bootSE": 0.1067,
+          "bootLLCI": -0.2059,
+          "bootULCI": 0.2142
+        },
+        {
+          "moderatorValue": 5.2,
+          "effect": -0.4463,
+          "bootSE": 0.1605,
+          "bootLLCI": -0.7527,
+          "bootULCI": -0.1194
+        }
+      ],
+      "index": {
+        "label": "skeptic",
+        "index": -0.1856,
+        "bootSE": 0.0612,
+        "bootLLCI": -0.305,
+        "bootULCI": -0.0648
+      }
+    },
+    "disaster_m4": {
+      "tag": "disaster_m4",
+      "model": 4,
+      "seed": 280417,
+      "bootstrap": true,
+      "equations": {
+        "justify": [
+          {
+            "term": "constant",
+            "coeff": 2.8024
+          },
+          {
+            "term": "frame",
+            "coeff": 0.1344
+          }
+        ],
+        "donate": [
+          {
+            "term": "constant",
+            "coeff": 7.2352
+          },
+          {
+            "term": "frame",
+            "coeff": 0.212
+          },
+          {
+            "term": "justify",
+            "coeff": -0.9533
+          }
+        ]
+      },
+      "effects": {
+        "total": {
+          "effect": 0.0839,
+          "se": 0.1819,
+          "t": 0.4612,
+          "p": 0.6451,
+          "llci": -0.2747,
+          "ulci": 0.4424
+        },
+        "direct": {
+          "effect": 0.212,
+          "se": 0.1355,
+          "t": 1.5648,
+          "p": 0.1192,
+          "llci": -0.0551,
+          "ulci": 0.4791
+        },
+        "indirect": [
+          {
+            "label": "justify",
+            "effect": -0.1281,
+            "bootSE": 0.1243,
+            "bootLLCI": -0.376,
+            "bootULCI": 0.1151
+          }
+        ]
+      },
+      "conditionalIndirect": []
+    },
+    "disaster_m7": {
+      "tag": "disaster_m7",
+      "model": 7,
+      "seed": 280417,
+      "bootstrap": true,
+      "equations": {
+        "justify": [
+          {
+            "term": "constant",
+            "coeff": 2.4515
+          },
+          {
+            "term": "frame",
+            "coeff": -0.5625
+          },
+          {
+            "term": "skeptic",
+            "coeff": 0.1051
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.2012
+          }
+        ],
+        "donate": [
+          {
+            "term": "constant",
+            "coeff": 7.2582
+          },
+          {
+            "term": "frame",
+            "coeff": 0.2103
+          },
+          {
+            "term": "justify",
+            "coeff": -0.9182
+          },
+          {
+            "term": "skeptic",
+            "coeff": -0.0364
+          }
+        ]
+      },
+      "effects": {
+        "direct": {
+          "effect": 0.2103,
+          "se": 0.1355,
+          "t": 1.5518,
+          "p": 0.1222,
+          "llci": -0.0569,
+          "ulci": 0.4774
+        }
+      },
+      "conditionalIndirect": [
+        {
+          "moderatorValue": 1.592,
+          "effect": 0.2224,
+          "bootSE": 0.142,
+          "bootLLCI": -0.0495,
+          "bootULCI": 0.5098
+        },
+        {
+          "moderatorValue": 2.8,
+          "effect": -0.0008,
+          "bootSE": 0.1061,
+          "bootLLCI": -0.2063,
+          "bootULCI": 0.2105
+        },
+        {
+          "moderatorValue": 5.2,
+          "effect": -0.4441,
+          "bootSE": 0.1592,
+          "bootLLCI": -0.7456,
+          "bootULCI": -0.1195
+        }
+      ],
+      "index": {
+        "label": "skeptic",
+        "index": -0.1847,
+        "bootSE": 0.0605,
+        "bootLLCI": -0.302,
+        "bootULCI": -0.0647
+      }
+    },
+    "teams_m14": {
+      "tag": "teams_m14",
+      "model": 14,
+      "seed": 42517,
+      "bootstrap": true,
+      "equations": {
+        "negtone": [
+          {
+            "term": "constant",
+            "coeff": 0.0257
+          },
+          {
+            "term": "dysfunc",
+            "coeff": 0.6198
+          }
+        ],
+        "perform": [
+          {
+            "term": "constant",
+            "coeff": -0.0119
+          },
+          {
+            "term": "dysfunc",
+            "coeff": 0.3661
+          },
+          {
+            "term": "negtone",
+            "coeff": -0.4357
+          },
+          {
+            "term": "negexp",
+            "coeff": -0.0192
+          },
+          {
+            "term": "int_1",
+            "coeff": -0.517
+          }
+        ]
+      },
+      "effects": {
+        "direct": {
+          "effect": 0.3661,
+          "se": 0.1778,
+          "t": 2.0585,
+          "p": 0.0443,
+          "llci": 0.0097,
+          "ulci": 0.7224
+        }
+      },
+      "conditionalIndirect": [
+        {
+          "moderatorValue": -0.5308,
+          "effect": -0.1,
+          "bootSE": 0.1496,
+          "bootLLCI": -0.3703,
+          "bootULCI": 0.2394
+        },
+        {
+          "moderatorValue": -0.06,
+          "effect": -0.2508,
+          "bootSE": 0.1186,
+          "bootLLCI": -0.4928,
+          "bootULCI": -0.0354
+        },
+        {
+          "moderatorValue": 0.6,
+          "effect": -0.4623,
+          "bootSE": 0.1706,
+          "bootLLCI": -0.8068,
+          "bootULCI": -0.1488
+        }
+      ],
+      "index": {
+        "label": "negexp",
+        "index": -0.3204,
+        "bootSE": 0.1891,
+        "bootLLCI": -0.7612,
+        "bootULCI": -0.0421
+      }
+    },
+    "caskets_m1": {
+      "tag": "caskets_m1",
+      "model": 1,
+      "seed": 280417,
+      "bootstrap": false,
+      "equations": {
+        "interest": [
+          {
+            "term": "constant",
+            "coeff": 1.9803
+          },
+          {
+            "term": "policyc",
+            "coeff": -0.2066
+          },
+          {
+            "term": "kerryc",
+            "coeff": 0.7802
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.3601
+          }
+        ]
+      },
+      "effects": []
+    }
+  }
+}

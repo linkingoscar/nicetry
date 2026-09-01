@@ -1,0 +1,7 @@
+{
+  "status": "failed",
+  "failure": {
+    "reasonCode": "UNDERIDENTIFIED_MODEL",
+    "message": "CFA model is underidentified; requires at least 3 indicators per factor"
+  }
+}

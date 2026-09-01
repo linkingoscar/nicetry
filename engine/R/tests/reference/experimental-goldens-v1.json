@@ -1,0 +1,225 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_experimental_oracle.R",
+    "oracle": "afex::aov_car (type 3) + emmeans (confint, pairs holm, planned contrasts with family-wide holm)",
+    "afexVersion": "1.5.1",
+    "emmeansVersion": "2.0.4",
+    "dataGenerator": "deterministic synthetic designs (seed 20260730), see build_experimental_oracle.R",
+    "tolerance": {
+      "omnibus": 1e-06,
+      "emm": 1e-06,
+      "contrast": 1e-06
+    }
+  },
+  "factorial2x2": {
+    "omnibus": [
+      {
+        "term": "A",
+        "numeratorDf": 1,
+        "denominatorDf": 155,
+        "f": 184.399523155454,
+        "pValue": 3.60446343886181e-28,
+        "partialEtaSquared": 0.543311084945144
+      },
+      {
+        "term": "B",
+        "numeratorDf": 1,
+        "denominatorDf": 155,
+        "f": 24.8138903739866,
+        "pValue": 1.66801714115461e-06,
+        "partialEtaSquared": 0.137997628116367
+      },
+      {
+        "term": "cov",
+        "numeratorDf": 1,
+        "denominatorDf": 155,
+        "f": 151.798328262181,
+        "pValue": 9.45553369873758e-25,
+        "partialEtaSquared": 0.494782123233926
+      },
+      {
+        "term": "A:B",
+        "numeratorDf": 1,
+        "denominatorDf": 155,
+        "f": 1.70343829028459,
+        "pValue": 0.193773110821243,
+        "partialEtaSquared": 0.0108704589310227
+      }
+    ],
+    "emm": [
+      {
+        "A": "a1",
+        "B": "b1",
+        "emmean": 12.9596591585351,
+        "SE": 0.171692759763548,
+        "df": 155,
+        "lower.CL": 12.6204994904029,
+        "upper.CL": 13.2988188266674
+      },
+      {
+        "A": "a2",
+        "B": "b1",
+        "emmean": 15.0957391784765,
+        "SE": 0.173559608842361,
+        "df": 155,
+        "lower.CL": 14.7528917606983,
+        "upper.CL": 15.4385865962547
+      },
+      {
+        "A": "a1",
+        "B": "b2",
+        "emmean": 11.8776423509156,
+        "SE": 0.172402406305674,
+        "df": 155,
+        "lower.CL": 11.5370808561364,
+        "upper.CL": 12.2182038456948
+      },
+      {
+        "A": "a2",
+        "B": "b2",
+        "emmean": 14.4616837741608,
+        "SE": 0.171397348756149,
+        "df": 155,
+        "lower.CL": 14.123107657131,
+        "upper.CL": 14.8002598911907
+      }
+    ],
+    "contrasts": [
+      {
+        "contrast": "a1 b1 - a2 b1",
+        "estimate": -2.13608001994139,
+        "standardError": 0.24527103720514,
+        "df": 155,
+        "statistic": -8.70905935034969,
+        "pValue": 1.72709923778421e-14
+      },
+      {
+        "contrast": "a1 b1 - a1 b2",
+        "estimate": 1.08201680761952,
+        "standardError": 0.242531567267954,
+        "df": 155,
+        "statistic": 4.46134422750867,
+        "pValue": 3.11499075122582e-05
+      },
+      {
+        "contrast": "a1 b1 - a2 b2",
+        "estimate": -1.50202461562574,
+        "standardError": 0.24266309352759,
+        "df": 155,
+        "statistic": -6.18975301843731,
+        "pValue": 1.54725995746995e-08
+      },
+      {
+        "contrast": "a2 b1 - a1 b2",
+        "estimate": 3.21809682756091,
+        "standardError": 0.246709388089831,
+        "df": 155,
+        "statistic": 13.0440793213315,
+        "pValue": 6.12052990850755e-26
+      },
+      {
+        "contrast": "a2 b1 - a2 b2",
+        "estimate": 0.634055404315655,
+        "standardError": 0.243761260612368,
+        "df": 155,
+        "statistic": 2.60113277525233,
+        "pValue": 0.0101913928683076
+      },
+      {
+        "contrast": "a1 b2 - a2 b2",
+        "estimate": -2.58404142324525,
+        "standardError": 0.243216940732876,
+        "df": 155,
+        "statistic": -10.6244302533321,
+        "pValue": 1.8815140091831e-19
+      }
+    ]
+  },
+  "singleFactor3": {
+    "omnibus": [
+      {
+        "term": "F",
+        "numeratorDf": 2,
+        "denominatorDf": 87,
+        "f": 19.8802968017344,
+        "pValue": 7.74946985552163e-08,
+        "partialEtaSquared": 0.313666830307276
+      }
+    ],
+    "emm": [
+      {
+        "F": "f1",
+        "emmean": 11.9770155973329,
+        "SE": 0.274966016632916,
+        "df": 87,
+        "lower.CL": 11.4304908655178,
+        "upper.CL": 12.5235403291481
+      },
+      {
+        "F": "f2",
+        "emmean": 13.8296890361511,
+        "SE": 0.274966016632916,
+        "df": 87,
+        "lower.CL": 13.283164304336,
+        "upper.CL": 14.3762137679662
+      },
+      {
+        "F": "f3",
+        "emmean": 14.2943693955533,
+        "SE": 0.274966016632916,
+        "df": 87,
+        "lower.CL": 13.7478446637382,
+        "upper.CL": 14.8408941273684
+      }
+    ],
+    "contrasts": [
+      {
+        "contrast": "f1 - f2",
+        "estimate": -1.85267343881817,
+        "standardError": 0.388860669913976,
+        "df": 87,
+        "statistic": -4.764363130959,
+        "pValue": 1.50400602957348e-05
+      },
+      {
+        "contrast": "f1 - f3",
+        "estimate": -2.31735379822036,
+        "standardError": 0.388860669913976,
+        "df": 87,
+        "statistic": -5.95934219506695,
+        "pValue": 1.58034680869119e-07
+      },
+      {
+        "contrast": "f2 - f3",
+        "estimate": -0.464680359402192,
+        "standardError": 0.388860669913976,
+        "df": 87,
+        "statistic": -1.19497906410795,
+        "pValue": 0.235342625170024
+      }
+    ],
+    "plannedContrasts": [
+      {
+        "plannedContrastId": "c1",
+        "estimate": 1.85267343881817,
+        "standardError": 0.388860669913976,
+        "df": 87,
+        "statistic": 4.764363130959,
+        "pValue": 1.50400602957348e-05,
+        "lower": 1.07977075091287,
+        "upper": 2.62557612672346
+      },
+      {
+        "plannedContrastId": "c2",
+        "estimate": 1.39101707881128,
+        "standardError": 0.336763218678138,
+        "df": 87,
+        "statistic": 4.13054930485369,
+        "pValue": 8.28797649162848e-05,
+        "lower": 0.721663716432017,
+        "upper": 2.06037044119053
+      }
+    ]
+  }
+}

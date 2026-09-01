@@ -1,0 +1,11 @@
+{
+  "data": {
+    "treatmentVar": "treatment",
+    "outcomeVar": "outcome"
+  },
+  "parameters": {
+    "permutations": "exact",
+    "testStatistic": "mean_difference",
+    "assignmentLength": 3
+  }
+}

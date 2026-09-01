@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/statistical-validation.schema.json",
+  "title": "ResearchPath statistical validation scenarios",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "scenarios"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scenario" }
+    }
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "capabilitySliceId", "certificationWave", "validationType",
+        "oracle", "repetitions", "seed", "thresholds", "evidenceTest", "status"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]+-v[0-9]+$" },
+        "capabilitySliceId": { "type": "string", "minLength": 1 },
+        "certificationWave": { "type": "integer", "minimum": 1, "maximum": 4 },
+        "validationType": { "enum": ["deterministic_oracle", "simulation_recovery", "sbc_ppc"] },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "validationClaim", "independence"],
+          "properties": {
+            "level": {
+              "enum": [
+                "same_implementation", "same_package", "independent_implementation",
+                "official_reference", "simulation_calibration"
+              ]
+            },
+            "validationClaim": { "enum": ["internal", "external"] },
+            "independence": { "type": "string", "minLength": 1 }
+          }
+        },
+        "repetitions": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer", "minimum": 1 },
+        "thresholds": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "minimum": { "type": "number" },
+              "maximum": { "type": "number" }
+            },
+            "anyOf": [
+              { "required": ["minimum"] },
+              { "required": ["maximum"] }
+            ]
+          }
+        },
+        "evidenceTest": { "type": "string", "pattern": "^engine/R/tests/testthat/test-.+\\.R$" },
+        "status": { "enum": ["enforced", "planned"] }
+      }
+    }
+  }
+}

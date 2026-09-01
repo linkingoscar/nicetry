@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_longitudinal_oracle.R",
+    "oracle": "lavaan::sem with independently reconstructed CLPM / RI-CLPM syntax (ML, listwise, auto.fix.first=FALSE, auto.var=TRUE)",
+    "lavaanVersion": "0.6.21",
+    "dataGenerator": "deterministic 2-construct x 4-wave panel with person-level random intercepts (seed 20260819, n=400)",
+    "tolerance": {
+      "estimate": 1e-06,
+      "se": 1e-05,
+      "fit": 1e-06
+    },
+    "note": "tolerances reflect the CSV round-trip storage precision (~7 significant digits); both sides fit identical lavaan models"
+  },
+  "clpm": {
+    "fit": {
+      "chiSquare": 31.8478351883549,
+      "degreesOfFreedom": 12,
+      "pValue": 0.00146059022705514,
+      "cfi": 0.989068030392872,
+      "tli": 0.974492070916701,
+      "rmsea": 0.0643036986824288,
+      "srmr": 0.0276839144150968
+    },
+    "paths": [
+      {
+        "id": "x2~x1",
+        "estimate": 0.699819796700754,
+        "standardizedEstimate": 0.606249106904455,
+        "standardError": 0.042938856299224,
+        "pValue": 0,
+        "lower": 0.615661184816934,
+        "upper": 0.783978408584574
+      },
+      {
+        "id": "x2~y1",
+        "estimate": 0.229108946447393,
+        "standardizedEstimate": 0.222316237257588,
+        "standardError": 0.0383341842175324,
+        "pValue": 2.27811325359539e-09,
+        "lower": 0.153975326004306,
+        "upper": 0.30424256689048
+      },
+      {
+        "id": "y2~y1",
+        "estimate": 0.565272481900932,
+        "standardizedEstimate": 0.605771668474456,
+        "standardError": 0.0364948502076162,
+        "pValue": 0,
+        "lower": 0.49374388987282,
+        "upper": 0.636801073929044
+      },
+      {
+        "id": "y2~x1",
+        "estimate": 0.161681315604182,
+        "standardizedEstimate": 0.1546844655567,
+        "standardError": 0.0408785829335542,
+        "pValue": 7.64836084305998e-05,
+        "lower": 0.0815607653153825,
+        "upper": 0.241801865892982
+      },
+      {
+        "id": "x3~x2",
+        "estimate": 0.743482473463332,
+        "standardizedEstimate": 0.699499689803763,
+        "standardError": 0.0364975500547154,
+        "pValue": 0,
+        "lower": 0.671948589832142,
+        "upper": 0.815016357094522
+      },
+      {
+        "id": "x3~y2",
+        "estimate": 0.173741390303524,
+        "standardizedEstimate": 0.148012401432844,
+        "standardError": 0.0403074841197985,
+        "pValue": 1.62959312182132e-05,
+        "lower": 0.0947401731212988,
+        "upper": 0.252742607485749
+      },
+      {
+        "id": "y3~y2",
+        "estimate": 0.719052068766466,
+        "standardizedEstimate": 0.657661781987801,
+        "standardError": 0.0424130626398506,
+        "pValue": 0,
+        "lower": 0.635923993518318,
+        "upper": 0.802180144014615
+      },
+      {
+        "id": "y3~x2",
+        "estimate": 0.0610725179530217,
+        "standardizedEstimate": 0.0616893322543662,
+        "standardError": 0.0384041056016043,
+        "pValue": 0.111776181752748,
+        "lower": -0.0141981458845957,
+        "upper": 0.136343181790639
+      },
+      {
+        "id": "x4~x3",
+        "estimate": 0.768092649464663,
+        "standardizedEstimate": 0.722967362178421,
+        "standardError": 0.0348900504885741,
+        "pValue": 0,
+        "lower": 0.699709407088274,
+        "upper": 0.836475891841053
+      },
+      {
+        "id": "x4~y3",
+        "estimate": 0.166233640204511,
+        "standardizedEstimate": 0.145739255194519,
+        "standardError": 0.0374583851034124,
+        "pValue": 9.08737777649549e-06,
+        "lower": 0.0928165544827911,
+        "upper": 0.239650725926231
+      },
+      {
+        "id": "y4~y3",
+        "estimate": 0.667616498535385,
+        "standardizedEstimate": 0.675334914401367,
+        "standardError": 0.0364215380064972,
+        "pValue": 0,
+        "lower": 0.596231595781094,
+        "upper": 0.739001401289676
+      },
+      {
+        "id": "y4~x3",
+        "estimate": 0.0891504148370336,
+        "standardizedEstimate": 0.0968195284460917,
+        "standardError": 0.0339242948250442,
+        "pValue": 0.00859081064663725,
+        "lower": 0.0226600187790284,
+        "upper": 0.155640810895039
+      }
+    ]
+  },
+  "riClpm": {
+    "fit": {
+      "chiSquare": 9.46666248392134,
+      "degreesOfFreedom": 9,
+      "pValue": 0.395358028737143,
+      "cfi": 0.999742967429818,
+      "tli": 0.999200343114989,
+      "rmsea": 0.0113854498266835,
+      "srmr": 0.0130305569373708
+    },
+    "paths": [
+      {
+        "id": "wx_2~wx_1",
+        "estimate": 0.538437452646736,
+        "standardizedEstimate": 0.462478201658233,
+        "standardError": 0.0925804451316757,
+        "pValue": 6.03130256848772e-09,
+        "lower": 0.356983114515965,
+        "upper": 0.719891790777507
+      },
+      {
+        "id": "wx_2~wy_1",
+        "estimate": 0.352436328063314,
+        "standardizedEstimate": 0.363534563377383,
+        "standardError": 0.0559805927448795,
+        "pValue": 3.06040082165282e-10,
+        "lower": 0.242716382450146,
+        "upper": 0.462156273676482
+      },
+      {
+        "id": "wy_2~wy_1",
+        "estimate": 0.455680546300223,
+        "standardizedEstimate": 0.487324351764681,
+        "standardError": 0.0682680680551038,
+        "pValue": 2.47448728174504e-11,
+        "lower": 0.32187759161809,
+        "upper": 0.589483500982356
+      },
+      {
+        "id": "wy_2~wx_1",
+        "estimate": 0.399023405988851,
+        "standardizedEstimate": 0.355342344336332,
+        "standardError": 0.0764304375312022,
+        "pValue": 1.78210049606164e-07,
+        "lower": 0.249222501105057,
+        "upper": 0.548824310872646
+      },
+      {
+        "id": "wx_3~wx_2",
+        "estimate": 0.637754505013665,
+        "standardizedEstimate": 0.59909483464044,
+        "standardError": 0.0565641352872983,
+        "pValue": 0,
+        "lower": 0.526890837033909,
+        "upper": 0.748618172993421
+      },
+      {
+        "id": "wx_3~wy_2",
+        "estimate": 0.283427888924079,
+        "standardizedEstimate": 0.256798236430151,
+        "standardError": 0.055255780170098,
+        "pValue": 2.90698141114376e-07,
+        "lower": 0.175128549853025,
+        "upper": 0.391727227995134
+      },
+      {
+        "id": "wy_3~wy_2",
+        "estimate": 0.679847935840413,
+        "standardizedEstimate": 0.628177244372046,
+        "standardError": 0.0688845938634541,
+        "pValue": 0,
+        "lower": 0.544836612778374,
+        "upper": 0.814859258902452
+      },
+      {
+        "id": "wy_3~wx_2",
+        "estimate": 0.149768540548201,
+        "standardizedEstimate": 0.143477433582234,
+        "standardError": 0.0552452409843108,
+        "pValue": 0.00670854154084899,
+        "lower": 0.0414898579017156,
+        "upper": 0.258047223194686
+      },
+      {
+        "id": "wx_4~wx_3",
+        "estimate": 0.67635256326637,
+        "standardizedEstimate": 0.643297795313319,
+        "standardError": 0.0457971015790877,
+        "pValue": 0,
+        "lower": 0.586591893575035,
+        "upper": 0.766113232957704
+      },
+      {
+        "id": "wx_4~wy_3",
+        "estimate": 0.25313834866307,
+        "standardizedEstimate": 0.236089081987232,
+        "standardError": 0.0451660509608935,
+        "pValue": 2.08717789718094e-08,
+        "lower": 0.164614515455818,
+        "upper": 0.341662181870321
+      },
+      {
+        "id": "wy_4~wy_3",
+        "estimate": 0.642254109997106,
+        "standardizedEstimate": 0.645258810079585,
+        "standardError": 0.0574823878002312,
+        "pValue": 0,
+        "lower": 0.529590700163288,
+        "upper": 0.754917519830924
+      },
+      {
+        "id": "wy_4~wx_3",
+        "estimate": 0.171443790812956,
+        "standardizedEstimate": 0.175658744193692,
+        "standardError": 0.0468134043609245,
+        "pValue": 0.000249980487043722,
+        "lower": 0.0796912042718335,
+        "upper": 0.263196377354078
+      }
+    ]
+  }
+}

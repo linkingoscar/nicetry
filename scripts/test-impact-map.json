@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "1.0.0",
+  "defaultEscalation": "Full",
+  "rules": [
+    {
+      "id": "documentation-only",
+      "patterns": ["docs/**", "*.md"],
+      "risk": "A",
+      "lanes": ["docs-only"]
+    },
+    {
+      "id": "frontend",
+      "patterns": ["apps/web/src/**"],
+      "risk": "B",
+      "lanes": ["web-unit", "e2e-smoke"]
+    },
+    {
+      "id": "browser-e2e",
+      "patterns": ["tests/e2e/**", "playwright.config.ts"],
+      "risk": "B",
+      "lanes": ["e2e-smoke"]
+    },
+    {
+      "id": "cross-language-contract",
+      "patterns": ["specs/**", "apps/web/src/types/**", "apps/web/src/api/**"],
+      "risk": "C",
+      "lanes": ["contracts", "api-no-coverage", "web-unit"]
+    },
+    {
+      "id": "api",
+      "patterns": ["apps/api/app/**", "apps/api/tests/**"],
+      "risk": "B",
+      "lanes": ["api-no-coverage"]
+    },
+    {
+      "id": "statistical-engine",
+      "patterns": ["engine/R/**", "renv.lock"],
+      "risk": "C",
+      "lanes": ["r-statistical", "r-goldens", "api-no-coverage"]
+    },
+    {
+      "id": "release-or-harness-infrastructure",
+      "patterns": [
+        "scripts/**",
+        ".github/**",
+        "package.json",
+        "package-lock.json",
+        "requirements*.txt",
+        "pyproject.toml",
+        "project.manifest.json"
+      ],
+      "risk": "D",
+      "lanes": [],
+      "escalation": "Full"
+    }
+  ]
+}

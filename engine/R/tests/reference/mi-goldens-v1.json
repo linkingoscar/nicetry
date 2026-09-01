@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_mi_oracle.R",
+    "oracle": "mice::mice (pmm, m=10, maxit=5, seed 20260814) + hand-written Barnard-Rubin pooling of per-imputation lm fits",
+    "miceVersion": "3.19.0",
+    "data": "Hayes glbwarm with deterministic MCAR holes (placement seed 20260815)",
+    "holeRates": {
+      "negemot": 0.15,
+      "posemot": 0.1,
+      "age": 0.12
+    },
+    "imputations": 10,
+    "iterations": 5,
+    "seed": 20260814,
+    "pooledModel": "govact ~ negemot + age + sex",
+    "tolerance": {
+      "estimate": 1e-09,
+      "se": 1e-09,
+      "df": 1e-09,
+      "statistic": 1e-08,
+      "pValue": 1e-08,
+      "variance": 1e-09,
+      "rivFmi": 1e-09
+    }
+  },
+  "estimates": [
+    {
+      "term": "(Intercept)",
+      "estimate": 2.99413431121189,
+      "standardError": 0.170441027796436,
+      "degreesOfFreedom": 552.233605270701,
+      "statistic": 17.5669810838497,
+      "pValue": 0,
+      "confidenceLower": 2.65934227889943,
+      "confidenceUpper": 3.32892634352434,
+      "withinVariance": 0.0271267044915692,
+      "betweenVariance": 0.00174858133157845,
+      "totalVariance": 0.0290501439563055,
+      "RIV": 0.070905755077403,
+      "FMI": 0.0671193826643004
+    },
+    {
+      "term": "negemot",
+      "estimate": 0.503722164733526,
+      "standardError": 0.026990415264433,
+      "degreesOfFreedom": 625.699725797743,
+      "statistic": 18.6630016544174,
+      "pValue": 0,
+      "confidenceLower": 0.45071939684868,
+      "confidenceUpper": 0.556724932618373,
+      "withinVariance": 0.000690947546171105,
+      "betweenVariance": 3.41226999776662e-05,
+      "totalVariance": 0.000728482516146538,
+      "RIV": 0.0543239066169832,
+      "FMI": 0.0520839402635142
+    },
+    {
+      "term": "age",
+      "estimate": -0.00384163347684591,
+      "standardError": 0.00263176712710163,
+      "degreesOfFreedom": 271.603004376987,
+      "statistic": -1.45971633936955,
+      "pValue": 0.145523693051614,
+      "confidenceLower": -0.00902289002599912,
+      "confidenceUpper": 0.0013396230723073,
+      "withinVariance": 5.94252299448313e-06,
+      "betweenVariance": 8.94250197099674e-07,
+      "totalVariance": 6.92619821129278e-06,
+      "RIV": 0.165531579385197,
+      "FMI": 0.145842419982196
+    },
+    {
+      "term": "sex",
+      "estimate": -0.0518712882262639,
+      "standardError": 0.082890885096114,
+      "degreesOfFreedom": 615.275300902662,
+      "statistic": -0.625777950930526,
+      "pValue": 0.531692648582084,
+      "confidenceLower": -0.214654652812891,
+      "confidenceUpper": 0.110912076360363,
+      "withinVariance": 0.00650262802299416,
+      "betweenVariance": 0.000334791644566371,
+      "totalVariance": 0.00687089883201717,
+      "RIV": 0.0566341497192755,
+      "FMI": 0.0542022440371901
+    }
+  ]
+}

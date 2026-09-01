@@ -1,0 +1,718 @@
+{
+  "provenance": {
+    "reference": "Independent PROCESS for R Version 5.0 macro (Andrew F. Hayes)",
+    "macroSource": "user-provided official PROCESS for R 5.0 macro (not distributed)",
+    "dataSha256": "a1029243028da40a18cd4200878797672f7d79b3b9d832545cd5bcda78fb623c",
+    "dataGenerator": "sin/cos formulas shared with test_process_catalog_execution.py Model 19 reference",
+    "seed": 20260730,
+    "replicates": 5000,
+    "confidenceLevel": 0.95,
+    "centering": {
+      "method": "mean",
+      "nodeIds": ["var_x", "var_m1", "var_w", "var_z"]
+    },
+    "decimals": "10.7",
+    "generatedAt": "2026-08-14T11:56:27Z",
+    "rVersion": "R version 4.6.1 (2026-06-24 ucrt)",
+    "tolerance": {
+      "coefficient": 5e-07,
+      "effect": 5e-07,
+      "bootstrapInterval": 0.01,
+      "bootstrapSE": 0.001
+    }
+  },
+  "models": {
+    "model_5": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.37365
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0565917
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1873324
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4632876
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1359909
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0651612
+          }
+        ]
+      ],
+      "indirect": [
+        {
+          "label": "var_m1",
+          "effect": 0.1731074,
+          "bootSE": 0.0329582,
+          "bootLLCI": 0.1121321,
+          "bootULCI": 0.2415383
+        }
+      ],
+      "conditionalDirect": [
+        {
+          "w": -1.1177273,
+          "effect": 0.1145,
+          "se": 0.0535762,
+          "t": 2.1371447,
+          "p": 0.0336191,
+          "llci": 0.0089491,
+          "ulci": 0.2200509
+        },
+        {
+          "w": 0.0023286,
+          "effect": 0.1874842,
+          "se": 0.0409553,
+          "t": 4.5777808,
+          "p": 7.6e-06,
+          "llci": 0.1067978,
+          "ulci": 0.2681705
+        },
+        {
+          "w": 1.1192304,
+          "effect": 0.2602628,
+          "se": 0.0514178,
+          "t": 5.0617298,
+          "p": 8e-07,
+          "llci": 0.1589642,
+          "ulci": 0.3615615
+        }
+      ]
+    },
+    "model_15": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.37365
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0354889
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1852461
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4634739
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1377045
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.024123
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.1132784
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "-1.1177273",
+          "effect": 0.1258676,
+          "bootSE": 0.0433531,
+          "bootLLCI": 0.0443785,
+          "bootULCI": 0.2169707
+        },
+        {
+          "label": "0.0023286",
+          "effect": 0.1732756,
+          "bootSE": 0.032642,
+          "bootLLCI": 0.1120793,
+          "bootULCI": 0.2405949
+        },
+        {
+          "label": "1.1192304",
+          "effect": 0.2205501,
+          "bootSE": 0.0427649,
+          "bootLLCI": 0.1368761,
+          "bootULCI": 0.3048778
+        }
+      ],
+      "index": [
+        {
+          "label": "var_w",
+          "effect": 0.0423265,
+          "bootSE": 0.0251078,
+          "bootLLCI": -0.0099678,
+          "bootULCI": 0.0898256
+        }
+      ]
+    },
+    "model_21": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0240524
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1371838
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.5287037
+          },
+          {
+            "term": "var_z",
+            "coeff": -0.054481
+          },
+          {
+            "term": "int_2",
+            "coeff": -0.3342126
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "W_-1.1177273__Z_-1.1111858",
+          "w": -1.1177273,
+          "z": -1.1111858,
+          "effect": 0.319851,
+          "bootSE": 0.0457039,
+          "bootLLCI": 0.2355094,
+          "bootULCI": 0.4142763
+        },
+        {
+          "label": "W_-1.1177273__Z_0.0232349",
+          "w": -1.1177273,
+          "z": 0.0232349,
+          "effect": 0.1851206,
+          "bootSE": 0.0326284,
+          "bootLLCI": 0.1259794,
+          "bootULCI": 0.2542326
+        },
+        {
+          "label": "W_-1.1177273__Z_0.9987751",
+          "w": -1.1177273,
+          "z": 0.9987751,
+          "effect": 0.0692598,
+          "bootSE": 0.0377745,
+          "bootLLCI": 3.52e-05,
+          "bootULCI": 0.1464327
+        },
+        {
+          "label": "W_0.0023286__Z_-1.1111858",
+          "w": 0.0023286,
+          "z": -1.1111858,
+          "effect": 0.3475203,
+          "bootSE": 0.037397,
+          "bootLLCI": 0.27739,
+          "bootULCI": 0.4238843
+        },
+        {
+          "label": "W_0.0023286__Z_0.0232349",
+          "w": 0.0023286,
+          "z": 0.0232349,
+          "effect": 0.2011348,
+          "bootSE": 0.0314382,
+          "bootLLCI": 0.142464,
+          "bootULCI": 0.2662853
+        },
+        {
+          "label": "W_0.0023286__Z_0.9987751",
+          "w": 0.0023286,
+          "z": 0.9987751,
+          "effect": 0.0752513,
+          "bootSE": 0.041182,
+          "bootLLCI": 4.68e-05,
+          "bootULCI": 0.1611202
+        },
+        {
+          "label": "W_1.1192304__Z_-1.1111858",
+          "w": 1.1192304,
+          "z": -1.1111858,
+          "effect": 0.3751118,
+          "bootSE": 0.0460387,
+          "bootLLCI": 0.2893298,
+          "bootULCI": 0.4692808
+        },
+        {
+          "label": "W_1.1192304__Z_0.0232349",
+          "w": 1.1192304,
+          "z": 0.0232349,
+          "effect": 0.217104,
+          "bootSE": 0.0375631,
+          "bootLLCI": 0.1489221,
+          "bootULCI": 0.2949683
+        },
+        {
+          "label": "W_1.1192304__Z_0.9987751",
+          "w": 1.1192304,
+          "z": 0.9987751,
+          "effect": 0.0812259,
+          "bootSE": 0.0456247,
+          "bootLLCI": 5.84e-05,
+          "bootULCI": 0.1791845
+        }
+      ]
+    },
+    "model_22": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0306414
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1784709
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4132953
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.121644
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0815396
+          },
+          {
+            "term": "var_z",
+            "coeff": -0.0433487
+          },
+          {
+            "term": "int_2",
+            "coeff": -0.3388442
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "W_-1.1177273__Z_-1.1111858",
+          "w": -1.1177273,
+          "z": -1.1111858,
+          "effect": 0.2806683,
+          "bootSE": 0.0437645,
+          "bootLLCI": 0.2011125,
+          "bootULCI": 0.3730311
+        },
+        {
+          "label": "W_-1.1177273__Z_0.0232349",
+          "w": -1.1177273,
+          "z": 0.0232349,
+          "effect": 0.1440708,
+          "bootSE": 0.0297156,
+          "bootLLCI": 0.0891654,
+          "bootULCI": 0.20591
+        },
+        {
+          "label": "W_-1.1177273__Z_0.9987751",
+          "w": -1.1177273,
+          "z": 0.9987751,
+          "effect": 0.0266044,
+          "bootSE": 0.0315794,
+          "bootLLCI": -0.0322169,
+          "bootULCI": 0.0914003
+        },
+        {
+          "label": "W_0.0023286__Z_-1.1111858",
+          "w": 0.0023286,
+          "z": -1.1111858,
+          "effect": 0.3049481,
+          "bootSE": 0.0357712,
+          "bootLLCI": 0.2380404,
+          "bootULCI": 0.3774517
+        },
+        {
+          "label": "W_0.0023286__Z_0.0232349",
+          "w": 0.0023286,
+          "z": 0.0232349,
+          "effect": 0.156534,
+          "bootSE": 0.0281414,
+          "bootLLCI": 0.1043494,
+          "bootULCI": 0.2132909
+        },
+        {
+          "label": "W_0.0023286__Z_0.9987751",
+          "w": 0.0023286,
+          "z": 0.9987751,
+          "effect": 0.0289059,
+          "bootSE": 0.0342113,
+          "bootLLCI": -0.0358062,
+          "bootULCI": 0.0987272
+        },
+        {
+          "label": "W_1.1192304__Z_-1.1111858",
+          "w": 1.1192304,
+          "z": -1.1111858,
+          "effect": 0.3291595,
+          "bootSE": 0.0413658,
+          "bootLLCI": 0.2509845,
+          "bootULCI": 0.4132308
+        },
+        {
+          "label": "W_1.1192304__Z_0.0232349",
+          "w": 1.1192304,
+          "z": 0.0232349,
+          "effect": 0.168962,
+          "bootSE": 0.0315293,
+          "bootLLCI": 0.1117688,
+          "bootULCI": 0.2349795
+        },
+        {
+          "label": "W_1.1192304__Z_0.9987751",
+          "w": 1.1192304,
+          "z": 0.9987751,
+          "effect": 0.0312009,
+          "bootSE": 0.0371878,
+          "bootLLCI": -0.0389973,
+          "bootULCI": 0.1077527
+        }
+      ]
+    },
+    "model_58": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0294263
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1856507
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4660309
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1368252
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.1390436
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "-1.1177273",
+          "effect": 0.1103812,
+          "bootSE": 0.0392411,
+          "bootLLCI": 0.0356686,
+          "bootULCI": 0.1925911
+        },
+        {
+          "label": "0.0023286",
+          "effect": 0.18006,
+          "bootSE": 0.0315321,
+          "bootLLCI": 0.120873,
+          "bootULCI": 0.2440592
+        },
+        {
+          "label": "1.1192304",
+          "effect": 0.2590773,
+          "bootSE": 0.0444757,
+          "bootLLCI": 0.174462,
+          "bootULCI": 0.3518976
+        }
+      ]
+    },
+    "model_59": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0354889
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1852461
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4634739
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1377045
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.024123
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.1132784
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "-1.1177273",
+          "effect": 0.1197064,
+          "bootSE": 0.0432524,
+          "bootLLCI": 0.0405984,
+          "bootULCI": 0.2152308
+        },
+        {
+          "label": "0.0023286",
+          "effect": 0.1790496,
+          "bootSE": 0.0318172,
+          "bootLLCI": 0.1189822,
+          "bootULCI": 0.2439212
+        },
+        {
+          "label": "1.1192304",
+          "effect": 0.2459936,
+          "bootSE": 0.0489547,
+          "bootLLCI": 0.1523397,
+          "bootULCI": 0.3456202
+        }
+      ]
+    },
+    "model_60": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0003178
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.4001055
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1822258
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0022692
+          },
+          {
+            "term": "var_z",
+            "coeff": -0.1208745
+          },
+          {
+            "term": "int_2",
+            "coeff": -0.0012827
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0294263
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1856507
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.4660309
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1368252
+          },
+          {
+            "term": "int_3",
+            "coeff": 0.1390436
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "W_-1.1177273__Z_-1.1111858",
+          "w": -1.1177273,
+          "z": -1.1111858,
+          "effect": 0.1239349,
+          "bootSE": 0.0453798,
+          "bootLLCI": 0.0389205,
+          "bootULCI": 0.2188384
+        },
+        {
+          "label": "W_-1.1177273__Z_0.0232349",
+          "w": -1.1177273,
+          "z": 0.0232349,
+          "effect": 0.1234829,
+          "bootSE": 0.0426829,
+          "bootLLCI": 0.0400973,
+          "bootULCI": 0.2091812
+        },
+        {
+          "label": "W_-1.1177273__Z_0.9987751",
+          "w": -1.1177273,
+          "z": 0.9987751,
+          "effect": 0.1230942,
+          "bootSE": 0.0424532,
+          "bootLLCI": 0.0407892,
+          "bootULCI": 0.2076817
+        },
+        {
+          "label": "W_0.0023286__Z_-1.1111858",
+          "w": 0.0023286,
+          "z": -1.1111858,
+          "effect": 0.1872583,
+          "bootSE": 0.0362195,
+          "bootLLCI": 0.1199535,
+          "bootULCI": 0.2627402
+        },
+        {
+          "label": "W_0.0023286__Z_0.0232349",
+          "w": 0.0023286,
+          "z": 0.0232349,
+          "effect": 0.1865796,
+          "bootSE": 0.0322149,
+          "bootLLCI": 0.1258323,
+          "bootULCI": 0.2519967
+        },
+        {
+          "label": "W_0.0023286__Z_0.9987751",
+          "w": 0.0023286,
+          "z": 0.9987751,
+          "effect": 0.1859961,
+          "bootSE": 0.0344565,
+          "bootLLCI": 0.1224278,
+          "bootULCI": 0.2570419
+        },
+        {
+          "label": "W_1.1192304__Z_-1.1111858",
+          "w": 1.1192304,
+          "z": -1.1111858,
+          "effect": 0.2511916,
+          "bootSE": 0.0461198,
+          "bootLLCI": 0.1638567,
+          "bootULCI": 0.3456299
+        },
+        {
+          "label": "W_1.1192304__Z_0.0232349",
+          "w": 1.1192304,
+          "z": 0.0232349,
+          "effect": 0.250287,
+          "bootSE": 0.0432052,
+          "bootLLCI": 0.1689857,
+          "bootULCI": 0.3392859
+        },
+        {
+          "label": "W_1.1192304__Z_0.9987751",
+          "w": 1.1192304,
+          "z": 0.9987751,
+          "effect": 0.2495091,
+          "bootSE": 0.0482016,
+          "bootLLCI": 0.1582177,
+          "bootULCI": 0.351437
+        }
+      ],
+      "direct": [
+        {
+          "label": "0.1856507",
+          "effect": 0.1856507,
+          "se": 0.0407363,
+          "t": 4.5573777,
+          "p": 8.3e-06,
+          "llci": 0.1053957,
+          "ulci": 0.2659057
+        }
+      ]
+    }
+  }
+}

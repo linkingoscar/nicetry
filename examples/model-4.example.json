@@ -1,0 +1,89 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "model_m4_demo",
+  "name": "工作自主性通过工作投入关联任务绩效",
+  "description": "M0 单一中介纵向切片使用的合成数据示例。",
+  "datasetVersionId": "dataset_mediation_demo_v1",
+  "design": {
+    "timeStructure": "cross_sectional",
+    "clustering": "none",
+    "claimMode": "associational"
+  },
+  "nodes": [
+    {
+      "id": "node_x",
+      "variableId": "var_autonomy",
+      "label": "工作自主性",
+      "kind": "scale_score",
+      "role": "x",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_m",
+      "variableId": "var_engagement",
+      "label": "工作投入",
+      "kind": "scale_score",
+      "role": "m",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_y",
+      "variableId": "var_performance",
+      "label": "任务绩效",
+      "kind": "scale_score",
+      "role": "y",
+      "dataType": "continuous"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_x_m",
+      "from": "node_x",
+      "to": "node_m",
+      "kind": "regression",
+      "label": "a",
+      "hypothesis": "H1"
+    },
+    {
+      "id": "edge_x_y",
+      "from": "node_x",
+      "to": "node_y",
+      "kind": "regression",
+      "label": "c_prime"
+    },
+    {
+      "id": "edge_m_y",
+      "from": "node_m",
+      "to": "node_y",
+      "kind": "regression",
+      "label": "b",
+      "hypothesis": "H2"
+    }
+  ],
+  "moderations": [],
+  "covariates": [],
+  "estimation": {
+    "family": "ols",
+    "standardErrors": "classical",
+    "confidenceLevel": 0.95,
+    "bootstrap": {
+      "enabled": true,
+      "replicates": 5000,
+      "method": "percentile",
+      "seed": 20260713
+    },
+    "missing": "complete_cases_per_model",
+    "centering": {
+      "method": "none",
+      "nodeIds": []
+    },
+    "reportScale": "unstandardized_primary"
+  },
+  "canvas": {
+    "positions": {
+      "node_x": { "x": 60, "y": 120 },
+      "node_m": { "x": 330, "y": 40 },
+      "node_y": { "x": 600, "y": 120 }
+    }
+  }
+}

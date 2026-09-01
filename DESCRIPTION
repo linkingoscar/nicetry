@@ -1,0 +1,13 @@
+Package: ResearchPathEngine
+Type: Project
+Title: ResearchPath Statistical Engine Dependencies
+Version: 0.1.0
+Authors@R: person("ResearchPath", "Maintainers", role = c("aut", "cre"), email = "local@researchpath.invalid")
+Description: Explicit dependency declaration for the local ResearchPath R engines.
+License: MIT
+Encoding: UTF-8
+Imports:
+    future,
+    future.apply,
+    jsonlite (== 2.0.0),
+    lavaan (== 0.6-21)

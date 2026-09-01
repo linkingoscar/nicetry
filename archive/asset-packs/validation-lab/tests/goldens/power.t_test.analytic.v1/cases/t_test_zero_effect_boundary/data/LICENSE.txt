@@ -1,0 +1,4 @@
+CC0 1.0 Universal
+
+This deterministic parameter fixture is dedicated to the public domain. It contains no external
+dataset records or human-subject information.

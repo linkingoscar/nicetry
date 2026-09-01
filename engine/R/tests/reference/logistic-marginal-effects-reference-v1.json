@@ -1,0 +1,135 @@
+{
+  "fixtureId": "logistic-marginal-effects-reference-v1",
+  "referenceImplementation": "marginaleffects",
+  "referenceVersion": "0.32.0",
+  "referenceSource": "CRAN",
+  "referenceSourceUrl": "https://cran.r-project.org/package=marginaleffects",
+  "seed": 12345,
+  "covariance": "stats::vcov.glm (model default)",
+  "uncertainty": "delta_method_normal",
+  "tolerance": {
+    "estimate": 1e-08,
+    "standardError": 1e-07,
+    "confidenceInterval": 1e-07
+  },
+  "cases": [
+    {
+      "caseId": "A_continuous_x",
+      "formula": "y ~ x",
+      "method": "avg_slopes",
+      "confidenceLevel": 0.9,
+      "terms": [
+        {
+          "term": "x",
+          "contrast": "dY/dX",
+          "estimate": 0.153192793218862,
+          "standardError": 0.0249672350338429,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": 0.112125346118495,
+            "upper": 0.194260240319228,
+            "method": "marginaleffects_delta_method"
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "B_binary_treatment",
+      "formula": "y ~ treatment + x",
+      "method": "avg_comparisons",
+      "confidenceLevel": 0.9,
+      "terms": [
+        {
+          "term": "treatment",
+          "contrast": "1 - 0",
+          "estimate": 0.18373724318119,
+          "standardError": 0.0627638586015307,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": 0.0804998827189928,
+            "upper": 0.286974603643387,
+            "method": "marginaleffects_delta_method"
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "C_three_level_factor",
+      "formula": "y ~ factor3 + x",
+      "method": "avg_comparisons_reference",
+      "confidenceLevel": 0.9,
+      "terms": [
+        {
+          "term": "factor3B",
+          "contrast": "B - A",
+          "estimate": 0.344435386531897,
+          "standardError": 0.0699267294858081,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": 0.229416151916311,
+            "upper": 0.459454621147483,
+            "method": "marginaleffects_delta_method"
+          }
+        },
+        {
+          "term": "factor3C",
+          "contrast": "C - A",
+          "estimate": -0.0666825464136075,
+          "standardError": 0.0688290887211266,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": -0.179896322636317,
+            "upper": 0.0465312298091022,
+            "method": "marginaleffects_delta_method"
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "D_low_base_probability",
+      "formula": "y ~ x",
+      "method": "avg_slopes",
+      "confidenceLevel": 0.9,
+      "terms": [
+        {
+          "term": "x",
+          "contrast": "dY/dX",
+          "estimate": -0.00453008741123274,
+          "standardError": 0.00948372532055161,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": -0.0201294274017536,
+            "upper": 0.0110692525792881,
+            "method": "marginaleffects_delta_method"
+          }
+        }
+      ]
+    },
+    {
+      "caseId": "D_high_base_probability",
+      "formula": "y ~ x",
+      "method": "avg_slopes",
+      "confidenceLevel": 0.9,
+      "terms": [
+        {
+          "term": "x",
+          "contrast": "dY/dX",
+          "estimate": 0.0045300874112259,
+          "standardError": 0.00948473130874094,
+          "confidenceLevel": 0.9,
+          "confidenceInterval": {
+            "level": 0.9,
+            "lower": -0.0110709072826168,
+            "upper": 0.0201310821050686,
+            "method": "marginaleffects_delta_method"
+          }
+        }
+      ]
+    }
+  ]
+}

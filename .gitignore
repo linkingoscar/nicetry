@@ -1,0 +1,40 @@
+# Local runtimes and environments
+.runtime/
+.venv/
+
+# JavaScript
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.playwright-cli/
+test-results/
+output/playwright/
+output/*
+!output/performance/
+output/performance/*
+!output/performance/r-runtime-baseline.json
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-tmp/
+temp_pytest/
+.coverage
+.ruff_cache/
+
+# Local application state
+.researchpath/
+runs/
+tmp/
+*.log
+
+# Optional local validation oracle; the upstream macro is not redistributable.
+specs/vendor/process5.0.R
+
+# Editors and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

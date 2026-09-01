@@ -1,0 +1,51 @@
+{
+  "$schema": "./statistical-validation.schema.json",
+  "schemaVersion": "1.0.0",
+  "scenarios": [
+    {
+      "id": "cross-sectional-ols-recovery-v1",
+      "capabilitySliceId": "empirical.cross_sectional.hierarchical_regression",
+      "certificationWave": 1,
+      "validationType": "simulation_recovery",
+      "oracle": {
+        "level": "independent_implementation",
+        "validationClaim": "internal",
+        "independence": "Closed-form QR/matrix OLS oracle is implemented inside the validation test and does not call lm or coefficient_rows."
+      },
+      "repetitions": 400,
+      "seed": 20260824,
+      "thresholds": {
+        "absoluteBias": { "maximum": 0.04 },
+        "coverage95": { "minimum": 0.90, "maximum": 0.99 },
+        "typeIError": { "minimum": 0.01, "maximum": 0.09 },
+        "power": { "minimum": 0.95 },
+        "finiteRunRate": { "minimum": 0.995 },
+        "coverageMcse": { "maximum": 0.025 },
+        "typeIMcse": { "maximum": 0.02 },
+        "oracleMaxDifference": { "maximum": 1e-10 }
+      },
+      "evidenceTest": "engine/R/tests/testthat/test-simulation-recovery.R",
+      "status": "enforced"
+    },
+    {
+      "id": "dsem-sbc-ppc-smoke-v1",
+      "capabilitySliceId": "empirical.diary.dsem",
+      "certificationWave": 4,
+      "validationType": "sbc_ppc",
+      "oracle": {
+        "level": "simulation_calibration",
+        "validationClaim": "internal",
+        "independence": "Known-parameter DGP exercises the product Gibbs sampler and posterior predictive functions; it is an internal calibration smoke, not an external oracle."
+      },
+      "repetitions": 16,
+      "seed": 20260825,
+      "thresholds": {
+        "sbcRankMean": { "minimum": 0.20, "maximum": 0.80 },
+        "ppcCentralRate": { "minimum": 0.70 },
+        "finiteDrawRate": { "minimum": 0.995 }
+      },
+      "evidenceTest": "engine/R/tests/testthat/test-simulation-recovery.R",
+      "status": "enforced"
+    }
+  ]
+}

@@ -1,0 +1,296 @@
+{
+  "provenance": {
+    "reference": "Independent PROCESS for R Version 5.0 macro (Andrew F. Hayes)",
+    "macroSource": "user-provided official PROCESS for R 5.0 macro (not distributed)",
+    "dataSha256": "a1029243028da40a18cd4200878797672f7d79b3b9d832545cd5bcda78fb623c",
+    "dataGenerator": "sin/cos formulas shared with test_process_catalog_execution.py Model 19 reference",
+    "seed": 20260730,
+    "replicates": 5000,
+    "confidenceLevel": 0.95,
+    "centering": {
+      "method": "mean",
+      "nodeIds": ["var_x", "var_m1", "var_w", "var_z"]
+    },
+    "decimals": "10.7",
+    "generatedAt": "2026-08-14T11:56:27Z",
+    "rVersion": "R version 4.6.1 (2026-06-24 ucrt)",
+    "tolerance": {
+      "coefficient": 5e-07,
+      "effect": 5e-07,
+      "bootstrapInterval": 0.01,
+      "bootstrapSE": 0.001
+    }
+  },
+  "models": {
+    "model_28": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.007778
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1323195
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.5412007
+          },
+          {
+            "term": "var_z",
+            "coeff": -0.0659047
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.0946941
+          },
+          {
+            "term": "int_3",
+            "coeff": -0.4223732
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "W_-1.1177273__Z_-1.1111858",
+          "w": -1.1177273,
+          "z": -1.1111858,
+          "effect": 0.3591039,
+          "bootSE": 0.049384,
+          "bootLLCI": 0.2670999,
+          "bootULCI": 0.4615654
+        },
+        {
+          "label": "W_-1.1177273__Z_0.0232349",
+          "w": -1.1177273,
+          "z": 0.0232349,
+          "effect": 0.1888336,
+          "bootSE": 0.031912,
+          "bootLLCI": 0.1301999,
+          "bootULCI": 0.2559623
+        },
+        {
+          "label": "W_-1.1177273__Z_0.9987751",
+          "w": -1.1177273,
+          "z": 0.9987751,
+          "effect": 0.0424104,
+          "bootSE": 0.0380257,
+          "bootLLCI": -0.0289231,
+          "bootULCI": 0.1195932
+        },
+        {
+          "label": "W_0.0023286__Z_-1.1111858",
+          "w": 0.0023286,
+          "z": -1.1111858,
+          "effect": 0.3901689,
+          "bootSE": 0.0392231,
+          "bootLLCI": 0.3153102,
+          "bootULCI": 0.4707647
+        },
+        {
+          "label": "W_0.0023286__Z_0.0232349",
+          "w": 0.0023286,
+          "z": 0.0232349,
+          "effect": 0.205169,
+          "bootSE": 0.0308763,
+          "bootLLCI": 0.1471998,
+          "bootULCI": 0.2683938
+        },
+        {
+          "label": "W_0.0023286__Z_0.9987751",
+          "w": 0.0023286,
+          "z": 0.9987751,
+          "effect": 0.0460792,
+          "bootSE": 0.0416031,
+          "bootLLCI": -0.0309898,
+          "bootULCI": 0.1327902
+        },
+        {
+          "label": "W_1.1192304__Z_-1.1111858",
+          "w": 1.1192304,
+          "z": -1.1111858,
+          "effect": 0.4211465,
+          "bootSE": 0.04912,
+          "bootLLCI": 0.3302383,
+          "bootULCI": 0.5224772
+        },
+        {
+          "label": "W_1.1192304__Z_0.0232349",
+          "w": 1.1192304,
+          "z": 0.0232349,
+          "effect": 0.2214585,
+          "bootSE": 0.0375443,
+          "bootLLCI": 0.1533956,
+          "bootULCI": 0.3004197
+        },
+        {
+          "label": "W_1.1192304__Z_0.9987751",
+          "w": 1.1192304,
+          "z": 0.9987751,
+          "effect": 0.0497376,
+          "bootSE": 0.0457179,
+          "bootLLCI": -0.0327534,
+          "bootULCI": 0.1463339
+        }
+      ]
+    },
+    "model_29": {
+      "equations": [
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0023437
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.3860372
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1898199
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0274461
+          }
+        ],
+        [
+          {
+            "term": "constant",
+            "coeff": 0.0088304
+          },
+          {
+            "term": "var_x",
+            "coeff": 0.1786695
+          },
+          {
+            "term": "var_m1",
+            "coeff": 0.413102
+          },
+          {
+            "term": "var_w",
+            "coeff": 0.1399991
+          },
+          {
+            "term": "int_1",
+            "coeff": 0.0901241
+          },
+          {
+            "term": "var_z",
+            "coeff": -0.0585011
+          },
+          {
+            "term": "int_2",
+            "coeff": 0.1313853
+          },
+          {
+            "term": "int_3",
+            "coeff": -0.4607169
+          }
+        ]
+      ],
+      "conditional": [
+        {
+          "label": "W_-1.1177273__Z_-1.1111858",
+          "w": -1.1177273,
+          "z": -1.1111858,
+          "effect": 0.3287236,
+          "bootSE": 0.0489136,
+          "bootLLCI": 0.2378603,
+          "bootULCI": 0.431046
+        },
+        {
+          "label": "W_-1.1177273__Z_0.0232349",
+          "w": -1.1177273,
+          "z": 0.0232349,
+          "effect": 0.1429959,
+          "bootSE": 0.0290287,
+          "bootLLCI": 0.0893419,
+          "bootULCI": 0.2040949
+        },
+        {
+          "label": "W_-1.1177273__Z_0.9987751",
+          "w": -1.1177273,
+          "z": 0.9987751,
+          "effect": -0.0167199,
+          "bootSE": 0.0318675,
+          "bootLLCI": -0.0788756,
+          "bootULCI": 0.0475246
+        },
+        {
+          "label": "W_0.0023286__Z_-1.1111858",
+          "w": 0.0023286,
+          "z": -1.1111858,
+          "effect": 0.3571605,
+          "bootSE": 0.0388078,
+          "bootLLCI": 0.2850858,
+          "bootULCI": 0.4380215
+        },
+        {
+          "label": "W_0.0023286__Z_0.0232349",
+          "w": 0.0023286,
+          "z": 0.0232349,
+          "effect": 0.155366,
+          "bootSE": 0.0272924,
+          "bootLLCI": 0.1039034,
+          "bootULCI": 0.2105309
+        },
+        {
+          "label": "W_0.0023286__Z_0.9987751",
+          "w": 0.0023286,
+          "z": 0.9987751,
+          "effect": -0.0181663,
+          "bootSE": 0.0344732,
+          "bootLLCI": -0.0827497,
+          "bootULCI": 0.0514433
+        },
+        {
+          "label": "W_1.1192304__Z_-1.1111858",
+          "w": 1.1192304,
+          "z": -1.1111858,
+          "effect": 0.3855173,
+          "bootSE": 0.045591,
+          "bootLLCI": 0.2999045,
+          "bootULCI": 0.4786896
+        },
+        {
+          "label": "W_1.1192304__Z_0.0232349",
+          "w": 1.1192304,
+          "z": 0.0232349,
+          "effect": 0.1677013,
+          "bootSE": 0.0305678,
+          "bootLLCI": 0.1112187,
+          "bootULCI": 0.2315002
+        },
+        {
+          "label": "W_1.1192304__Z_0.9987751",
+          "w": 1.1192304,
+          "z": 0.9987751,
+          "effect": -0.0196086,
+          "bootSE": 0.0373401,
+          "bootLLCI": -0.0901978,
+          "bootULCI": 0.0559976
+        }
+      ]
+    }
+  }
+}

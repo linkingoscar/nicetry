@@ -1,0 +1,38 @@
+{
+  "name": "researchpath",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "check:architecture": "pwsh -NoLogo -NoProfile -File scripts/check-architecture.ps1",
+    "lint:python": ".venv\\Scripts\\ruff.exe check apps/api/app apps/api/tests",
+    "lint:web": "biome lint apps/web/src",
+    "lint": "npm run lint:python && npm run lint:web",
+    "typecheck:python": ".venv\\Scripts\\python.exe scripts/check-python-types.py",
+    "generate:contracts": "pwsh -NoLogo -NoProfile -File scripts/generate-contracts.ps1",
+    "check:contracts": "pwsh -NoLogo -NoProfile -File scripts/generate-contracts.ps1 -Check",
+    "dev:web": "npm run dev --workspace @researchpath/web",
+    "build:web": "npm run build --workspace @researchpath/web",
+    "check:bundle": "node scripts/check-bundle-budget.mjs",
+    "test:bundle-budget": "node --test scripts/check-bundle-budget.test.mjs",
+    "test:web": "npm run test --workspace @researchpath/web",
+    "test:e2e": "playwright test",
+    "typecheck:web": "npm run typecheck --workspace @researchpath/web",
+    "audit:dependencies": "pwsh -NoLogo -NoProfile -File scripts/audit-dependencies.ps1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.12.1",
+    "@biomejs/biome": "2.5.3",
+    "@playwright/test": "1.61.1",
+    "openapi-typescript": "7.13.0",
+    "pyright": "1.1.410"
+  },
+  "overrides": {
+    "js-yaml": "4.3.1",
+    "@redocly/openapi-core": {
+      "minimatch": "10.2.5"
+    }
+  }
+}

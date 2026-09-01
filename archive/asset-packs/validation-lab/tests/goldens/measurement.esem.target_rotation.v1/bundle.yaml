@@ -1,0 +1,5 @@
+schemaVersion: 1
+capabilityId: measurement.esem.target_rotation.v1
+methodFamily: measurement
+cases:
+  - esem_target_rotation

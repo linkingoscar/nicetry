@@ -1,0 +1,1758 @@
+{
+  "$schema": "./capability-evidence.schema.json",
+  "schemaVersion": "1.0.0",
+  "capabilities": [
+    {
+      "sliceId": "experimental_design.factorial_anova.long.single_outcome",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "随机实验：组间 factorial ANOVA尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "仅随机分配的横截面单 outcome；不提供准实验因果识别"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅随机分配的横截面单 outcome；不提供准实验因果识别"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "experimental_design.ancova.long.single_outcome",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "随机实验：组间 ANCOVA尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "仅随机分配的横截面单 outcome；协变量调整不构成准实验识别"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅随机分配的横截面单 outcome；协变量调整不构成准实验识别"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "experimental_design.repeated_measures.single_within",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "随机实验：单一组内因子重复测量尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "仅随机实验；额外 cluster 阻塞"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅随机实验；额外 cluster 阻塞"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "experimental_design.mixed_design.single_within",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "随机实验：单一组内因子混合设计尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "仅随机实验；额外 cluster 阻塞"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅随机实验；额外 cluster 阻塞"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "experimental_design.glm_cluster.long.single_outcome",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "随机实验：cluster-robust Gaussian GLM尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "nested"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：nested。",
+        "仅随机分配、两层、单 outcome 的 CR0 线性模型；不冒充 CR2/GLMM 或准实验识别"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅随机分配、两层、单 outcome 的 CR0 线性模型；不冒充 CR2/GLMM 或准实验识别"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "multilevel_model.aggregation.icc_rwg",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "ICC(1)/ICC(2)/rwg 聚合证据尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：nested。",
+        "不替代多层测量模型"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "不替代多层测量模型"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "multilevel_model.gaussian.two_level",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "两层 Gaussian LMM尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：nested。",
+        "单一 cluster、Gaussian"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "单一 cluster、Gaussian"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "power_analysis.analytic.regression",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "回归解析功效的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional",
+          "panel",
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent",
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional、panel、intensive_longitudinal；依赖结构：independent、nested。",
+        "Cohen f²/R² change"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "Cohen f²/R² change"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "power_analysis.analytic.t_test",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "t 检验解析功效的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "不冒充配对/重复测量 t"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "不冒充配对/重复测量 t"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "power_analysis.analytic.factorial_anova",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "随机组间 ANOVA 功效的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "randomized"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "仅预先声明的均衡随机组间设计；不替代准实验识别功效分析"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅预先声明的均衡随机组间设计；不替代准实验识别功效分析"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "power_analysis.monte_carlo",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "登记 DGP 的 Monte Carlo 功效尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional",
+          "panel",
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent",
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional、panel、intensive_longitudinal；依赖结构：independent、nested。",
+        "受资源预算与登记 DGP 约束"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "受资源预算与登记 DGP 约束"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "multiple_imputation.mice_dataset_generation",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "MICE 插补数据集生成尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "API 兼容；不作为正式入口"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "API 兼容；不作为正式入口"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "multiple_imputation.rubin_pooling",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "Rubin 合并推断尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "仅冻结线性回归消费者；独立横截面不强制虚构结构角色"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅冻结线性回归消费者；独立横截面不强制虚构结构角色"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.reliability",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "Ordinal reliability尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "横截面独立测量准备"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "横截面独立测量准备"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.efa",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "Polychoric EFA/MAP尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "显式题项和旋转"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "显式题项和旋转"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.cfa",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "CFA ML/MLR/WLSMV尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "收敛/Heywood 显式返回"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "收敛/Heywood 显式返回"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.measurement_invariance",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "多组测量等值性尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "纵向等值性走 panel 专属流程"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "纵向等值性走 panel 专属流程"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.esem_bifactor_irt",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "ESEM/Bifactor/IRT/DIF尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "不适用于 panel/ESM"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "不适用于 panel/ESM"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "questionnaire_measurement.common_method_bias",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "Marker/ULMC CMB 诊断尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "需 marker 或 ULMC 规格"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "需 marker 或 ULMC 规格"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.cross_sectional.overview",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "横截面描述与缺失诊断的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent",
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent、nested。",
+        "nested 时仅描述，不使用逐行独立性推断"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "nested 时仅描述，不使用逐行独立性推断"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.cross_sectional.measurement",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "横截面基础测量准备的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent",
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent、nested。",
+        "nested 时测量结果仅作准备，确认性推断需多层测量模型"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "nested 时测量结果仅作准备，确认性推断需多层测量模型"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.cross_sectional.group_comparison",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "横截面组间比较的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "groupVariableId 由分析规格显式绑定，且不自动等同 cluster；构念得分需要测量版本，原始变量不需要"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "groupVariableId 由分析规格显式绑定，且不自动等同 cluster；构念得分需要测量版本，原始变量不需要"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.cross_sectional.hierarchical_regression",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "横截面分层回归尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "X/Y 由规格声明；构念得分需要测量版本，原始变量不需要"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "X/Y 由规格声明；构念得分需要测量版本，原始变量不需要"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.cross_sectional.response_surface",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "横截面响应面分析尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "Y/X/Z 由规格声明；构念得分需要测量版本，原始变量不需要"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "Y/X/Z 由规格声明；构念得分需要测量版本，原始变量不需要"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "model.process_catalog",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "PROCESS 过程模型的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "topology 由模型规格声明；X 仅支持连续或 0/1 二分类，M 仅支持连续（二分类中介不支持），多类别 X（mcx）不执行"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "external",
+        "name": "process-5.0",
+        "independence": "user-provided official PROCESS for R 5.0 macro; golden generators call that external local copy on reference data and do not call the product engine runner"
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": "process-goldens"
+      },
+      "limitations": [
+        "topology 由模型规格声明；X 仅支持连续或 0/1 二分类，M 仅支持连续（二分类中介不支持），多类别 X（mcx）不执行"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "model.sem",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "结构方程模型的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "cross_sectional"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：cross_sectional；依赖结构：independent。",
+        "模型图通过 family contract"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "模型图通过 family contract"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.panel.clpm",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "传统 CLPM的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "至少 3 波"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "至少 3 波"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.panel.ri_clpm",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "RI-CLPM的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "至少 3 波"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "至少 3 波"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.panel.lcm_sr",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "LCM-SR的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "至少 5 波"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "至少 5 波"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.panel.invariance",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "纵向测量等值性的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "等值性层级和释放记录"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "等值性层级和释放记录"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.panel.ulmc_sensitivity",
+      "estimand": {
+        "status": "declared_at_run",
+        "description": "纵向 ULMC 敏感性的目标量由冻结运行规格绑定；结果必须同时保存变量角色、尺度、对比与样本口径。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "panel"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：panel；依赖结构：independent。",
+        "仅敏感性分析"
+      ],
+      "diagnostics": [
+        "已登记 contract、适用性与失败边界测试；单次运行仍须单独检查样本流、估计状态、警告与适用性。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": true,
+        "applicability": true,
+        "failureFixtures": true,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅敏感性分析"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.quality",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM 数据质量尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "依从性、排序和滞后可用性"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "依从性、排序和滞后可用性"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.lmm",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM Gaussian LMM尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "within/between 和 AR(1) 显式声明"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "within/between 和 AR(1) 显式声明"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.glmm",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM GLMM尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "分布和零过程显式声明"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "分布和零过程显式声明"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.cross_classified_gaussian",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "ESM cross-classified Gaussian尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：nested。",
+        "仅 cross_classified"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅 cross_classified"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.multilevel_mediation",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM 多层中介尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "仅登记的 1-1-1/2-1-1"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "仅登记的 1-1-1/2-1-1"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.dsem",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "观测变量 Bayesian DSEM尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "至少 T≥20"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "至少 T≥20"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.mi",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM 二层 MI尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent。",
+        "不与通用横截面 MI 混用"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "不与通用横截面 MI 混用"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    },
+    {
+      "sliceId": "empirical.diary.power",
+      "estimand": {
+        "status": "not_formally_frozen",
+        "description": "日记/ESM person-by-occasion 功效尚未形成完整的可认证估计目标证据；运行规格虽可声明变量角色，但不得据此推导论文主分析资格。"
+      },
+      "supportedData": {
+        "timeStructures": [
+          "intensive_longitudinal"
+        ],
+        "dependenceStructures": [
+          "independent",
+          "nested"
+        ],
+        "designs": [
+          "observational",
+          "randomized",
+          "quasi_experimental"
+        ]
+      },
+      "assumptions": [
+        "仅支持已登记的时间结构：intensive_longitudinal；依赖结构：independent、nested。",
+        "由计划/分析参数决定"
+      ],
+      "diagnostics": [
+        "contract、适用性或失败边界证据尚未齐全；能力保持 unvalidated/ineligible。"
+      ],
+      "oracle": {
+        "level": "none",
+        "name": null,
+        "independence": null
+      },
+      "tests": {
+        "contract": false,
+        "applicability": false,
+        "failureFixtures": false,
+        "numericGoldenId": null
+      },
+      "limitations": [
+        "由计划/分析参数决定"
+      ],
+      "versions": {
+        "evidence": "1.0.0",
+        "engineContract": "0.3.0"
+      }
+    }
+  ]
+}

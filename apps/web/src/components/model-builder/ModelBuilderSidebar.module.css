@@ -1,0 +1,23 @@
+.freezeControls {
+  display: grid;
+  gap: 8px;
+}
+
+.overrideInput {
+  padding: 8px 10px;
+  font-size: 11px;
+  border: 1px solid #cacdd7;
+  border-radius: 7px;
+  background: #fff;
+  color: #19223f;
+}
+
+.exportActions {
+  margin-top: 12px;
+}
+
+.exportButton {
+  font-size: 11px;
+  padding: 6px 10px;
+  cursor: pointer;
+}

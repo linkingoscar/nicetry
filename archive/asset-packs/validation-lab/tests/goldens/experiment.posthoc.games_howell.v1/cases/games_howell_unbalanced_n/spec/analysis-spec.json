@@ -1,0 +1,10 @@
+{
+  "data": {
+    "groupVar": "group",
+    "outcomeVar": "score"
+  },
+  "parameters": {
+    "alpha": 0.05,
+    "adjustment": "games_howell"
+  }
+}

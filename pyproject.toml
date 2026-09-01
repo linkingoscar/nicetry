@@ -1,0 +1,25 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["apps/api"]
+extend-exclude = [".runtime", ".venv", ".researchpath"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "B"]
+ignore = [
+  # FastAPI intentionally declares dependency markers in parameter defaults.
+  "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"apps/api/tests/**/*.py" = ["B905"]
+
+[tool.coverage.run]
+branch = true
+source = ["app"]
+
+[tool.coverage.report]
+fail_under = 79.5
+precision = 1
+show_missing = true
+skip_covered = true

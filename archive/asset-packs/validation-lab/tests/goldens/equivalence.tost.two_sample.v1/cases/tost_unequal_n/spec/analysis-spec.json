@@ -1,0 +1,12 @@
+{
+  "data": {
+    "groupVar": "group",
+    "outcomeVar": "val"
+  },
+  "parameters": {
+    "lowBound": -0.5,
+    "highBound": 0.5,
+    "alpha": 0.05,
+    "varianceMethod": "welch"
+  }
+}

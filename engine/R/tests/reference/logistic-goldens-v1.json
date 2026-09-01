@@ -1,0 +1,94 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_logistic_oracle.R",
+    "oracle": "official PROCESS 5.0 macro (binary Y) + hand-written derivative AME from an independent glm fit",
+    "macroSha256": "3D02E6BBEC08A4A3EE9EDEB8E6300678D717A7A08E41E11C8149C04AB64B8648",
+    "dataGenerator": "deterministic logit DGP (seed 20260814, n=400)",
+    "bootstrap": "5000 percentile, 95% CI, seed 31216",
+    "tolerance": {
+      "coefficient": 1e-06,
+      "effect": 1e-06,
+      "bootstrapInterval": 0.03,
+      "ame": 1e-06
+    }
+  },
+  "equations": {
+    "m1": [
+      {
+        "term": "constant",
+        "coeff": -0.0124635,
+        "se": 0.0538575,
+        "statistic": -0.2314167,
+        "p": 0.81711,
+        "llci": -0.1183443,
+        "ulci": 0.0934172
+      },
+      {
+        "term": "var_x",
+        "coeff": 0.4867407,
+        "se": 0.0527017,
+        "statistic": 9.2357723,
+        "p": 0,
+        "llci": 0.3831322,
+        "ulci": 0.5903491
+      }
+    ],
+    "y": [
+      {
+        "term": "constant",
+        "coeff": -0.084253,
+        "se": 0.1158616,
+        "statistic": -0.727186,
+        "p": 0.467112,
+        "llci": -0.3113376,
+        "ulci": 0.1428316
+      },
+      {
+        "term": "var_x",
+        "coeff": 0.7116218,
+        "se": 0.1332072,
+        "statistic": 5.342219,
+        "p": 1e-07,
+        "llci": 0.4505406,
+        "ulci": 0.972703
+      },
+      {
+        "term": "var_m1",
+        "coeff": 0.6944449,
+        "se": 0.1183174,
+        "statistic": 5.869338,
+        "p": 0,
+        "llci": 0.462547,
+        "ulci": 0.9263428
+      }
+    ]
+  },
+  "direct": {
+    "effect": 0.7116218,
+    "se": 0.1332072,
+    "statistic": 5.342219,
+    "p": 1e-07,
+    "llci": 0.4505406,
+    "ulci": 0.972703
+  },
+  "indirect": {
+    "label": "var_m1",
+    "effect": 0.3380146,
+    "bootSE": 0.0686292,
+    "bootLLCI": 0.2209431,
+    "bootULCI": 0.4872019
+  },
+  "averageMarginalEffects": [
+    {
+      "term": "var_x",
+      "type": "derivative",
+      "estimate": 0.132596018895399
+    },
+    {
+      "term": "var_m1",
+      "type": "derivative",
+      "estimate": 0.129395460857428
+    }
+  ]
+}

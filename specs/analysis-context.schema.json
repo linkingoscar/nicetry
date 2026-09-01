@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/analysis-context.schema.json",
+  "title": "ResolvedAnalysisContext",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "projectId", "dataset", "studyContext", "structure",
+    "sample", "contextHash", "validity", "missingRequirements", "warnings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "dataset": { "$ref": "#/$defs/resolvedDatasetRef" },
+    "studyContext": {
+      "anyOf": [{ "$ref": "#/$defs/resolvedStudyContextRef" }, { "type": "null" }]
+    },
+    "structure": {
+      "anyOf": [{ "$ref": "#/$defs/resolvedStructureRef" }, { "type": "null" }]
+    },
+    "measurement": { "$ref": "#/$defs/resolvedArtifactRef" },
+    "sample": { "$ref": "#/$defs/resolvedArtifactRef" },
+    "imputation": { "$ref": "#/$defs/resolvedArtifactRef" },
+    "contextHash": { "$ref": "#/$defs/hash" },
+    "validity": { "enum": ["ready", "incomplete", "stale"] },
+    "missingRequirements": { "type": "array", "items": { "type": "string" } },
+    "warnings": { "type": "array", "items": { "$ref": "#/$defs/contextWarning" } }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "roleBindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subjectId", "clusterId", "timeId", "groupId", "treatmentId"],
+      "properties": {
+        "subjectId": { "type": ["string", "null"] },
+        "clusterId": { "type": ["string", "null"] },
+        "timeId": { "type": ["string", "null"] },
+        "groupId": { "type": ["string", "null"] },
+        "treatmentId": { "type": ["string", "null"] }
+      }
+    },
+    "resolvedArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "hash"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "hash": { "$ref": "#/$defs/hash" }
+      }
+    },
+    "resolvedDatasetRef": {
+      "allOf": [
+        { "$ref": "#/$defs/resolvedArtifactRef" },
+        {
+          "type": "object",
+          "required": ["sha256"],
+          "properties": { "sha256": { "$ref": "#/$defs/hash" } }
+        }
+      ]
+    },
+    "resolvedStudyContextRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "hash", "revision", "value"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "hash": { "$ref": "#/$defs/hash" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "value": { "$ref": "study-context.schema.json" }
+      }
+    },
+    "resolvedStructureRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "hash", "revision", "roles", "status"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "hash": { "$ref": "#/$defs/hash" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "roles": { "$ref": "#/$defs/roleBindings" },
+        "status": { "enum": ["valid", "warning"] },
+        "profile": { "type": ["object", "null"] }
+      }
+    },
+    "contextWarning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code", "severity", "message"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["info", "warning"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

@@ -1,0 +1,118 @@
+/* 本地优先：不使用 Google Fonts 外链（隐私 + CSP 双原因）。
+   使用 Windows 自带字体栈，视觉效果相近。 */
+
+:root {
+  /* Brand Color Tokens */
+  --brand-primary: #0d1f5c;
+  --brand-primary-hover: #081747;
+  --brand-primary-active: #051036;
+  --brand-accent: #1037b9;
+  --brand-gradient: linear-gradient(135deg, #17203f 0%, #0d1f5c 100%);
+  --brand-glass: rgba(23, 32, 63, 0.92);
+
+  /* Modern Gradient Tokens */
+  --gradient-hero: linear-gradient(135deg, #0d1f5c 0%, #1037b9 50%, #06b6d4 100%);
+  --gradient-accent: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+  --gradient-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 248, 250, 0.95) 100%);
+
+  /* Glassmorphism Design Tokens */
+  --glass-bg: rgba(255, 255, 255, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-blur: blur(16px);
+
+  /* Backgrounds & Surfaces */
+  --bg-app: #f1f2f5;
+  --bg-surface: #ffffff;
+  --bg-subtle: #f8f8fa;
+  --bg-hover: #edeff4;
+
+  /* Typography Colors */
+  --text-main: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-caption: #475569;
+
+  /* Statistical Role Tokens */
+  --role-x: #2563eb;
+  --role-m: #052796;
+  --role-y: #7c3aed;
+  --role-w: #d97706;
+  --role-covariate: #64748b;
+
+  /* Shadows & Elevation */
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05), 0 1px 2px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 4px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 32px -4px rgba(15, 23, 42, 0.08), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-hover: 0 20px 42px -6px rgba(15, 23, 42, 0.12), 0 8px 18px -3px rgba(15, 23, 42, 0.06);
+  --shadow-spring: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+
+  /* Borders & Radius Tokens */
+  --border-subtle: #e2e8f0;
+  --border-card: #d5d7de;
+  --border-focus: #1037b9;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* 4px/8px Spatial Scale Tokens */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Typography Scale (rem / em) */
+  --font-size-hero: clamp(2.25rem, 5vw, 3.25rem);
+  --font-size-h1: 1.75rem;
+  --font-size-h2: 1.25rem;
+  --font-size-h3: 1.0rem;
+  --font-size-body: 0.9375rem;
+  --font-size-caption: 0.8125rem;
+
+  --line-height-heading: 1.25;
+  --line-height-body: 1.6;
+  --letter-spacing-heading: -0.025em;
+
+  /* Transition & Animation Tokens */
+  --ease-out-spring: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: all 0.18s var(--ease-out-spring);
+  --shadow-glow: 0 0 0 3px rgba(16, 55, 185, 0.25), 0 8px 24px -4px rgba(13, 31, 92, 0.15);
+
+  /* Typography Stacks & Numeric Alignment */
+  --font-main: "Segoe UI", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+
+  font-variant-numeric: tabular-nums;
+  color: var(--text-main);
+  background: var(--bg-app);
+  font-family: var(--font-main);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+/* Geek Dark Theme Overrides */
+body.dark-theme, [data-theme="dark"] body, [data-theme="dark"] {
+  --bg-app: #0b1120;
+  --bg-surface: #1e293b;
+  --bg-subtle: #182234;
+  --bg-hover: #243248;
+  --text-main: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #a1b2c6;
+  --text-caption: #8fa2bb;
+  --border-subtle: #334155;
+  --border-card: #3d4e66;
+  --glass-bg: rgba(30, 41, 59, 0.78);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --shadow-hover: 0 20px 32px -6px rgba(0, 0, 0, 0.5);
+  --shadow-spring: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  color: #f8fafc;
+  background-color: #0b1120;
+  background-image: radial-gradient(at 0% 0%, rgba(16, 55, 185, 0.08) 0px, transparent 50%), radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}

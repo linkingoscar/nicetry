@@ -1,0 +1,84 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_mc_oracle.R",
+    "oracle": "independent simulator of the declared DGPs (per-replicate sample-sd f2 scaling for regression; f-scaled centered group means for ANOVA; overall F / one-way F tests)",
+    "agreementRule": "different-seed powers must agree within 3 * sqrt(mcse_engine^2 + mcse_oracle^2); same-seed powers must match to 1e-9",
+    "tolerance": {
+      "exact": 1e-09,
+      "mcseBoundMultiplier": 3
+    }
+  },
+  "regression": {
+    "spec": {
+      "designFamily": "regression",
+      "solveFor": "power",
+      "sampleSize": 120,
+      "predictors": 3,
+      "alpha": 0.05,
+      "targetPower": 0.8,
+      "simulations": 5000,
+      "effectSize": {
+        "metric": "cohens_f2",
+        "value": 0.1
+      },
+      "monteCarloParameters": {
+        "dataGeneration": {
+          "predictorCorrelation": 0.3,
+          "errorSd": 1
+        },
+        "convergenceFailureHandling": "drop"
+      }
+    },
+    "exactRef": {
+      "power": 0.8254,
+      "mcse": 0.00536870263657804,
+      "valid": 5000,
+      "failures": 0,
+      "confidenceInterval": [0.814628799759041, 0.835671579815115]
+    },
+    "statRef": {
+      "power": 0.817,
+      "mcse": 0.00386666522988479,
+      "valid": 10000,
+      "failures": 0,
+      "confidenceInterval": [0.809300225408007, 0.824456319624984]
+    }
+  },
+  "anova": {
+    "spec": {
+      "designFamily": "factorial_anova",
+      "solveFor": "power",
+      "sampleSize": 150,
+      "groups": 3,
+      "alpha": 0.05,
+      "targetPower": 0.8,
+      "simulations": 5000,
+      "effectSize": {
+        "metric": "cohens_f",
+        "value": 0.25
+      },
+      "monteCarloParameters": {
+        "dataGeneration": {
+          "groupMeans": [-1, 0, 1],
+          "errorSd": 1
+        },
+        "convergenceFailureHandling": "drop"
+      }
+    },
+    "exactRef": {
+      "power": 0.7754,
+      "mcse": 0.00590177668164427,
+      "valid": 5000,
+      "failures": 0,
+      "confidenceInterval": [0.763623813322213, 0.78675333644645]
+    },
+    "statRef": {
+      "power": 0.7828,
+      "mcse": 0.00412339859824393,
+      "valid": 10000,
+      "failures": 0,
+      "confidenceInterval": [0.774610514639496, 0.79077229588205]
+    }
+  }
+}

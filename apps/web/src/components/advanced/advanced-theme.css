@@ -1,0 +1,130 @@
+.adv-power-wizard-panel,
+.adv-imputation-wizard-panel,
+.adv-multilevel-wizard-panel {
+  display: grid;
+  gap: 4px;
+  padding: 20px;
+  color: var(--text-body);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-card);
+  border-radius: 14px;
+}
+
+.adv-power-wizard-panel h3,
+.adv-imputation-wizard-panel h3,
+.adv-multilevel-wizard-panel h3 {
+  margin: 0;
+  color: var(--text-main);
+}
+
+.adv-form-grid {
+  display: grid;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.adv-form-grid-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.adv-form-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.adv-form-section {
+  margin-top: 16px;
+}
+
+.adv-field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text-body);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.adv-readonly-value {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 7px 10px;
+  color: var(--text-main);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+}
+
+.adv-field-help {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+body.dark-theme .adv-capability-card,
+body.dark-theme .adv-wizard-panel,
+body.dark-theme .adv-progress-panel,
+body.dark-theme .adv-result-header,
+body.dark-theme .adv-result-section,
+body.dark-theme .adv-spec-summary,
+body.dark-theme .adv-stage-current,
+body.dark-theme .adv-stage-status,
+body.dark-theme .adv-spec-detail summary,
+body.dark-theme .adv-step.is-active {
+  color: var(--text-body);
+  background: var(--bg-surface);
+  border-color: var(--border-card);
+}
+
+body.dark-theme .adv-capability-card,
+body.dark-theme .adv-result-header,
+body.dark-theme .adv-result-section,
+body.dark-theme .adv-progress-panel {
+  box-shadow: none;
+}
+
+body.dark-theme .adv-card-title,
+body.dark-theme .adv-result-header h2,
+body.dark-theme .adv-result-section h3,
+body.dark-theme .adv-family-table-block h4,
+body.dark-theme .adv-sample-value,
+body.dark-theme .adv-est-term {
+  color: var(--text-main);
+}
+
+body.dark-theme .adv-card-desc,
+body.dark-theme .adv-breadcrumb-current,
+body.dark-theme .adv-spec-dl dt,
+body.dark-theme .adv-sample-label {
+  color: var(--text-muted);
+}
+
+body.dark-theme .adv-textarea,
+body.dark-theme .adv-spec-pre,
+body.dark-theme .adv-sample-card,
+body.dark-theme .adv-table-wrap,
+body.dark-theme .adv-emm-plot-wrap,
+body.dark-theme .adv-apa-report {
+  color: var(--text-body);
+  background: var(--bg-subtle);
+  border-color: var(--border-card);
+}
+
+body.dark-theme .adv-result-table th {
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+  border-color: var(--border-card);
+}
+
+body.dark-theme .adv-result-table td {
+  color: var(--text-body);
+  border-color: var(--border-card);
+}
+
+body.dark-theme .adv-result-table tbody tr:hover {
+  background: var(--bg-hover);
+}
+
+body.dark-theme .adv-est-num {
+  color: var(--text-body);
+}

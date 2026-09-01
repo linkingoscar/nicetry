@@ -1,0 +1,14 @@
+{
+  "include": ["apps/api/app", "apps/api/tests"],
+  "exclude": [".researchpath", ".runtime", ".venv"],
+  "executionEnvironments": [
+    {
+      "root": "apps/api",
+      "extraPaths": ["apps/api"]
+    }
+  ],
+  "pythonVersion": "3.10",
+  "typeCheckingMode": "basic",
+  "venvPath": ".",
+  "venv": ".venv"
+}

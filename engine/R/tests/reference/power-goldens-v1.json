@@ -1,0 +1,180 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "oracle": "pwr package (direct calls, documented spec mapping)",
+    "pwrVersion": "1.3.0",
+    "generator": "output/validation-datasets/build_power_oracle.R",
+    "note": "validates spec->pwr argument plumbing (u/v/f2, k/n/f, per-group n, ceil rounding, back-check power, r2-change conversion, precision t-iteration); monte carlo and powerCurve are not part of golden v1",
+    "tolerance": {
+      "solvedValue": 1e-09,
+      "achievedPower": 1e-09
+    }
+  },
+  "cases": [
+    {
+      "id": "regression_sample_size_f2_015",
+      "designFamily": "regression",
+      "solveFor": "sample_size",
+      "effectSize": {
+        "metric": "cohens_f2",
+        "value": 0.15
+      },
+      "predictors": 3,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 77,
+        "achievedPower": 0.801765521057435
+      }
+    },
+    {
+      "id": "regression_power_f2_010_n120",
+      "designFamily": "regression",
+      "solveFor": "power",
+      "effectSize": {
+        "metric": "cohens_f2",
+        "value": 0.1
+      },
+      "sampleSize": 120,
+      "predictors": 5,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 120,
+        "achievedPower": 0.745065164176421
+      }
+    },
+    {
+      "id": "regression_sensitivity_f2_n80",
+      "designFamily": "regression",
+      "solveFor": "sensitivity",
+      "effectSize": "cohens_f2",
+      "effectSizeMetric": "cohens_f2",
+      "sampleSize": 80,
+      "predictors": 2,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 0.125244811866843
+      }
+    },
+    {
+      "id": "regression_sensitivity_r2change_n100",
+      "designFamily": "regression",
+      "solveFor": "sensitivity",
+      "effectSize": "r_squared_change",
+      "effectSizeMetric": "r_squared_change",
+      "sampleSize": 100,
+      "predictors": 4,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 0.139369512397729
+      }
+    },
+    {
+      "id": "ttest_onesample_sample_size_d05",
+      "designFamily": "t_test",
+      "solveFor": "sample_size",
+      "effectSize": {
+        "metric": "cohens_d",
+        "value": 0.5
+      },
+      "groups": 1,
+      "expected": {
+        "solvedValue": 34,
+        "achievedPower": 0.80777750127944
+      }
+    },
+    {
+      "id": "ttest_twosample_sample_size_d05",
+      "designFamily": "t_test",
+      "solveFor": "sample_size",
+      "effectSize": {
+        "metric": "cohens_d",
+        "value": 0.5
+      },
+      "groups": 2,
+      "expected": {
+        "solvedValue": 128,
+        "achievedPower": 0.801459557922327
+      }
+    },
+    {
+      "id": "ttest_twosample_power_d03_n176",
+      "designFamily": "t_test",
+      "solveFor": "power",
+      "effectSize": {
+        "metric": "cohens_d",
+        "value": 0.3
+      },
+      "sampleSize": 176,
+      "groups": 2,
+      "expected": {
+        "solvedValue": 176,
+        "achievedPower": 0.507628971689198
+      }
+    },
+    {
+      "id": "ttest_onesample_sensitivity_n60",
+      "designFamily": "t_test",
+      "solveFor": "sensitivity",
+      "effectSize": "cohens_d",
+      "effectSizeMetric": "cohens_d",
+      "sampleSize": 60,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 0.367704316087217
+      }
+    },
+    {
+      "id": "anova_sample_size_f025_k3",
+      "designFamily": "factorial_anova",
+      "solveFor": "sample_size",
+      "effectSize": {
+        "metric": "cohens_f",
+        "value": 0.25
+      },
+      "groups": 3,
+      "expected": {
+        "solvedValue": 159,
+        "achievedPower": 0.80488728536347
+      }
+    },
+    {
+      "id": "anova_power_f020_n160_k4",
+      "designFamily": "factorial_anova",
+      "solveFor": "power",
+      "effectSize": {
+        "metric": "cohens_f",
+        "value": 0.2
+      },
+      "sampleSize": 160,
+      "groups": 4,
+      "expected": {
+        "solvedValue": 160,
+        "achievedPower": 0.53597926743542
+      }
+    },
+    {
+      "id": "anova_sensitivity_n120_k3",
+      "designFamily": "factorial_anova",
+      "solveFor": "sensitivity",
+      "effectSize": "cohens_f",
+      "effectSizeMetric": "cohens_f",
+      "sampleSize": 120,
+      "groups": 3,
+      "expected": {
+        "solvedValue": 0.287020689930698
+      }
+    },
+    {
+      "id": "precision_ci_width_050",
+      "designFamily": "regression",
+      "solveFor": "ci_width",
+      "targetCIWidth": 0.5,
+      "confidenceLevel": 0.95,
+      "sd": 1,
+      "groups": 1,
+      "expected": {
+        "solvedValue": 64
+      }
+    }
+  ]
+}

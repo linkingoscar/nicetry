@@ -1,0 +1,123 @@
+{
+  "schemaVersion": "1.0.0",
+  "modelId": "model_m7_demo",
+  "name": "工作自主性通过投入影响绩效：支持感调节第一阶段",
+  "description": "横截面问卷示例，仅作协议和测试数据使用。",
+  "datasetVersionId": "dataset_demo_v1",
+  "design": {
+    "timeStructure": "cross_sectional",
+    "clustering": "none",
+    "claimMode": "associational"
+  },
+  "nodes": [
+    {
+      "id": "node_x",
+      "variableId": "var_autonomy",
+      "label": "工作自主性",
+      "kind": "scale_score",
+      "role": "x",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_m",
+      "variableId": "var_engagement",
+      "label": "工作投入",
+      "kind": "scale_score",
+      "role": "m",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_y",
+      "variableId": "var_performance",
+      "label": "任务绩效",
+      "kind": "scale_score",
+      "role": "y",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_w",
+      "variableId": "var_support",
+      "label": "组织支持感",
+      "kind": "scale_score",
+      "role": "w",
+      "dataType": "continuous"
+    },
+    {
+      "id": "node_age",
+      "variableId": "var_age",
+      "label": "年龄",
+      "kind": "observed",
+      "role": "covariate",
+      "dataType": "continuous"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_x_m",
+      "from": "node_x",
+      "to": "node_m",
+      "kind": "regression",
+      "label": "a1",
+      "hypothesis": "H1"
+    },
+    {
+      "id": "edge_x_y",
+      "from": "node_x",
+      "to": "node_y",
+      "kind": "regression",
+      "label": "c_prime"
+    },
+    {
+      "id": "edge_m_y",
+      "from": "node_m",
+      "to": "node_y",
+      "kind": "regression",
+      "label": "b",
+      "hypothesis": "H2"
+    }
+  ],
+  "moderations": [
+    {
+      "id": "moderation_w_on_a",
+      "moderatorNodeId": "node_w",
+      "targetEdgeId": "edge_x_m",
+      "productTermId": "term_xw"
+    }
+  ],
+  "covariates": [
+    {
+      "nodeId": "node_age",
+      "outcomeNodeIds": ["node_m", "node_y"]
+    }
+  ],
+  "estimation": {
+    "family": "ols",
+    "standardErrors": "hc3",
+    "confidenceLevel": 0.95,
+    "bootstrap": {
+      "enabled": true,
+      "replicates": 5000,
+      "method": "percentile",
+      "seed": 20260713
+    },
+    "missing": "complete_cases_per_model",
+    "centering": {
+      "method": "mean",
+      "nodeIds": ["node_x", "node_w"]
+    },
+    "probe": {
+      "representativeValues": "mean_plus_minus_sd",
+      "johnsonNeyman": true
+    },
+    "reportScale": "unstandardized_primary"
+  },
+  "canvas": {
+    "positions": {
+      "node_x": { "x": 80, "y": 140 },
+      "node_m": { "x": 360, "y": 140 },
+      "node_y": { "x": 640, "y": 140 },
+      "node_w": { "x": 210, "y": 20 },
+      "node_age": { "x": 360, "y": 280 }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+.empirical-procedure-workspace { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; align-items: start; }
+.procedure-menu { position: sticky; top: 16px; max-height: calc(100vh - 40px); overflow-y: auto; padding: 18px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--bg-surface); }
+.procedure-menu h2 { margin: 0 0 14px; }
+.procedure-search { display: grid; gap: 6px; font-size: 12px; }
+.procedure-search input { min-width: 0; width: 100%; box-sizing: border-box; padding: 9px; border: 1px solid var(--border-card); border-radius: 6px; background: var(--bg-surface); color: var(--text-main); }
+.procedure-family { margin-top: 20px; }
+.procedure-family h3 { font-size: 12px; color: var(--text-caption); margin: 0 0 6px; }
+.procedure-family button { width: 100%; border: 0; border-radius: 6px; background: transparent; color: var(--text-body); padding: 10px; text-align: left; cursor: pointer; font-size: 13px; }
+.procedure-family button:hover { background: var(--bg-hover); }
+.procedure-family button[aria-pressed="true"] { background: var(--bg-hover); color: var(--text-main); font-weight: 700; box-shadow: inset 3px 0 var(--brand-accent); }
+.procedure-family button:disabled { cursor: wait; opacity: .65; }
+.procedure-main { min-width: 0; }
+.procedure-variable-picker { min-width: 0; margin: 12px 0; padding: 16px; border: 1px solid var(--border-subtle); border-radius: 8px; }
+.procedure-variable-picker legend { font-weight: 600; }
+.procedure-variable-picker legend span { margin-left: 8px; font-weight: 400; font-size: 12px; }
+.procedure-picker-actions { display: flex; gap: 12px; margin: 10px 0; }
+.procedure-picker-actions button { border: 1px solid var(--border-card); background: var(--bg-surface); color: var(--text-body); border-radius: 5px; padding: 6px 10px; cursor: pointer; }
+.procedure-variable-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 4px; max-height: 240px; overflow-y: auto; }
+.procedure-variable-list label { display: flex; gap: 8px; align-items: center; padding: 7px; overflow-wrap: anywhere; }
+.procedure-variable-list input { flex-shrink: 0; }
+.procedure-form { border: 0; padding: 0; margin: 0; min-width: 0; }
+.procedure-history { display: grid; gap: 6px; font-size: 12px; margin: 14px 0; }
+.procedure-history select { padding: 9px; max-width: 100%; min-width: 0; }
+.procedure-result-heading { padding: 14px 0; }
+.procedure-menu :focus-visible, .procedure-form :focus-visible, .procedure-history :focus-visible { outline: 3px solid var(--border-focus); outline-offset: 2px; }
+@media (max-width: 900px) {
+  .empirical-procedure-workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .procedure-menu { position: static; max-height: 300px; }
+  .procedure-family { display: flex; flex-wrap: wrap; gap: 6px; }
+  .procedure-family h3 { width: 100%; }
+  .procedure-family button { width: auto; }
+}

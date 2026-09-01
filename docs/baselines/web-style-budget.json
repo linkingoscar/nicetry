@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "1.0.0",
+  "metric": "count of `style={{` occurrences in apps/web/src/**/*.tsx",
+  "maxInlineStyleObjects": 294,
+  "policy": "Inline style objects are frozen at the audited 2026-08-16 value and must only decrease. New styling belongs in tokens.css/domain CSS or CSS modules; raising this budget requires a debt item and review."
+}

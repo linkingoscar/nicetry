@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/capability-evidence.schema.json",
+  "title": "ResearchPath capability evidence manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "capabilities"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "capabilities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/capabilityEvidence" }
+    }
+  },
+  "$defs": {
+    "nonEmptyStrings": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "capabilityEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sliceId", "estimand", "supportedData", "assumptions", "diagnostics",
+        "oracle", "tests", "limitations", "versions"
+      ],
+      "properties": {
+        "sliceId": { "type": "string", "pattern": "^[a-z][a-z0-9_.]+$" },
+        "estimand": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "description"],
+          "properties": {
+            "status": { "enum": ["not_formally_frozen", "declared_at_run", "frozen"] },
+            "description": { "type": "string", "minLength": 1 }
+          }
+        },
+        "supportedData": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["timeStructures", "dependenceStructures", "designs"],
+          "properties": {
+            "timeStructures": { "$ref": "#/$defs/nonEmptyStrings" },
+            "dependenceStructures": { "$ref": "#/$defs/nonEmptyStrings" },
+            "designs": { "$ref": "#/$defs/nonEmptyStrings" }
+          }
+        },
+        "assumptions": { "$ref": "#/$defs/nonEmptyStrings" },
+        "diagnostics": { "$ref": "#/$defs/nonEmptyStrings" },
+        "oracle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["level", "name", "independence"],
+          "properties": {
+            "level": { "enum": ["none", "internal", "external"] },
+            "name": { "type": ["string", "null"] },
+            "independence": { "type": ["string", "null"] }
+          }
+        },
+        "tests": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["contract", "applicability", "failureFixtures", "numericGoldenId"],
+          "properties": {
+            "contract": { "type": "boolean" },
+            "applicability": { "type": "boolean" },
+            "failureFixtures": { "type": "boolean" },
+            "numericGoldenId": { "type": ["string", "null"] }
+          }
+        },
+        "limitations": { "$ref": "#/$defs/nonEmptyStrings" },
+        "versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["evidence", "engineContract"],
+          "properties": {
+            "evidence": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+            "engineContract": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" }
+          }
+        }
+      }
+    }
+  }
+}

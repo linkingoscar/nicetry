@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/measurement-version.schema.json",
+  "title": "ResearchPath MeasurementVersion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion", "id", "datasetVersionId", "version", "createdAt", "changeNote", "status",
+    "constructs", "reports", "derivedDataset", "transformationPreview",
+    "transformationLog", "warnings"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "pattern": "^measurement_[a-f0-9]{16}$" },
+    "datasetVersionId": { "type": "string", "pattern": "^dataset_[a-f0-9]{16}$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "changeNote": { "type": ["string", "null"], "maxLength": 500 },
+    "status": { "const": "ready_for_model_canvas" },
+    "constructs": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/construct" }
+    },
+    "reports": {
+      "type": "array", "minItems": 1,
+      "items": { "$ref": "#/$defs/report" }
+    },
+    "derivedDataset": { "$ref": "#/$defs/derivedDataset" },
+    "transformationPreview": {
+      "type": "array", "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": { "type": ["number", "null"] }
+      }
+    },
+    "transformationLog": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["constructId", "message"],
+        "properties": {
+          "constructId": { "$ref": "#/$defs/constructId" },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["code", "severity", "message"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["warning", "info", "error"] },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "nullableNumber": { "type": ["number", "null"] },
+    "constructId": { "type": "string", "pattern": "^construct_[a-z0-9_-]{1,50}$" },
+    "itemId": { "type": "string", "pattern": "^var_[0-9]+_[a-f0-9]{8}$" },
+    "outputId": { "type": "string", "pattern": "^scale_[a-z0-9_-]{1,50}$" },
+    "construct": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "id", "name", "itemIds", "reverseItemIds", "theoreticalMinimum",
+        "theoreticalMaximum", "aggregation", "minimumValidProportion",
+        "minimumValidItems", "outputVariableId"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/constructId" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "itemIds": {
+          "type": "array", "minItems": 2, "uniqueItems": true,
+          "items": { "$ref": "#/$defs/itemId" }
+        },
+        "reverseItemIds": {
+          "type": "array", "uniqueItems": true,
+          "items": { "$ref": "#/$defs/itemId" }
+        },
+        "theoreticalMinimum": { "type": "number" },
+        "theoreticalMaximum": { "type": "number" },
+        "aggregation": { "enum": ["mean", "sum"] },
+        "minimumValidProportion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "minimumValidItems": { "type": "integer", "minimum": 1 },
+        "outputVariableId": { "$ref": "#/$defs/outputId" }
+      }
+    },
+    "itemAnalysis": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "itemId", "label", "reversed", "validCount", "missingCount", "mean",
+        "standardDeviation", "floorRate", "ceilingRate",
+        "correctedItemTotalCorrelation", "alphaIfDeleted", "omegaIfDeleted"
+      ],
+      "properties": {
+        "itemId": { "$ref": "#/$defs/itemId" },
+        "label": { "type": "string", "minLength": 1 },
+        "reversed": { "type": "boolean" },
+        "validCount": { "type": "integer", "minimum": 0 },
+        "missingCount": { "type": "integer", "minimum": 0 },
+        "mean": { "$ref": "#/$defs/nullableNumber" },
+        "standardDeviation": { "$ref": "#/$defs/nullableNumber" },
+        "floorRate": { "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }] },
+        "ceilingRate": { "oneOf": [{ "type": "number", "minimum": 0, "maximum": 1 }, { "type": "null" }] },
+        "correctedItemTotalCorrelation": { "$ref": "#/$defs/nullableNumber" },
+        "alphaIfDeleted": { "$ref": "#/$defs/nullableNumber" },
+        "omegaIfDeleted": { "$ref": "#/$defs/nullableNumber" }
+      }
+    },
+    "distribution": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "validCount", "missingCount", "mean", "standardDeviation", "minimum",
+        "q1", "median", "q3", "maximum"
+      ],
+      "properties": {
+        "validCount": { "type": "integer", "minimum": 0 },
+        "missingCount": { "type": "integer", "minimum": 0 },
+        "mean": { "$ref": "#/$defs/nullableNumber" },
+        "standardDeviation": { "$ref": "#/$defs/nullableNumber" },
+        "minimum": { "$ref": "#/$defs/nullableNumber" },
+        "q1": { "$ref": "#/$defs/nullableNumber" },
+        "median": { "$ref": "#/$defs/nullableNumber" },
+        "q3": { "$ref": "#/$defs/nullableNumber" },
+        "maximum": { "$ref": "#/$defs/nullableNumber" }
+      }
+    },
+    "report": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "constructId", "outputVariableId", "completeCaseCount", "alpha", "omega",
+        "itemAnalysis", "scoreDistribution"
+      ],
+      "properties": {
+        "constructId": { "$ref": "#/$defs/constructId" },
+        "outputVariableId": { "$ref": "#/$defs/outputId" },
+        "completeCaseCount": { "type": "integer", "minimum": 0 },
+        "alpha": { "$ref": "#/$defs/nullableNumber" },
+        "omega": { "$ref": "#/$defs/nullableNumber" },
+        "spearmanBrown": { "$ref": "#/$defs/nullableNumber" },
+        "reliabilityMethod": { "type": "string" },
+        "itemAnalysis": {
+          "type": "array", "minItems": 2,
+          "items": { "$ref": "#/$defs/itemAnalysis" }
+        },
+        "scoreDistribution": { "$ref": "#/$defs/distribution" }
+      }
+    },
+    "derivedDataset": {
+      "type": "object", "additionalProperties": false,
+      "required": [
+        "id", "sourceDatasetVersionId", "measurementVersion", "storage", "sha256",
+        "rowCount", "columnCount", "scoreVariables"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^derived_[a-f0-9]{16}$" },
+        "sourceDatasetVersionId": { "type": "string", "pattern": "^dataset_[a-f0-9]{16}$" },
+        "measurementVersion": { "type": "integer", "minimum": 1 },
+        "storage": { "type": "string", "minLength": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "rowCount": { "type": "integer", "minimum": 1 },
+        "columnCount": { "type": "integer", "minimum": 1 },
+        "scoreVariables": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "label", "type"],
+            "properties": {
+              "id": { "$ref": "#/$defs/outputId" },
+              "label": { "type": "string", "minLength": 1 },
+              "type": { "const": "scale_score" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

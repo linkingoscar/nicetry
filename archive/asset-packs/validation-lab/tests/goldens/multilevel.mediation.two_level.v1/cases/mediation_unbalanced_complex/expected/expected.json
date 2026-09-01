@@ -1,0 +1,13 @@
+{
+  "indirect_effects": {
+    "between": {
+      "estimate": 0.436944896226925
+    },
+    "within": {
+      "estimate": -0.0586753323056561
+    }
+  },
+  "diagnostics": {
+    "converged": true
+  }
+}

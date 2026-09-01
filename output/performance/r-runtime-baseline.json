@@ -1,0 +1,83 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-08-31T09:01:16.775337+00:00",
+  "environment": {
+    "platform": "Windows-10-10.0.26200-SP0",
+    "logicalCpuCount": 16,
+    "pythonVersion": "3.10.9",
+    "rVersion": "R version 4.6.1 (2026-06-24 ucrt)"
+  },
+  "configuration": {
+    "sampleRows": 5000,
+    "bootstrapReplicates": 5000,
+    "parallelWorkers": 8,
+    "latencyRuns": 5,
+    "randomSeed": 20260713
+  },
+  "coldStart": {
+    "operation": "new Rscript loading lavaan and jsonlite",
+    "runs": 5,
+    "valuesMs": [
+      359.174,
+      338.211,
+      335.412,
+      343.49,
+      339.579
+    ],
+    "medianMs": 339.579,
+    "p95Ms": 359.174
+  },
+  "interactiveLatency": {
+    "operation": "Model 4 with 100 bootstrap replicates",
+    "rscript": {
+      "runs": 5,
+      "valuesMs": [
+        1112.878,
+        1102.503,
+        1090.551,
+        1136.898,
+        1103.932
+      ],
+      "medianMs": 1103.932,
+      "p95Ms": 1136.898
+    },
+    "residentWorker": {
+      "runs": 5,
+      "valuesMs": [
+        140.702,
+        136.521,
+        135.203,
+        135.722,
+        137.316
+      ],
+      "medianMs": 136.521,
+      "p95Ms": 140.702
+    },
+    "residentPoolStartupMs": 432.577,
+    "medianTimeSavedMs": 967.411,
+    "numericEquivalent": true,
+    "workersStoppedAfterClose": true
+  },
+  "heavyBootstrap": {
+    "sequential": {
+      "durationMs": 5008.48,
+      "poolStartupMs": 424.002,
+      "workerPids": [
+        18484
+      ]
+    },
+    "parallel": {
+      "durationMs": 1193.494,
+      "poolStartupMs": 1943.855,
+      "workerPids": [
+        24552
+      ]
+    },
+    "speedup": 4.196,
+    "targetSpeedup": 3.0,
+    "targetMet": true,
+    "numericEquivalent": true,
+    "workersStoppedAfterClose": true
+  },
+  "passed": true
+}

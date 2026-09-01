@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/dataset-version.schema.json",
+  "title": "ResearchPath DatasetVersion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "projectId",
+    "createdAt",
+    "originalFile",
+    "storage",
+    "rowCount",
+    "columnCount",
+    "variables",
+    "preview",
+    "warnings",
+    "dictionary"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "pattern": "^dataset_[a-f0-9]{16}$" },
+    "projectId": { "const": "default" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "originalFile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "format", "sizeBytes", "sha256"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 240 },
+        "format": { "enum": ["csv", "xlsx", "sav", "dta", "por"] },
+        "sizeBytes": { "type": "integer", "minimum": 1, "maximum": 52428800 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "encoding": { "type": "string" },
+        "delimiter": { "type": "string", "minLength": 1, "maxLength": 1 },
+        "sheet": { "type": "string" },
+        "sheetNames": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["raw", "normalized"],
+      "properties": {
+        "raw": { "type": "string", "minLength": 1 },
+        "normalized": { "type": "string", "minLength": 1 }
+      }
+    },
+    "rowCount": { "type": "integer", "minimum": 1 },
+    "columnCount": { "type": "integer", "minimum": 1 },
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/variable" }
+    },
+    "preview": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": { "$ref": "#/$defs/primitive" }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message"],
+        "properties": {
+          "code": { "type": "string" },
+          "severity": { "const": "warning" },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["operation", "sources", "subjectKey", "joinType", "joinKeys", "reportSha256"],
+      "properties": {
+        "operation": { "const": "outer_merge" },
+        "sources": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["datasetVersionId", "sha256"],
+            "properties": {
+              "datasetVersionId": { "type": "string" },
+              "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
+        },
+        "subjectKey": { "type": "string", "minLength": 1 },
+        "waveKey": { "type": ["string", "null"] },
+        "joinType": { "const": "outer" },
+        "joinKeys": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "reportSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "dictionary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "confirmedCount", "totalCount", "status"],
+      "properties": {
+        "version": { "type": "integer", "minimum": 0 },
+        "confirmedCount": { "type": "integer", "minimum": 0 },
+        "totalCount": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["draft", "confirmed"] }
+      }
+    }
+  },
+  "$defs": {
+    "primitive": {
+      "type": ["string", "number", "integer", "boolean", "null"]
+    },
+    "variableType": {
+      "enum": ["continuous", "binary", "nominal", "ordinal", "likert", "id", "text"]
+    },
+    "variable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "originalName",
+        "label",
+        "storageType",
+        "inferredType",
+        "confirmedType",
+        "confidence",
+        "rationale",
+        "missingCount",
+        "missingRate",
+        "uniqueCount",
+        "sampleValues",
+        "valueLabels",
+        "issues"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^var_[0-9]+_[a-f0-9]{8}$" },
+        "originalName": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "storageType": { "type": "string", "minLength": 1 },
+        "inferredType": { "$ref": "#/$defs/variableType" },
+        "confirmedType": {
+          "oneOf": [
+            { "$ref": "#/$defs/variableType" },
+            { "type": "null" }
+          ]
+        },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "rationale": { "type": "string", "minLength": 1 },
+        "missingCount": { "type": "integer", "minimum": 0 },
+        "missingRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "uniqueCount": { "type": "integer", "minimum": 0 },
+        "sampleValues": {
+          "type": "array",
+          "maxItems": 5,
+          "items": { "$ref": "#/$defs/primitive" }
+        },
+        "valueLabels": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        },
+        "issues": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["constant_or_empty", "high_missing"] }
+        },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" }
+      }
+    }
+  }
+}

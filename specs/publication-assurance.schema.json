@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/publication-assurance.schema.json",
+  "title": "ResearchPath replay and three-layer publication assurance",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["replay", "publicationGate"],
+  "properties": {
+    "replay": { "$ref": "#/$defs/replay" },
+    "publicationGate": { "$ref": "#/$defs/publicationGate" }
+  },
+  "$defs": {
+    "replay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion", "packageFormat", "packageVersion", "available", "command",
+        "verificationCommand", "hashAlgorithm", "packageGenerated",
+        "cleanRoomVerified", "dataIncluded", "licenses", "limitations"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "packageFormat": { "const": "ResearchPath Replay Package" },
+        "packageVersion": { "const": "1.0.0" },
+        "available": { "type": "boolean" },
+        "command": { "type": ["string", "null"], "minLength": 1 },
+        "verificationCommand": { "type": ["string", "null"], "minLength": 1 },
+        "hashAlgorithm": { "const": "sha256" },
+        "packageGenerated": { "type": "boolean" },
+        "cleanRoomVerified": { "type": "boolean" },
+        "dataIncluded": { "type": ["boolean", "null"] },
+        "licenses": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "data"],
+          "properties": {
+            "code": { "type": "string", "minLength": 1 },
+            "data": { "type": "string", "minLength": 1 }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "available": { "const": true } } },
+          "then": {
+            "properties": {
+              "command": { "type": "string", "minLength": 1 },
+              "verificationCommand": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks", "reasons"],
+      "properties": {
+        "status": { "enum": ["passed", "conditional", "failed"] },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "passed", "evidence"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "passed": { "type": "boolean" },
+              "evidence": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "capabilityLayer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks", "reasons", "sliceIds", "validationLevels"],
+      "properties": {
+        "status": { "enum": ["passed", "conditional", "failed"] },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "passed", "evidence"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "passed": { "type": "boolean" },
+              "evidence": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "sliceIds": {
+          "type": "array", "minItems": 1, "uniqueItems": true,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "validationLevels": {
+          "type": "object",
+          "additionalProperties": {
+            "enum": ["unvalidated", "internally_validated", "externally_validated"]
+          }
+        }
+      }
+    },
+    "humanConfirmation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["confirmed", "confirmedBy", "confirmedAt"],
+      "properties": {
+        "confirmed": { "type": "boolean" },
+        "confirmedBy": { "type": ["string", "null"], "minLength": 1 },
+        "confirmedAt": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "confirmed": { "const": true } } },
+          "then": {
+            "properties": {
+              "confirmedBy": { "type": "string", "minLength": 1 },
+              "confirmedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      ]
+    },
+    "publicationGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion", "capabilityLayer", "runEvidenceLayer", "reportingLayer",
+        "humanConfirmation", "finalStatus", "finalEligible", "reasons"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "capabilityLayer": { "$ref": "#/$defs/capabilityLayer" },
+        "runEvidenceLayer": { "$ref": "#/$defs/layer" },
+        "reportingLayer": { "$ref": "#/$defs/layer" },
+        "humanConfirmation": { "$ref": "#/$defs/humanConfirmation" },
+        "finalStatus": { "enum": ["ineligible", "requires_human_confirmation", "eligible"] },
+        "finalEligible": { "type": "boolean" },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

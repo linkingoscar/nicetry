@@ -1,0 +1,178 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_lcm_sr_oracle.R",
+    "oracle": "lavaan::sem (MLR, listwise) with independently reconstructed configural measurement + LCM-SR structural syntax",
+    "lavaanVersion": "0.6.21",
+    "dataGenerator": "deterministic latent panel: 2 constructs x 3 items x 3 waves, growth (I/S) + AR/cross-lag states (seed 20260820, n=300)",
+    "tolerance": {
+      "fit": 1e-06,
+      "growth": 1e-06
+    }
+  },
+  "fit": {
+    "chiSquare": 105.366790268159,
+    "degreesOfFreedom": 89,
+    "pValue": 0.113527897707072,
+    "cfi": 0.997035542756721,
+    "tli": 0.994903798222228,
+    "rmsea": 0.0247586025364215,
+    "srmr": 0.019003256968853
+  },
+  "growthComponents": [
+    {
+      "lhs": "GX_I",
+      "operator": "~1",
+      "rhs": null,
+      "estimate": 0,
+      "standardizedEstimate": 0,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_S",
+      "operator": "~1",
+      "rhs": null,
+      "estimate": 0,
+      "standardizedEstimate": 0,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GY_I",
+      "operator": "~1",
+      "rhs": null,
+      "estimate": 0,
+      "standardizedEstimate": 0,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GY_S",
+      "operator": "~1",
+      "rhs": null,
+      "estimate": 0,
+      "standardizedEstimate": 0,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_I",
+      "operator": "~~",
+      "rhs": "GX_I",
+      "estimate": 0.959155115996381,
+      "standardizedEstimate": 1,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_S",
+      "operator": "~~",
+      "rhs": "GX_S",
+      "estimate": 0.0315121731603473,
+      "standardizedEstimate": 1,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GY_I",
+      "operator": "~~",
+      "rhs": "GY_I",
+      "estimate": 0.793659595426302,
+      "standardizedEstimate": 1,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GY_S",
+      "operator": "~~",
+      "rhs": "GY_S",
+      "estimate": 0.16788665047463,
+      "standardizedEstimate": 1,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_I",
+      "operator": "~~",
+      "rhs": "GX_S",
+      "estimate": 0.116027165552175,
+      "standardizedEstimate": 0.667384447802217,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_I",
+      "operator": "~~",
+      "rhs": "GY_I",
+      "estimate": 0.0913561888508421,
+      "standardizedEstimate": 0.10470716817368,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_I",
+      "operator": "~~",
+      "rhs": "GY_S",
+      "estimate": -0.00997483631261554,
+      "standardizedEstimate": -0.0248572609513933,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_S",
+      "operator": "~~",
+      "rhs": "GY_I",
+      "estimate": -0.00140853091096362,
+      "standardizedEstimate": -0.00890656146741595,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GX_S",
+      "operator": "~~",
+      "rhs": "GY_S",
+      "estimate": 0.00572282683621342,
+      "standardizedEstimate": 0.0786798178155593,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    },
+    {
+      "lhs": "GY_I",
+      "operator": "~~",
+      "rhs": "GY_S",
+      "estimate": -0.0323605253798797,
+      "standardizedEstimate": -0.0886523690989851,
+      "standardError": "NA",
+      "pValue": "NA",
+      "lower": "NA",
+      "upper": "NA"
+    }
+  ]
+}

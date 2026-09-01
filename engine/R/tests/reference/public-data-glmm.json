@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "data": "lme4::toenail (outcome mapped 0/1: moderate-or-severe = event) and lme4::grouseticks (count)",
+    "generator": "output/validation-datasets/build_glmm_oracle.R",
+    "oracle": "lme4::glmer (binomial logit, nAGQ=1, bobyqa) and glmmTMB (Poisson)",
+    "toleranceRationale": "The locked lme4 bobyqa specification is unchanged, but compiled Windows BLAS/LAPACK paths can move the final optimizer digits. Field-specific absolute bounds include the observed cross-build drift (maximum 4.1e-5) with review margin; they do not change the model or interpretation boundary.",
+    "lme4Version": "2.0.1",
+    "glmmTMBVersion": "1.1.14",
+    "tolerance": {
+      "estimate": 1e-05,
+      "se": 1e-04,
+      "statistic": 1e-04,
+      "pValue": 1e-04,
+      "variance": 1e-04,
+      "count": 1e-09
+    }
+  },
+  "toenail": {
+    "sampleSize": 1908,
+    "personCount": 294,
+    "fixedEffects": [
+      {
+        "term": "(Intercept)",
+        "estimate": -2.31940353752654,
+        "standardError": 0.747295942961162,
+        "statistic": -3.10372826103659,
+        "pValue": 0.00191098759976273,
+        "lower": -3.78407667152332,
+        "upper": -0.854730403529768,
+        "exponentiatedEstimate": 0.0983322195950558,
+        "exponentiatedLower": 0.0227298401994417,
+        "exponentiatedUpper": 0.425397861386099
+      },
+      {
+        "term": "treatmentterbinafine",
+        "estimate": -0.685546939369919,
+        "standardError": 0.659000128621834,
+        "statistic": -1.04028346823483,
+        "pValue": 0.298208222430729,
+        "lower": -1.97716345727598,
+        "upper": 0.606069578536138,
+        "exponentiatedEstimate": 0.503814598165985,
+        "exponentiatedLower": 0.138461432577748,
+        "exponentiatedUpper": 1.83321192479086
+      },
+      {
+        "term": "time",
+        "estimate": -0.460942320103336,
+        "standardError": 0.0396253998997735,
+        "statistic": -11.6324963601433,
+        "pValue": 2.81735864079245e-31,
+        "lower": -0.53860667677989,
+        "upper": -0.383277963426783,
+        "exponentiatedEstimate": 0.630689054428419,
+        "exponentiatedLower": 0.58356077496735,
+        "exponentiatedUpper": 0.681623406573322
+      }
+    ],
+    "varianceComponents": [
+      {
+        "group": "patientID",
+        "term": "(Intercept)",
+        "pairedTerm": null,
+        "variance": 20.7262309247166,
+        "standardDeviation": 4.55260704703543
+      }
+    ]
+  },
+  "verbagg": {
+    "sampleSize": 403,
+    "personCount": 118,
+    "fixedEffects": [
+      {
+        "term": "(Intercept)",
+        "estimate": 11.5411350094399,
+        "standardError": 1.39827180477155,
+        "statistic": 8.25385663220566,
+        "pValue": 1.53363316490688e-16,
+        "lower": 8.80057263148982,
+        "upper": 14.28169738739,
+        "exponentiatedEstimate": 102861.120162914,
+        "exponentiatedLower": 6638.04407122159,
+        "exponentiatedUpper": 1593904.75984327
+      },
+      {
+        "term": "HEIGHT",
+        "estimate": -0.0238662544176461,
+        "standardError": 0.00300718052718671,
+        "statistic": -7.93642224066061,
+        "pValue": 2.08096729325041e-15,
+        "lower": -0.0297602199459422,
+        "upper": -0.01797228888935,
+        "exponentiatedEstimate": 0.976416292390935,
+        "exponentiatedLower": 0.97067825493086,
+        "exponentiatedUpper": 0.982188249508452
+      },
+      {
+        "term": "YEAR96",
+        "estimate": 1.13589520183469,
+        "standardError": 0.242423231240294,
+        "statistic": 4.6855872517794,
+        "pValue": 2.7915834045632e-06,
+        "lower": 0.66075439958789,
+        "upper": 1.61103600408149,
+        "exponentiatedEstimate": 3.11395991816683,
+        "exponentiatedLower": 1.93625249164352,
+        "exponentiatedUpper": 5.00799684638175
+      },
+      {
+        "term": "YEAR97",
+        "estimate": -1.00113346977854,
+        "standardError": 0.269673787404863,
+        "statistic": -3.7123870266098,
+        "pValue": 0.000205313712729829,
+        "lower": -1.52968438066659,
+        "upper": -0.4725825588905,
+        "exponentiatedEstimate": 0.36746269717071,
+        "exponentiatedLower": 0.216604020945282,
+        "exponentiatedUpper": 0.623390245585902
+      }
+    ],
+    "varianceComponents": [
+      {
+        "group": "BROOD",
+        "term": "(Intercept)",
+        "pairedTerm": null,
+        "variance": 0.901921046722115,
+        "standardDeviation": 0.949695238864613
+      }
+    ]
+  }
+}

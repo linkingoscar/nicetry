@@ -1,0 +1,142 @@
+import { expect, test } from '@playwright/test'
+import { openAuthenticatedPage } from './session'
+import { expectNoHorizontalOverflow, expectNoSeriousAccessibilityViolations, installPageFailureMonitor } from './quality'
+
+test('@real-r @a11y supports PROCESS point assignment, safe undo, freezing and a real model run in glass themes', async ({ page }) => {
+  test.setTimeout(150_000)
+  const failures = await installPageFailureMonitor(page, { classifyModelCanvasResizeLoop: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await openAuthenticatedPage(page)
+  await page.getByRole('button', { name: /分析已有数据/ }).click()
+  await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await expect(page.getByText('测量层已完成 · v1')).toBeVisible()
+  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
+
+  // One keyboard-operable assignment path also creates valid control nodes.
+  await page.getByRole('searchbox', { name: '搜索变量' }).fill('age')
+  const age = page.getByRole('button', { name: '选择变量 age', exact: true })
+  await age.focus()
+  await page.keyboard.press('Enter')
+  await expect(age).toHaveAttribute('aria-pressed', 'true')
+  await page.getByRole('combobox', { name: '目标角色' }).selectOption('__covariate')
+  await page.getByRole('button', { name: '分配到所选角色' }).click()
+  await expect(page.getByRole('button', { name: '移除控制变量 age' })).toBeVisible()
+  await page.getByRole('button', { name: '移除控制变量 age' }).click()
+  await expect(page.getByRole('button', { name: '移除控制变量 age' })).toHaveCount(0)
+  await page.getByRole('combobox', { name: '目标角色' }).selectOption('node_x')
+  await page.getByRole('button', { name: '分配到所选角色' }).click()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('age')
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true })).toHaveCount(1)
+  await page.getByRole('searchbox', { name: '搜索变量' }).fill('')
+
+  const reason = page.getByRole('textbox', { name: '方法警告的处理与解释边界' })
+  await reason.fill('横截面模型仅解释条件间接关联，不作因果推断。')
+  const freeze = page.getByRole('button', { name: '冻结并确定模型版本' })
+  await expect(freeze).toBeEnabled()
+  await freeze.click()
+  await expect(page.getByText(/已冻结 Version/)).toBeVisible()
+  await page.getByRole('button', { name: '↩ 撤销', exact: true }).click()
+  await expect(page.getByText(/已冻结 Version/)).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '运行模型分析与估计' })).toBeDisabled()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('工作自主性')
+  await page.getByRole('button', { name: '↪ 重做', exact: true }).click()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('age')
+  await expect(freeze).toBeEnabled()
+  await freeze.click()
+  await expect(page.getByText(/已冻结 Version/)).toBeVisible()
+
+  const accepted = page.waitForResponse(response => response.request().method() === 'POST'
+    && /\/versions\/\d+\/analysis$/.test(response.url()) && response.status() === 202)
+  await page.getByRole('button', { name: '运行模型分析与估计' }).click()
+  const runId = (await (await accepted).json() as { id: string }).id
+  await expect.poll(async () => page.evaluate(async id => {
+    const token = sessionStorage.getItem('researchpath.sessionToken')
+    const response = await fetch(`/api/v1/analyses/${id}`, { headers: token ? { 'x-researchpath-token': token } : {} })
+    const job = await response.json() as { status: string; error?: string }
+    if (job.status === 'failed') throw new Error(job.error ?? 'PROCESS run failed')
+    return job.status
+  }, runId), { timeout: 90_000 }).toBe('succeeded')
+  await expect(page.getByRole('button', { name: '下载结果与复现包' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'PROCESS Model 4 · 本次结果' })).toBeVisible()
+  await expect(page.getByRole('button', { name: /运行示例分析/ })).toHaveCount(0)
+  await expect(page.getByRole('region', { name: '模型节点 X', exact: true })).toContainText('age')
+  await expect(page.getByRole('region', { name: '路径a统计详情' })).toContainText('B=')
+
+  // A previous completed job must not unlock editing while a rerun is being submitted.
+  let releaseSubmission: () => void = () => undefined
+  const submissionGate = new Promise<void>(resolve => { releaseSubmission = resolve })
+  await page.route('**/versions/*/analysis', async route => {
+    await submissionGate
+    await route.continue()
+  }, { times: 1 })
+  const rerunAccepted = page.waitForResponse(response => response.request().method() === 'POST'
+    && /\/versions\/\d+\/analysis$/.test(response.url()) && response.status() === 202)
+  await page.getByRole('button', { name: '运行模型分析与估计' }).click()
+  try {
+    await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true })).toBeDisabled()
+    await expect(page.getByRole('button', { name: '↩ 撤销', exact: true })).toBeDisabled()
+  } finally {
+    releaseSubmission()
+  }
+  await rerunAccepted
+  await expect(page.getByRole('button', { name: '运行模型分析与估计' })).toBeEnabled({ timeout: 90_000 })
+  await expect(page.getByRole('heading', { name: 'PROCESS Model 4 · 本次结果' })).toBeVisible()
+
+  await page.getByRole('button', { name: '检查栏 ▶', exact: true }).click()
+  await expect(page.getByRole('complementary', { name: '模型检查与运行' })).not.toBeVisible()
+  await page.getByRole('button', { name: '检查栏 ◀', exact: true }).click()
+  await page.getByRole('button', { name: '专注模式', exact: true }).click()
+  await expect(page.getByRole('complementary', { name: '变量库' })).not.toBeVisible()
+  await expect(page.getByRole('complementary', { name: '模型检查与运行' })).not.toBeVisible()
+  await page.getByRole('button', { name: '退出专注模式', exact: true }).click()
+  await expect(page.getByRole('complementary', { name: '变量库' })).toBeVisible()
+  await expectNoHorizontalOverflow(page)
+  await expectNoSeriousAccessibilityViolations(page)
+  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: 'output/playwright/process-glass-desktop.png' })
+  await page.getByRole('button', { name: '明亮模式', exact: true }).click()
+  await expectNoSeriousAccessibilityViolations(page)
+  await page.screenshot({ path: 'output/playwright/process-glass-dark.png' })
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expectNoHorizontalOverflow(page)
+  // Root overflow clipping must not hide a panel that is wider than the viewport.
+  const clippedPanels = await page.locator('.model-toolbar, .model-builder-grid, .variable-library, .model-editor-main, .model-sidebar, .process-editor-tabs').evaluateAll(elements =>
+    elements.filter(element => element.getBoundingClientRect().right > innerWidth + 1 || element.getBoundingClientRect().left < -1).map(element => element.className))
+  expect(clippedPanels).toEqual([])
+  const diagnosticTable = page.getByRole('region', { name: '回归诊断表', exact: true })
+  await diagnosticTable.focus()
+  await expect(diagnosticTable).toBeFocused()
+  await expect.poll(() => diagnosticTable.evaluate(element => element.scrollWidth > element.clientWidth)).toBe(true)
+  await page.keyboard.press('ArrowRight')
+  await expect.poll(() => diagnosticTable.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
+  await expectNoSeriousAccessibilityViolations(page)
+  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: 'output/playwright/process-glass-mobile.png' })
+  await page.setViewportSize({ width: 1440, height: 1000 })
+  await page.reload()
+  await expect(page.getByRole('heading', { name: 'PROCESS Model 4 · 本次结果' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '运行模型分析与估计' })).toBeDisabled()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('age')
+  await page.getByRole('button', { name: '选择变量 工作自主性', exact: true }).click()
+  await page.getByRole('button', { name: '分配到所选角色', exact: true }).click()
+  await page.getByRole('button', { name: '↩ 撤销', exact: true }).click()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('age')
+  await page.getByRole('button', { name: '分配到所选角色', exact: true }).click()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('工作自主性')
+  await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
+  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '方法目录', exact: true })).toBeVisible()
+  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
+  await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('工作自主性')
+  await page.getByText('更换模型 · Model 4 · 单一中介', { exact: true }).click()
+  await page.getByRole('button', { name: /调节效应 关系是否随第三个变量/ }).click()
+  page.once('dialog', dialog => dialog.accept())
+  await page.getByRole('button', { name: 'Model 1 · 单一调节', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Model 1 · 单一调节', exact: true })).toBeVisible()
+  await expect(page.getByText(/已冻结 Version/)).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'PROCESS Model 4 · 本次结果' })).toHaveCount(0)
+  await expectNoSeriousAccessibilityViolations(page)
+  await failures.expectClean()
+})

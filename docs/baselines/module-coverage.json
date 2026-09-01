@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "1.0.0",
+  "metric": "coverage.py per-file covered_lines / num_statements (line coverage)",
+  "floor": 70.0,
+  "maxExcludedLines": 40,
+  "requiredModules": [
+    "app/services/analysis_repository.py",
+    "app/services/study_context_repository.py",
+    "app/services/process_ownership.py",
+    "app/services/empirical_analysis.py",
+    "app/services/imputation_plan_repository.py"
+  ],
+  "policy": "Key persistence, process-ownership and empirical service modules must stay at or above the floor. The excluded-lines cap is an anti-pragma budget; raising either value requires a reviewed change with its own evidence."
+}

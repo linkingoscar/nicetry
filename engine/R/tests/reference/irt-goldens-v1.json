@@ -1,0 +1,224 @@
+{
+  "schemaVersion": "1.0.0",
+  "provenance": {
+    "generator": "output/validation-datasets/build_irt_oracle.R",
+    "oracle": "mirt::mirt (2PL/graded, unidimensional) + known generating parameters + EAP-score DIF LRT replication",
+    "mirtVersion": "1.46.1",
+    "dataGenerator": "deterministic simulation (seed 20260818, n=1000); item i2 carries true DIF (b +0.6 in g1)",
+    "recoveryRule": "|estimate - true| <= 3*SE + 0.1 per parameter",
+    "tolerance": {
+      "estimate": 1e-06,
+      "dif": 1e-06
+    }
+  },
+  "true2PL": {
+    "a": [1.2, 0.9, 1.5, 1, 1.3],
+    "b": [-0.5, 0.2, 0.8, -0.2, 0.5]
+  },
+  "trueGRM": {
+    "a": [1.1, 1.4, 0.8, 1.2],
+    "b": [
+      [-1.2, -0.2, 0.8],
+      [-0.8, 0.1, 1],
+      [-1.5, 0, 1.2],
+      [-0.5, 0.4, 1.3]
+    ]
+  },
+  "mirt2PL": [
+    {
+      "itemId": "i1",
+      "estimate": {
+        "a": 1.11743847126479,
+        "b": [
+          -0.469492986062831
+        ]
+      },
+      "standardError": {
+        "a": 0.14875929637945,
+        "b": [
+          0.0832451556875302
+        ]
+      }
+    },
+    {
+      "itemId": "i2",
+      "estimate": {
+        "a": 0.963941949400202,
+        "b": [
+          0.486123647934791
+        ]
+      },
+      "standardError": {
+        "a": 0.129316800049351,
+        "b": [
+          0.0925131564271148
+        ]
+      }
+    },
+    {
+      "itemId": "i3",
+      "estimate": {
+        "a": 1.7995867277485,
+        "b": [
+          0.819987267496411
+        ]
+      },
+      "standardError": {
+        "a": 0.264690028094448,
+        "b": [
+          0.0810594177457446
+        ]
+      }
+    },
+    {
+      "itemId": "i4",
+      "estimate": {
+        "a": 0.931341522344767,
+        "b": [
+          -0.220486369507721
+        ]
+      },
+      "standardError": {
+        "a": 0.126822108014796,
+        "b": [
+          0.0836681443722564
+        ]
+      }
+    },
+    {
+      "itemId": "i5",
+      "estimate": {
+        "a": 1.19918125730512,
+        "b": [
+          0.581420998954264
+        ]
+      },
+      "standardError": {
+        "a": 0.155803354816187,
+        "b": [
+          0.0846740643496395
+        ]
+      }
+    }
+  ],
+  "mirtGRM": [
+    {
+      "itemId": "g1",
+      "estimate": {
+        "a": 1.21350379286504,
+        "b": [
+          -1.09607892214269,
+          -0.189346340258778,
+          0.754398505925071
+        ]
+      },
+      "standardError": {
+        "a": 0.126677864741236,
+        "b": [
+          0.107244380168083,
+          0.0681985494579764,
+          0.088567025484965
+        ]
+      }
+    },
+    {
+      "itemId": "g2",
+      "estimate": {
+        "a": 1.53425607352669,
+        "b": [
+          -0.660371770857191,
+          0.213950105085854,
+          0.953249510639028
+        ]
+      },
+      "standardError": {
+        "a": 0.169036879876312,
+        "b": [
+          0.0743691618992684,
+          0.0600837469261557,
+          0.0879897350002171
+        ]
+      }
+    },
+    {
+      "itemId": "g3",
+      "estimate": {
+        "a": 0.790047583308974,
+        "b": [
+          -1.53240291456453,
+          0.00402725543710273,
+          1.26657449315996
+        ]
+      },
+      "standardError": {
+        "a": 0.0927191570808644,
+        "b": [
+          0.180343143760162,
+          0.0905267661025368,
+          0.157531994175358
+        ]
+      }
+    },
+    {
+      "itemId": "g4",
+      "estimate": {
+        "a": 1.25166215906093,
+        "b": [
+          -0.440387743162388,
+          0.410948288949198,
+          1.24054471534796
+        ]
+      },
+      "standardError": {
+        "a": 0.132005287135129,
+        "b": [
+          0.0742173957380613,
+          0.0719218514220068,
+          0.114714712146916
+        ]
+      }
+    }
+  ],
+  "dif2PL": [
+    {
+      "itemId": "i1",
+      "statistic": 1.50971929003867,
+      "degreesOfFreedom": 2,
+      "pValue": 0.470076587690988,
+      "pValueAdjusted": 0.940153175381976,
+      "difDetected": false
+    },
+    {
+      "itemId": "i2",
+      "statistic": 35.6463589691859,
+      "degreesOfFreedom": 2,
+      "pValue": 1.81757148174293e-08,
+      "pValueAdjusted": 9.08785740871464e-08,
+      "difDetected": true
+    },
+    {
+      "itemId": "i3",
+      "statistic": 2.91436847862144,
+      "degreesOfFreedom": 2,
+      "pValue": 0.232891118011091,
+      "pValueAdjusted": 0.698673354033274,
+      "difDetected": false
+    },
+    {
+      "itemId": "i4",
+      "statistic": 0.384456140376642,
+      "degreesOfFreedom": 2,
+      "pValue": 0.825118662061717,
+      "pValueAdjusted": 0.940153175381976,
+      "difDetected": false
+    },
+    {
+      "itemId": "i5",
+      "statistic": 5.22366316581952,
+      "degreesOfFreedom": 2,
+      "pValue": 0.0733999824171722,
+      "pValueAdjusted": 0.293599929668689,
+      "difDetected": false
+    }
+  ]
+}

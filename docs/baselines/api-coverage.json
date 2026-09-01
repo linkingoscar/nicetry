@@ -1,0 +1,8 @@
+{
+  "schemaVersion": "1.0.0",
+  "metric": "coverage.py total percent_covered with branch coverage",
+  "percent_covered": 79.97976049924102,
+  "source": "output/coverage/api.json",
+  "recordedAt": "2026-07-17",
+  "policy": "The full harness must not accept a lower value. Raising this baseline requires a reviewed, explicit change with its own evidence."
+}

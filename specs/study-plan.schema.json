@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/study-plan.schema.json",
+  "title": "ResearchPath StudyPlanVersion",
+  "description": "Typed v2 intent source of truth for hypotheses, estimands, analysis declarations and reproducible study-plan revisions.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "projectId",
+    "revision",
+    "status",
+    "hypotheses",
+    "estimands",
+    "analysisDeclarations",
+    "multiplicityFamilies",
+    "sampleDefinition",
+    "measurementPlan",
+    "missingDataPlan",
+    "powerPlan",
+    "context",
+    "planHash",
+    "createdAt"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "2.0.0" },
+    "id": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "status": { "enum": ["draft", "frozen"] },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "researchQuestion": { "type": "string", "maxLength": 2000 },
+    "hypotheses": { "type": "array", "items": { "$ref": "#/$defs/hypothesis" } },
+    "estimands": { "type": "array", "items": { "$ref": "#/$defs/estimand" } },
+    "analysisDeclarations": { "type": "array", "items": { "$ref": "#/$defs/analysisDeclaration" } },
+    "multiplicityFamilies": { "type": "array", "items": { "$ref": "#/$defs/multiplicityFamily" } },
+    "sampleDefinition": { "$ref": "#/$defs/sampleDefinition" },
+    "measurementPlan": { "$ref": "#/$defs/measurementPlan" },
+    "missingDataPlan": { "$ref": "#/$defs/missingDataPlan" },
+    "powerPlan": { "type": ["object", "null"] },
+    "context": { "$ref": "#/$defs/studyContext" },
+    "migration": { "oneOf": [{ "$ref": "#/$defs/migration" }, { "type": "null" }] },
+    "planHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "createdAt": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "scalar": { "type": ["string", "number", "boolean"] },
+    "hypothesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "analysisRole", "declarationTiming", "direction", "estimandIds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 500 },
+        "analysisRole": { "enum": ["primary", "robustness", "exploratory"] },
+        "declarationTiming": { "enum": ["preregistered", "registered", "post_hoc", "unspecified"] },
+        "direction": { "enum": ["positive", "negative", "two_sided", "non_directional"] },
+        "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "contrast": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "from", "to"],
+      "properties": {
+        "type": { "enum": ["binary_transition", "pairwise", "planned_contrast", "custom"] },
+        "from": { "$ref": "#/$defs/scalar" },
+        "to": { "$ref": "#/$defs/scalar" }
+      }
+    },
+    "conditioning": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["variableId", "values", "valueScale"],
+      "properties": {
+        "variableId": { "type": "string", "minLength": 1 },
+        "values": { "type": "array", "items": { "$ref": "#/$defs/scalar" } },
+        "valueScale": { "type": "string", "minLength": 1, "maxLength": 100 }
+      }
+    },
+    "estimand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "quantity"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "quantity": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "outcomeId": { "type": ["string", "null"] },
+        "focalPredictorId": { "type": ["string", "null"] },
+        "outcomeScale": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "population": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "contrast": { "oneOf": [{ "$ref": "#/$defs/contrast" }, { "type": "null" }] },
+        "conditioning": { "oneOf": [{ "$ref": "#/$defs/conditioning" }, { "type": "null" }] },
+        "causalTarget": { "type": "boolean" }
+      }
+    },
+    "analysisDeclaration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "role", "estimandIds", "capabilitySliceId", "requestedMethod"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "role": { "enum": ["primary", "robustness", "exploratory"] },
+        "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "capabilitySliceId": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "requestedMethod": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "robustnessAnalysisIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "parameters": { "type": "object" }
+      }
+    },
+    "multiplicityFamily": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "role": { "enum": ["primary", "secondary", "robustness", "exploratory", null] },
+        "adjustment": { "enum": ["none", "holm", "BH", "bonferroni", null] },
+        "memberEstimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "memberType": { "enum": ["hypothesis", "estimand", "analysis", null] },
+        "memberIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "adjustmentMethod": { "enum": ["none", "holm", "BH", "bonferroni", null] }
+      },
+      "oneOf": [
+        {
+          "required": ["id", "label", "role", "adjustment", "memberEstimandIds"],
+          "properties": {
+            "role": { "enum": ["primary", "secondary", "robustness", "exploratory"] },
+            "adjustment": { "enum": ["none", "holm", "BH", "bonferroni"] },
+            "memberEstimandIds": { "minItems": 1 }
+          }
+        },
+        {
+          "required": ["id", "label", "memberType", "memberIds", "adjustmentMethod"],
+          "properties": {
+            "memberType": { "enum": ["hypothesis", "estimand", "analysis"] },
+            "memberIds": { "minItems": 1 },
+            "adjustmentMethod": { "enum": ["none", "holm", "BH", "bonferroni"] }
+          }
+        }
+      ]
+    },
+    "variableRole": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "label", "role"],
+      "properties": {
+        "key": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "role": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "level": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "variableId": { "type": ["string", "null"] },
+        "acceptedTypes": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "structureRole": { "enum": ["subjectId", "clusterId", "timeId", "groupId", "treatmentId", null] }
+      }
+    },
+    "sampleDefinition": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "roles": { "type": "array", "items": { "$ref": "#/$defs/variableRole" } },
+        "unitOfAnalysis": { "type": ["string", "null"] },
+        "inclusionCriteria": { "type": "array", "items": { "type": "string" } },
+        "exclusionCriteria": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "construct": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+        "label": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "itemIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "measurementPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "constructs": { "type": "array", "items": { "$ref": "#/$defs/construct" } },
+        "measurementVersionId": { "type": ["string", "null"] }
+      }
+    },
+    "missingDataPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["strategy"],
+      "properties": {
+        "strategy": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "sensitivityAnalysisIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "reportMissingness": { "type": "boolean" }
+      }
+    },
+    "studyContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "timeStructure", "dependenceStructure", "design"],
+      "properties": {
+        "schemaVersion": { "const": "1.0.0" },
+        "timeStructure": { "enum": ["cross_sectional", "panel", "intensive_longitudinal"] },
+        "dependenceStructure": { "enum": ["independent", "nested"] },
+        "design": { "enum": ["observational", "randomized", "quasi_experimental"] }
+      }
+    },
+    "migration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fromSchemaVersion", "mode"],
+      "properties": {
+        "fromSchemaVersion": { "const": "1.0.0" },
+        "mode": { "const": "automatic_draft" }
+      }
+    }
+  }
+}

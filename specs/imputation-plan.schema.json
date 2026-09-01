@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/imputation-plan.schema.json",
+  "title": "ResearchPath ImputationPlanVersion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "id", "datasetVersionId", "datasetSha256", "contextHash", "sampleVersionId", "sampleHash", "structureVersionId", "structureHash", "substantiveModel", "substantiveModelHash", "predictorMatrixHash", "variables", "passiveRules", "imputations", "iterations", "seed", "diagnostics", "planHash", "createdAt"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "id": { "type": "string", "pattern": "^imputation_plan_[a-f0-9]{32}$" },
+    "datasetVersionId": { "type": "string", "minLength": 1 },
+    "datasetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "contextHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sampleVersionId": { "type": "string", "minLength": 1 },
+    "sampleHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "measurementVersionId": { "type": ["string", "null"] },
+    "measurementHash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "structureVersionId": { "type": "string", "minLength": 1 },
+    "structureHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "substantiveModel": { "$ref": "#/$defs/substantiveModel" },
+    "substantiveModelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "predictorMatrixHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "variables": { "type": "array", "minItems": 1, "items": { "type": "object" } },
+    "passiveRules": { "type": "array", "items": { "type": "object" } },
+    "clusterVariableId": { "type": ["string", "null"] },
+    "imputations": { "type": "integer", "minimum": 1 },
+    "iterations": { "type": "integer", "minimum": 1 },
+    "seed": { "type": "integer", "minimum": 1 },
+    "diagnostics": { "type": "array", "items": { "enum": ["trace", "distribution", "overimputation", "fraction_missing_information"] } },
+    "planHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "createdAt": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "substantiveModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelType", "outcomeId", "predictorIds", "includeIntercept"],
+      "properties": {
+        "modelType": { "const": "linear_regression" },
+        "outcomeId": { "type": "string", "minLength": 1 },
+        "predictorIds": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "minLength": 1 } },
+        "includeIntercept": { "type": "boolean" }
+      }
+    }
+  }
+}

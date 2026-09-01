@@ -1,0 +1,10 @@
+{
+  "imputations_count": 5,
+  "iterations": 10,
+  "chain_converged": true,
+  "passive_variable_preserved": true,
+  "missing_cells_only": true,
+  "diagnostics": {
+    "converged": true
+  }
+}

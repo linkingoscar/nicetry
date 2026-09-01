@@ -1,0 +1,67 @@
+{
+  "$schema": "./reporting-profiles.schema.json",
+  "schemaVersion": "1.0.0",
+  "profiles": [
+    {
+      "id": "apa_jars_quant",
+      "version": "ResearchPath-subset-1.0",
+      "label": "APA JARS–Quant 对齐披露子集",
+      "scopeNote": "仅检查结果对象可机器核验的代表性披露项，不是完整 JARS–Quant 清单或 APA 合规认证。",
+      "purpose": "disclosure_completeness_only",
+      "requirements": [
+        { "id": "sample", "label": "分析样本量与样本流", "anyOfPaths": ["/sampleFlow/included", "/sample/rowCount"], "requireNonNull": true },
+        { "id": "estimand", "label": "估计目标或模型角色", "anyOfPaths": ["/studyPlanBinding/estimandId", "/claimBoundary/claimMode", "/run/template"], "requireNonNull": true },
+        { "id": "estimate", "label": "主要估计值", "anyOfPaths": ["/effects/0/estimate", "/estimates/0/estimate", "/semResult/paths/0/estimate", "/hierarchicalRegression/blocks/0/coefficients/0/estimate"], "requireNonNull": true },
+        { "id": "uncertainty", "label": "标准误或置信区间", "anyOfPaths": ["/effects/0/confidenceInterval", "/estimates/0/standardError", "/semResult/paths/0/ciLower", "/hierarchicalRegression/blocks/0/coefficients/0/lower"], "requireNonNull": true },
+        { "id": "diagnostics", "label": "诊断与警告", "anyOfPaths": ["/diagnostics", "/warnings"], "requireNonNull": true },
+        { "id": "provenance", "label": "软件与分析 provenance", "anyOfPaths": ["/provenance/engine"], "requireNonNull": true },
+        { "id": "limitations", "label": "解释边界或资格限制", "anyOfPaths": ["/claimBoundary", "/publicationEligibilityReasons", "/warnings"], "requireNonNull": true }
+      ]
+    },
+    {
+      "id": "strobe_observational",
+      "version": "ResearchPath-subset-1.0",
+      "label": "STROBE 观察性研究对齐披露子集",
+      "scopeNote": "仅覆盖结果对象中的代表性 STROBE 披露项，不是完整 22 项清单，也不评价研究质量。",
+      "purpose": "disclosure_completeness_only",
+      "requirements": [
+        { "id": "design", "label": "观察性设计与解释口径", "anyOfPaths": ["/claimBoundary/claimMode", "/options/contextDesign"], "requireNonNull": true },
+        { "id": "participants", "label": "参与者与分析样本", "anyOfPaths": ["/sampleFlow/included", "/sample/rowCount"], "requireNonNull": true },
+        { "id": "variables", "label": "变量、模型或测量定义", "anyOfPaths": ["/run/template", "/options", "/validity/constructs"], "requireNonNull": true },
+        { "id": "missing", "label": "缺失数据处理", "anyOfPaths": ["/sampleFlow/missingMethod", "/missingDataReport"], "requireNonNull": true },
+        { "id": "estimates", "label": "估计值与不确定性", "anyOfPaths": ["/reportFacts/0", "/effects/0", "/hierarchicalRegression/blocks/0/coefficients/0"], "requireNonNull": true },
+        { "id": "limitations", "label": "偏倚与解释限制", "anyOfPaths": ["/claimBoundary", "/publicationEligibilityReasons", "/warnings"], "requireNonNull": true }
+      ]
+    },
+    {
+      "id": "consort_2025_randomized",
+      "version": "ResearchPath-subset-1.0",
+      "label": "CONSORT 2025 随机试验对齐披露子集",
+      "scopeNote": "仅覆盖结果对象可核验的代表性项目，不是完整 30 项 CONSORT 2025 清单或流程图认证。",
+      "purpose": "disclosure_completeness_only",
+      "requirements": [
+        { "id": "randomized_design", "label": "随机分配设计声明", "anyOfPaths": ["/claimBoundary/experimentalEffectEstablished"], "expectedValue": true },
+        { "id": "allocation_flow", "label": "逐组分配、干预、失访与排除流程", "anyOfPaths": ["/participantFlow/allocation"], "requireNonNull": true },
+        { "id": "analyzed", "label": "逐组纳入分析人数", "anyOfPaths": ["/participantFlow/analyzed"], "requireNonNull": true },
+        { "id": "outcomes", "label": "预设结局与估计值", "anyOfPaths": ["/studyPlanBinding/estimandId", "/estimates/0", "/effects/0"], "requireNonNull": true },
+        { "id": "harms", "label": "伤害或不良事件披露", "anyOfPaths": ["/harms"], "requireNonNull": true },
+        { "id": "registration", "label": "注册或冻结计划标识", "anyOfPaths": ["/studyPlanBinding/studyPlanVersionId"], "requireNonNull": true }
+      ]
+    },
+    {
+      "id": "aea_data_code",
+      "version": "ResearchPath-subset-1.0",
+      "label": "AEA data/code 对齐披露子集",
+      "scopeNote": "仅检查部分数据、代码与回放材料，不代表 AEA Data Editor 已验证或接受该复现包。",
+      "purpose": "disclosure_completeness_only",
+      "requirements": [
+        { "id": "data_identity", "label": "数据身份哈希", "anyOfPaths": ["/provenance/dataSha256", "/provenance/datasetSha256"], "requireNonNull": true },
+        { "id": "code_version", "label": "引擎/代码版本", "anyOfPaths": ["/provenance/engineVersion"], "requireNonNull": true },
+        { "id": "software", "label": "软件版本", "anyOfPaths": ["/provenance/softwareVersions", "/provenance/rVersion"], "requireNonNull": true },
+        { "id": "seed", "label": "随机种子或确定性说明", "anyOfPaths": ["/provenance/seed"], "requireNonNull": true },
+        { "id": "spec_identity", "label": "冻结分析规格哈希", "anyOfPaths": ["/run/modelHash", "/run/specHash"], "requireNonNull": true },
+        { "id": "replay", "label": "干净环境重放命令与校验", "anyOfPaths": ["/replay/available"], "expectedValue": true }
+      ]
+    }
+  ]
+}

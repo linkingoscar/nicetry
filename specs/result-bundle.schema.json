@@ -1,0 +1,905 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://researchpath.local/schemas/result-bundle.schema.json",
+  "title": "ResearchPath ResultBundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "run",
+    "jobStatus",
+    "estimationStatus",
+    "inferenceStatus",
+    "publicationEligibility",
+    "sampleFlow",
+    "equations",
+    "diagnostics",
+    "effects",
+    "probes",
+    "johnsonNeyman",
+    "moderator",
+    "warnings",
+    "provenance"
+  ],
+  "properties": {
+    "schemaVersion": { "enum": ["0.2.0", "0.3.0"] },
+    "run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "modelId", "modelHash", "modelVersionId", "template", "durationMilliseconds"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "status": { "const": "succeeded" },
+        "modelId": { "type": "string", "minLength": 1 },
+        "modelHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "modelVersionId": { "type": "string", "minLength": 1 },
+        "template": {
+          "enum": [
+            "model_1", "model_2", "model_3", "model_4", "model_5", "model_6",
+            "model_7", "model_8", "model_9", "model_10", "model_11", "model_12",
+            "model_13", "model_14", "model_15", "model_16", "model_17",
+            "model_18", "model_19", "model_20", "model_21", "model_22",
+            "model_28", "model_29", "model_58", "model_59", "model_60",
+            "model_61", "model_62", "model_63", "model_64", "model_65",
+            "model_66", "model_67", "model_68", "model_69", "model_70",
+            "model_71", "model_72", "model_73", "model_75", "model_76",
+            "model_80", "model_81", "model_82", "model_83", "model_84",
+            "model_85", "model_86", "model_87", "model_88", "model_89",
+            "model_90", "model_91", "model_92", "sem"
+          ]
+        },
+        "durationMilliseconds": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "jobStatus": { "enum": ["queued", "running", "completed", "failed", "cancelled"] },
+    "estimationStatus": { "enum": ["not_run", "succeeded", "failed", "non_converged", "boundary_solution"] },
+    "inferenceStatus": { "enum": ["not_available", "reliable", "needs_review", "not_reliable"] },
+    "publicationEligibility": { "enum": ["ineligible", "conditional", "eligible"] },
+    "sampleFlow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["original", "included", "excluded", "missingMethod"],
+      "properties": {
+        "original": { "type": "integer", "minimum": 0 },
+        "selected": { "type": "integer", "minimum": 0 },
+        "included": { "type": "integer", "minimum": 0 },
+        "excluded": { "type": "integer", "minimum": 0 },
+        "missingRows": { "type": "integer", "minimum": 0 },
+        "finalN": { "type": "integer", "minimum": 0 },
+        "missingMethod": { "type": "string", "minLength": 1 },
+        "variableMissingCounts": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 0 }
+        },
+        "missingPatterns": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pattern", "count"],
+            "properties": {
+              "pattern": { "type": "string" },
+              "count": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "equations": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/equation" }
+    },
+    "diagnostics": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/diagnostic" }
+    },
+    "effects": {
+      "type": "array",
+      "minItems": 0,
+      "items": { "$ref": "#/$defs/effect" }
+    },
+    "publicationEligible": { "type": "boolean" },
+    "requiresManualReview": { "type": "boolean" },
+    "publicationEligibilityReasons": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "claimBoundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claimMode", "causalLanguageAllowed", "temporalPrecedenceEstablished", "experimentalEffectEstablished"],
+      "properties": {
+        "claimMode": { "enum": ["association", "temporal_precedence", "experimental_effect"] },
+        "causalLanguageAllowed": { "type": "boolean" },
+        "temporalPrecedenceEstablished": { "type": "boolean" },
+        "experimentalEffectEstablished": { "type": "boolean" }
+      }
+    },
+    "bootstrap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["familyId", "method", "replicatesRequested", "replicatesValid", "invalidReplications", "invalidRate", "seed", "confidenceLevel", "failureAction"],
+      "properties": {
+        "familyId": { "type": "string", "minLength": 1 }, "method": { "type": "string", "minLength": 1 },
+        "replicatesRequested": { "type": "integer", "minimum": 0 }, "replicatesValid": { "type": "integer", "minimum": 0 },
+        "invalidReplications": { "type": "integer", "minimum": 0 }, "invalidRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "seed": { "type": "integer", "minimum": 1 }, "confidenceLevel": { "type": "number", "exclusiveMinimum": 0.5, "exclusiveMaximum": 1 },
+        "failureAction": { "type": "string", "minLength": 1 }
+      }
+    },
+    "evidenceGraph": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["modelVersionId", "edges", "effectBindings"],
+      "properties": {
+        "schemaVersion": { "const": "2.0.0" },
+        "modelVersionId": { "type": "string", "minLength": 1 },
+        "edges": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["edgeId", "from", "to", "estimand"], "properties": { "edgeId": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "hypothesisId": { "type": ["string", "null"] }, "estimand": { "type": "string" } } } },
+        "effectBindings": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["effectId", "edgeIds", "hypothesisIds", "estimand"], "properties": { "effectId": { "type": "string" }, "edgeIds": { "type": "array", "items": { "type": "string" } }, "hypothesisIds": { "type": "array", "items": { "type": "string" } }, "hypothesisId": { "type": ["string", "null"] }, "estimand": { "type": "string" } } } },
+        "studyPlanVersion": { "type": "object", "additionalProperties": false, "required": ["id", "hash", "revision", "status"], "properties": { "id": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" }, "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }, "revision": { "type": "integer", "minimum": 1 }, "status": { "const": "frozen" } } },
+        "hypotheses": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "estimandIds"], "properties": { "id": { "type": "string", "minLength": 1 }, "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "estimands": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "quantity", "hypothesisIds"], "properties": { "id": { "type": "string", "minLength": 1 }, "quantity": { "type": "string", "minLength": 1 }, "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 } } } } },
+        "analysisDeclarations": { "type": "array", "items": { "type": "object", "additionalProperties": false, "required": ["id", "role", "estimandIds", "capabilitySliceId", "requestedMethod"], "properties": { "id": { "type": "string", "minLength": 1 }, "role": { "enum": ["primary", "robustness", "exploratory"] }, "estimandIds": { "type": "array", "items": { "type": "string", "minLength": 1 } }, "capabilitySliceId": { "type": "string", "minLength": 1 }, "requestedMethod": { "type": "string", "minLength": 1 } } } },
+        "resultBinding": { "$ref": "#/$defs/resultEvidenceBinding" }
+      }
+    },
+    "probes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/probe" }
+    },
+    "moderationPlots": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/moderationPlot" }
+    },
+    "johnsonNeyman": {
+      "oneOf": [{ "$ref": "#/$defs/johnsonNeyman" }, { "type": "null" }]
+    },
+    "johnsonNeymanResults": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["moderationId", "targetEdgeId", "predictorId", "predictorLabel", "moderatorId", "moderatorLabel", "result"],
+        "properties": {
+          "moderationId": { "type": "string", "minLength": 1 },
+          "targetEdgeId": { "type": "string", "minLength": 1 },
+          "predictorId": { "type": "string", "minLength": 1 },
+          "predictorLabel": { "type": "string", "minLength": 1 },
+          "moderatorId": { "type": "string", "minLength": 1 },
+          "moderatorLabel": { "type": "string", "minLength": 1 },
+          "result": { "$ref": "#/$defs/johnsonNeyman" }
+        }
+      }
+    },
+    "moderator": {
+      "oneOf": [{ "$ref": "#/$defs/moderator" }, { "type": "null" }]
+    },
+    "semResult": {
+      "oneOf": [{ "$ref": "#/$defs/semResult" }, { "type": "null" }]
+    },
+    "invarianceResult": {
+      "oneOf": [{ "$ref": "#/$defs/invarianceResult" }, { "type": "null" }]
+    },
+    "academicInterpretation": { "type": "string" },
+    "apaTables": { "type": "string" },
+    "reportFacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["factId", "kind", "sourceResultId", "sourcePaths", "semanticRole"],
+        "properties": {
+          "factId": { "type": "string", "minLength": 1 },
+          "kind": { "enum": ["estimate", "fit", "diagnostic", "warning", "sample_flow"] },
+          "sourceResultId": { "type": "string", "minLength": 1 },
+          "sourcePaths": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "type": "string", "pattern": "^/(?:[^~]|~[01])*$" } },
+          "semanticRole": { "type": "string", "minLength": 1 },
+          "presentationHints": { "type": "object" },
+          "templates": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "reportingProfileAssessments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["profileId", "purpose", "applicable", "completeness", "qualityCertified", "causalCertified", "publicationEligibilityGranted"],
+        "properties": {
+          "profileId": { "type": "string" },
+          "purpose": { "const": "disclosure_completeness_only" },
+          "applicable": { "type": "boolean" },
+          "completeness": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "qualityCertified": { "const": false },
+          "causalCertified": { "const": false },
+          "publicationEligibilityGranted": { "const": false }
+        }
+      }
+    },
+    "replay": { "type": "object" },
+    "publicationGate": { "type": "object" },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message"],
+        "properties": {
+          "code": { "type": "string", "minLength": 1 },
+          "severity": { "enum": ["info", "warning", "error"] },
+          "message": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "studyPlanBinding": { "$ref": "#/$defs/studyPlanBinding" },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["engine", "engineVersion", "rVersion", "jsonliteVersion", "dataSha256", "standardErrors", "bootstrapReplicates", "seed"],
+      "properties": {
+        "engine": { "const": "researchpath-r" },
+        "engineVersion": { "type": "string", "minLength": 1 },
+        "rVersion": { "type": "string", "minLength": 1 },
+        "jsonliteVersion": { "type": "string", "minLength": 1 },
+        "dataSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "contextHash": { "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }] },
+        "sampleVersionId": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "sampleHash": { "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }] },
+        "structureVersionId": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "structureHash": { "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }] },
+        "measurementVersionId": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "measurementHash": { "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }] },
+        "datasetSha256": { "oneOf": [{ "type": "string", "pattern": "^[a-f0-9]{64}$" }, { "type": "null" }] },
+        "standardErrors": { "enum": ["classical", "hc3", "standard", "robust", "bootstrap"] },
+        "confidenceLevel": { "type": "number", "exclusiveMinimum": 0.5, "exclusiveMaximum": 1 },
+        "hc3FallbackApplied": { "type": "boolean" },
+        "estimator": { "type": "string", "minLength": 1 },
+        "missingMethodExecuted": { "type": "string", "minLength": 1 },
+        "bootstrapReplicates": { "type": "integer", "minimum": 0 },
+        "seed": { "oneOf": [{ "type": "integer", "minimum": 1 }, { "type": "null" }] },
+        "studyPlanBinding": { "$ref": "#/$defs/studyPlanBinding" },
+        "processReference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["name", "version", "source", "sha256", "available", "modelMatrix", "specialRules"],
+          "properties": {
+            "name": { "type": "string", "minLength": 1 },
+            "version": { "type": "string", "minLength": 1 },
+            "source": { "type": "string", "minLength": 1 },
+            "sha256": { "type": "string", "pattern": "^[A-F0-9]{64}$" },
+            "available": { "type": "boolean" },
+            "modelMatrix": { "type": "string", "minLength": 1 },
+            "specialRules": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["firstMediatorOnlyForW", "lastMediatorOnlyForW", "serialEdgesModeratedByW"],
+              "properties": {
+                "firstMediatorOnlyForW": { "type": "array", "items": { "type": "integer" } },
+                "lastMediatorOnlyForW": { "type": "array", "items": { "type": "integer" } },
+                "serialEdgesModeratedByW": { "type": "array", "items": { "type": "integer" } }
+              }
+            }
+          }
+        },
+        "executionMode": { "enum": ["rscript", "resident_pool"] },
+        "parallelBackend": { "enum": ["sequential", "future_multisession"] },
+        "parallelWorkers": { "type": "integer", "minimum": 1 },
+        "rngStrategy": { "type": "string", "minLength": 1 },
+        "nonFiniteValues": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["path", "originalKind"],
+            "properties": {
+              "path": { "type": "string", "pattern": "^/" },
+              "originalKind": { "enum": ["NaN", "Inf", "-Inf"] }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "studyPlanBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "studyPlanVersionId",
+        "studyPlanHash",
+        "hypothesisId",
+        "estimandId",
+        "analysisDeclarationId",
+        "status",
+        "currentEvidence",
+        "staleReasons"
+      ],
+      "properties": {
+        "studyPlanVersionId": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" },
+        "studyPlanHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "hypothesisId": { "type": "string", "minLength": 1 },
+        "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "estimandId": { "type": "string", "minLength": 1 },
+        "analysisDeclarationId": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["current", "stale"] },
+        "currentEvidence": { "type": "boolean" },
+        "staleReasons": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "datasetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sampleVersionId": { "type": "string", "minLength": 1 },
+        "sampleHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementVersionId": { "type": "string", "minLength": 1 },
+        "measurementHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "specHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "declarationStatus": { "enum": ["declared", "deviated"] },
+        "deviationReason": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "publicationEligible": { "type": "boolean" }
+      }
+    },
+    "resultEvidenceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["studyPlanVersionId", "studyPlanHash", "hypothesisIds", "estimandId", "analysisDeclarationId", "datasetSha256", "sampleVersionId", "sampleHash", "measurementVersionId", "measurementHash", "specHash", "declarationStatus", "deviationReason", "publicationEligible", "status", "currentEvidence", "staleReasons"],
+      "properties": {
+        "studyPlanVersionId": { "type": "string", "pattern": "^study_plan_[a-f0-9]{32}$" },
+        "studyPlanHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "hypothesisId": { "type": "string", "minLength": 1 },
+        "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 },
+        "estimandId": { "type": "string", "minLength": 1 },
+        "analysisDeclarationId": { "type": "string", "minLength": 1 },
+        "datasetSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "sampleVersionId": { "type": "string", "minLength": 1 },
+        "sampleHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "measurementVersionId": { "type": "string", "minLength": 1 },
+        "measurementHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "specHash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "declarationStatus": { "enum": ["declared", "deviated"] },
+        "deviationReason": { "oneOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }] },
+        "publicationEligible": { "type": "boolean" },
+        "status": { "enum": ["current", "stale"] },
+        "currentEvidence": { "type": "boolean" },
+        "staleReasons": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "confidenceInterval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "lower", "upper", "method"],
+      "properties": {
+        "level": { "type": "number", "exclusiveMinimum": 0.5, "exclusiveMaximum": 1 },
+        "lower": { "type": "number" },
+        "upper": { "type": "number" },
+        "method": { "type": "string", "minLength": 1 },
+        "replicates": { "type": "integer", "minimum": 1 },
+        "seed": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "coefficient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "equationId",
+        "term",
+        "estimate",
+        "standardError",
+        "statistic",
+        "pValue",
+        "standardizedEstimate",
+        "cohenF2",
+        "confidenceInterval"
+      ],
+      "properties": {
+        "equationId": { "type": "string", "minLength": 1 },
+        "term": { "type": "string", "minLength": 1 },
+        "estimate": { "type": "number" },
+        "standardError": { "type": "number", "minimum": 0 },
+        "statistic": { "type": "number" },
+        "pValue": { "type": "number", "minimum": 0, "maximum": 1 },
+        "standardizedEstimate": { "type": ["number", "null"] },
+        "cohenF2": { "type": ["number", "null"] },
+        "confidenceInterval": { "$ref": "#/$defs/confidenceInterval" },
+        "oddsRatio": { "type": "number", "exclusiveMinimum": 0 },
+        "oddsRatioConfidenceInterval": { "$ref": "#/$defs/confidenceInterval" },
+        "averageMarginalEffect": { "type": ["number", "null"] },
+        "marginalEffectType": { "enum": ["discrete", "categorical_contrast", "continuous_derivative", "not_applicable_interaction_term"] },
+        "marginalEffectEstimand": { "type": "string", "minLength": 1 },
+        "marginalEffectReason": { "type": "string", "minLength": 1 },
+        "marginalEffectReferenceLevel": { "type": "string" },
+        "marginalEffectContrastLevel": { "type": "string" },
+        "marginalEffectStandardError": { "type": "number", "minimum": 0 },
+        "marginalEffectConfidenceInterval": { "$ref": "#/$defs/confidenceInterval" }
+      }
+    },
+    "equation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "outcomeRole", "formula", "rSquared", "adjustedRSquared", "coefficients"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "outcomeRole": { "enum": ["m", "y"] },
+        "formula": { "type": "string", "minLength": 1 },
+        "rSquared": { "type": "number" },
+        "adjustedRSquared": { "type": "number" },
+        "nagelkerkeRSquared": { "type": ["number", "null"] },
+        "rSquaredType": { "enum": ["r_squared", "mcfadden_pseudo_r_squared"] },
+        "modelFamily": { "enum": ["linear", "binomial_logit"] },
+        "coefficients": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/coefficient" }
+        }
+      }
+    },
+    "effect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "estimate"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["path", "direct", "indirect", "total", "interaction", "conditional", "index", "contrast"] },
+        "label": { "type": "string", "minLength": 1 },
+        "estimate": { "type": "number" },
+        "edgeId": { "type": "string", "minLength": 1 },
+        "edgeIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "hypothesisIds": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "hypothesisId": { "type": ["string", "null"] },
+        "estimand": { "type": "string", "minLength": 1 },
+        "standardError": { "type": "number", "minimum": 0 },
+        "confidenceInterval": { "$ref": "#/$defs/confidenceInterval" }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["label", "moderatorValue", "effect", "standardError", "statistic", "pValue", "confidenceInterval"],
+      "properties": {
+        "moderationId": { "type": "string", "minLength": 1 },
+        "targetEdgeId": { "type": "string", "minLength": 1 },
+        "predictorLabel": { "type": "string", "minLength": 1 },
+        "moderatorLabel": { "type": "string", "minLength": 1 },
+        "secondaryModeratorLabel": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 },
+        "moderatorValue": { "type": "number" },
+        "secondaryModeratorValue": { "type": "number" },
+        "effect": { "type": "number" },
+        "standardError": { "type": "number", "minimum": 0 },
+        "statistic": { "type": "number" },
+        "pValue": { "type": "number", "minimum": 0, "maximum": 1 },
+        "confidenceInterval": { "$ref": "#/$defs/confidenceInterval" }
+      }
+    },
+    "moderationPlot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "targetEdgeId", "equationId", "predictorId", "predictorLabel", "outcomeId", "outcomeLabel", "moderatorId", "moderatorLabel", "outcomeScale", "lines"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "targetEdgeId": { "type": "string", "minLength": 1 },
+        "equationId": { "type": "string", "minLength": 1 },
+        "predictorId": { "type": "string", "minLength": 1 },
+        "predictorLabel": { "type": "string", "minLength": 1 },
+        "outcomeId": { "type": "string", "minLength": 1 },
+        "outcomeLabel": { "type": "string", "minLength": 1 },
+        "moderatorId": { "type": "string", "minLength": 1 },
+        "moderatorLabel": { "type": "string", "minLength": 1 },
+        "outcomeScale": { "enum": ["outcome", "probability"] },
+        "lines": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "moderatorValue", "xValues", "predictedValues"],
+            "properties": {
+              "label": { "type": "string", "minLength": 1 },
+              "moderatorValue": { "type": "number" },
+              "xValues": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+              "predictedValues": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+              "confidenceLower": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } },
+              "confidenceUpper": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number" } }
+            }
+          }
+        }
+      }
+    },
+    "johnsonNeyman": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available", "observedMinimum", "observedMaximum"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "lower": { "type": "number" },
+        "upper": { "type": "number" },
+        "boundaries": { "type": "array", "items": { "type": "number" } },
+        "observedBoundaries": { "type": "array", "items": { "type": "number" } },
+        "observedMinimum": { "type": "number" },
+        "observedMaximum": { "type": "number" },
+        "confidenceLevel": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1 },
+        "criticalValue": { "type": "number", "minimum": 0 },
+        "method": { "type": "string", "minLength": 1 },
+        "grid": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["moderatorValue", "effect", "standardError", "statistic", "pValue", "lower", "upper", "significant"],
+            "properties": {
+              "moderatorValue": { "type": "number" },
+              "effect": { "type": "number" },
+              "standardError": { "type": "number", "minimum": 0 },
+              "statistic": { "type": "number" },
+              "pValue": { "type": "number", "minimum": 0, "maximum": 1 },
+              "lower": { "type": "number" },
+              "upper": { "type": "number" },
+              "significant": { "type": "boolean" }
+            }
+          }
+        },
+        "regions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["lower", "upper", "status", "effectAtMidpoint"],
+            "properties": {
+              "lower": { "type": "number" },
+              "upper": { "type": "number" },
+              "status": { "enum": ["positive", "negative", "not_significant"] },
+              "effectAtMidpoint": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "moderator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "mean", "standardDeviation", "minimum", "maximum"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "mean": { "type": "number" },
+        "standardDeviation": { "type": "number", "minimum": 0 },
+        "minimum": { "type": "number" },
+        "maximum": { "type": "number" }
+      }
+    },
+    "diagnostic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["equationId", "residualStandardError", "maximumLeverage", "maximumCooksDistance", "heteroskedasticity"],
+      "properties": {
+        "equationId": { "type": "string", "minLength": 1 },
+        "residualStandardError": { "type": "number", "minimum": 0 },
+        "maximumLeverage": { "type": "number", "minimum": 0, "maximum": 1 },
+        "maximumCooksDistance": { "type": "number", "minimum": 0 },
+        "heteroskedasticity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["method", "statistic", "degreesOfFreedom", "pValue"],
+          "properties": {
+            "method": { "type": "string", "minLength": 1 },
+            "statistic": { "type": "number", "minimum": 0 },
+            "degreesOfFreedom": { "type": "integer", "minimum": 0 },
+            "pValue": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        }
+      }
+    },
+    "fitIndices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chiSquare", "df", "pValue", "cfi", "tli", "rmsea", "srmr", "rmseaCiLower", "rmseaCiUpper"],
+      "properties": {
+        "chiSquare": { "type": ["number", "null"] },
+        "df": { "type": ["integer", "null"] },
+        "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "cfi": { "type": ["number", "null"] },
+        "tli": { "type": ["number", "null"] },
+        "rmsea": { "type": ["number", "null"] },
+        "srmr": { "type": ["number", "null"] },
+        "rmseaCiLower": { "type": ["number", "null"] },
+        "rmseaCiUpper": { "type": ["number", "null"] },
+        "robustChiSquare": { "type": ["number", "null"] },
+        "robustDf": { "type": ["integer", "null"] },
+        "robustPValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "robustCfi": { "type": ["number", "null"] },
+        "robustTli": { "type": ["number", "null"] },
+        "robustRmsea": { "type": ["number", "null"] },
+        "robustRmseaCiLower": { "type": ["number", "null"] },
+        "robustRmseaCiUpper": { "type": ["number", "null"] }
+      }
+    },
+    "semResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fitIndices", "loadings", "paths", "reliability", "modelStructure"],
+      "properties": {
+        "publicationEligible": { "type": "boolean" },
+        "requiresManualReview": { "type": "boolean" },
+        "publicationEligibilityReasons": { "type": "array", "items": { "type": "string" } },
+        "estimationStatus": { "enum": ["not_run", "succeeded", "failed", "non_converged", "boundary_solution"] },
+        "inferenceStatus": { "enum": ["not_available", "reliable", "needs_review", "not_reliable"] },
+        "publicationEligibility": { "enum": ["ineligible", "conditional", "eligible"] },
+        "numericReferenceMatrix": { "type": "object" },
+        "fitIndices": { "$ref": "#/$defs/fitIndices" },
+        "modelStructure": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["firstOrderLatents", "higherOrderLatents"],
+          "properties": {
+            "firstOrderLatents": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "higherOrderLatents": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "loadings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["latentId", "indicatorId", "estimate", "standardError", "statistic", "pValue", "stdAll"],
+            "properties": {
+              "latentId": { "type": "string" },
+              "indicatorId": { "type": "string" },
+              "level": { "enum": ["first_order", "higher_order"] },
+              "estimate": { "type": "number" },
+              "standardError": { "type": ["number", "null"] },
+              "statistic": { "type": ["number", "null"] },
+              "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "stdAll": { "type": "number" },
+              "ciLower": { "type": ["number", "null"] },
+              "ciUpper": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "estimate", "standardError", "statistic", "pValue", "stdAll"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "estimate": { "type": "number" },
+              "standardError": { "type": ["number", "null"] },
+              "statistic": { "type": ["number", "null"] },
+              "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "stdAll": { "type": "number" },
+              "ciLower": { "type": ["number", "null"] },
+              "ciUpper": { "type": ["number", "null"] }
+            }
+          }
+        },
+        "reliability": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["latentId", "cronbachAlpha", "mcdonaldOmega", "compositeReliability", "ave"],
+            "properties": {
+              "latentId": { "type": "string" },
+              "cronbachAlpha": { "type": ["number", "null"] },
+              "alphaSampleSize": { "type": ["integer", "null"], "minimum": 0 },
+              "mcdonaldOmega": { "type": ["number", "null"] },
+              "compositeReliability": { "type": ["number", "null"] },
+              "compositeReliabilityReason": { "type": ["string", "null"] },
+              "ave": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "invarianceResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["models", "comparisons"],
+      "properties": {
+        "estimator": { "enum": ["ML", "WLSMV"] },
+        "groupSizes": {
+          "type": "object",
+          "additionalProperties": { "type": "integer", "minimum": 1 }
+        },
+        "groupParameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["group", "loadings", "paths"],
+            "properties": {
+              "group": { "type": "string" },
+              "loadings": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["latentId", "indicatorId", "level", "estimate", "standardError", "pValue", "stdAll"],
+                  "properties": {
+                    "latentId": { "type": "string" },
+                    "indicatorId": { "type": "string" },
+                    "level": { "enum": ["first_order", "higher_order"] },
+                    "estimate": { "type": "number" },
+                    "standardError": { "type": ["number", "null"] },
+                    "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+                    "stdAll": { "type": "number" },
+                    "ciLower": { "type": ["number", "null"] },
+                    "ciUpper": { "type": ["number", "null"] }
+                  }
+                }
+              },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["from", "to", "estimate", "standardError", "pValue", "stdAll"],
+                  "properties": {
+                    "from": { "type": "string" },
+                    "to": { "type": "string" },
+                    "estimate": { "type": "number" },
+                    "standardError": { "type": ["number", "null"] },
+                    "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+                    "stdAll": { "type": "number" },
+                    "ciLower": { "type": ["number", "null"] },
+                    "ciUpper": { "type": ["number", "null"] }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "pathComparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "groupA", "groupB", "estimateA", "estimateB", "difference", "standardError", "statistic", "pValue", "ciLower", "ciUpper", "method"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "groupA": { "type": "string" },
+              "groupB": { "type": "string" },
+              "estimateA": { "type": "number" },
+              "estimateB": { "type": "number" },
+              "difference": { "type": "number" },
+              "standardError": { "type": "number", "minimum": 0 },
+              "statistic": { "type": ["number", "null"] },
+              "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "ciLower": { "type": "number" },
+              "ciUpper": { "type": "number" },
+              "method": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
+        "predictionPlots": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["from", "to", "predictorLabel", "outcomeLabel", "confidenceLevel", "groups", "method"],
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "predictorLabel": { "type": "string" },
+              "outcomeLabel": { "type": "string" },
+              "confidenceLevel": { "type": "number", "exclusiveMinimum": 0.5, "exclusiveMaximum": 1 },
+              "method": { "type": "string", "minLength": 1 },
+              "groups": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["group", "xValues", "predictedValues", "ciLower", "ciUpper"],
+                  "properties": {
+                    "group": { "type": "string" },
+                    "xValues": { "type": "array", "minItems": 2, "items": { "type": "number" } },
+                    "predictedValues": { "type": "array", "minItems": 2, "items": { "type": "number" } },
+                    "ciLower": { "type": "array", "minItems": 2, "items": { "type": "number" } },
+                    "ciUpper": { "type": "array", "minItems": 2, "items": { "type": "number" } }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "partialInvarianceReleases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["stage", "constraint", "latentId", "indicatorId", "rationale", "lavaanParameters"],
+            "properties": {
+              "stage": { "enum": ["metric", "scalar", "strict"] },
+              "constraint": { "enum": ["loading", "intercept_or_threshold", "residual"] },
+              "latentId": { "type": ["string", "null"] },
+              "indicatorId": { "type": "string" },
+              "rationale": { "type": "string" },
+              "lavaanParameters": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "latentMeans": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["group", "latentId", "estimate", "standardError", "pValue", "ciLower", "ciUpper", "referenceGroup"],
+            "properties": {
+              "group": { "type": "string" },
+              "latentId": { "type": "string" },
+              "estimate": { "type": "number" },
+              "standardError": { "type": ["number", "null"] },
+              "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "ciLower": { "type": ["number", "null"] },
+              "ciUpper": { "type": ["number", "null"] },
+              "referenceGroup": { "type": "boolean" }
+            }
+          }
+        },
+        "structuralComparison": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["model", "constraints", "fitIndices", "deltaChiSquare", "deltaDf", "pValue"],
+              "properties": {
+                "model": { "const": "structural" },
+                "constraints": {
+                  "type": "array",
+                  "items": { "enum": ["loadings", "intercepts", "thresholds", "regressions"] }
+                },
+                "fitIndices": { "$ref": "#/$defs/fitIndices" },
+                "deltaChiSquare": { "type": ["number", "null"] },
+                "deltaDf": { "type": ["integer", "null"] },
+                "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+              }
+            },
+            { "type": "null" }
+          ]
+        },
+        "models": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["model", "fitIndices"],
+            "properties": {
+              "model": { "enum": ["configural", "metric", "scalar", "strict"] },
+              "constraints": {
+                "type": "array",
+                "items": { "enum": ["loadings", "intercepts", "thresholds", "residuals"] }
+              },
+              "releasedParameters": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "fitIndices": { "$ref": "#/$defs/fitIndices" }
+            }
+          }
+        },
+        "comparisons": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["comparison", "deltaChiSquare", "deltaDf", "pValue", "deltaCfi", "deltaRmsea", "invarianceHolds"],
+            "properties": {
+              "comparison": { "enum": ["metric_vs_configural", "scalar_vs_metric", "strict_vs_scalar"] },
+              "deltaChiSquare": { "type": ["number", "null"] },
+              "deltaDf": { "type": ["integer", "null"] },
+              "pValue": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+              "deltaCfi": { "type": ["number", "null"] },
+              "deltaRmsea": { "type": ["number", "null"] },
+              "invarianceHolds": { "type": ["boolean", "null"] },
+              "evaluationStatus": { "enum": ["pass", "fail", "not_evaluable"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}
