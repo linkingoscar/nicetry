@@ -28,20 +28,21 @@ export function publicationLabel(eligibility: PublicationEligibility): string {
 }
 
 export function toWizardVariables(variables: DatasetVariable[]) {
-  return variables.map((variable) => ({
-    id: variable.id,
-    name: variable.originalName,
-    label: variable.label,
-    type: variable.confirmedType === 'continuous'
-      ? 'numeric' as const
-      : variable.confirmedType === 'binary' || variable.confirmedType === 'nominal' || variable.confirmedType === 'ordinal' || variable.confirmedType === 'likert'
-        ? 'categorical' as const
-        : variable.confirmedType === 'text'
-          ? 'text' as const
+  return variables.map((variable) => {
+    const effectiveType = variable.confirmedType ?? variable.inferredType
+    return {
+      id: variable.id,
+      name: variable.originalName,
+      label: variable.label,
+      type: effectiveType === 'continuous'
+        ? 'numeric' as const
+        : effectiveType === 'binary' || effectiveType === 'nominal' || effectiveType === 'ordinal' || effectiveType === 'likert'
+          ? 'categorical' as const
           : 'text' as const,
-    missingRate: variable.missingRate,
-    levels: Object.keys(variable.valueLabels ?? {}),
-  }))
+      missingRate: variable.missingRate,
+      levels: Object.keys(variable.valueLabels ?? {}),
+    }
+  })
 }
 
 export function wizardCapability(capability: ApplicableCapability): AdvancedAnalysisCapability {
