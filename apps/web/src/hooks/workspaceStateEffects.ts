@@ -179,7 +179,7 @@ export function useWorkspaceHydration({
 }
 
 export function useWorkspaceViewShortcuts(
-  analysisReady: boolean,
+  hasDataset: boolean,
   setActiveView: Dispatch<SetStateAction<WorkspaceView>>,
 ): void {
   useEffect(() => {
@@ -192,19 +192,16 @@ export function useWorkspaceViewShortcuts(
         if (e.key === '1') {
           e.preventDefault()
           setActiveView('data')
-        } else if (e.key === '2' && analysisReady) {
+        } else if (e.key === '2' && hasDataset) {
           e.preventDefault()
-          setActiveView('empirical')
-        } else if (e.key === '3' && analysisReady) {
+          setActiveView('analyze')
+        } else if (e.key === '3' && hasDataset) {
           e.preventDefault()
-          setActiveView('model')
-        } else if (e.key === '4' && analysisReady) {
-          e.preventDefault()
-          setActiveView('methods')
+          setActiveView('output')
         }
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [analysisReady, setActiveView])
+  }, [hasDataset, setActiveView])
 }
