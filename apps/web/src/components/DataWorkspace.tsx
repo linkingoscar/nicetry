@@ -39,6 +39,7 @@ export function DataWorkspace({
   const [fileInputKey, setFileInputKey] = useState(0)
   const [mergedDataset, setMergedDataset] = useState<DatasetVersion | null>(null)
   const [showMergeWizard, setShowMergeWizard] = useState(false)
+  const [showImportPanel, setShowImportPanel] = useState(false)
   const [activeSheet, setActiveSheet] = useState<string>('')
   const [structureValidity, setStructureValidity] = useState({ key: '', valid: false })
 
@@ -47,6 +48,7 @@ export function DataWorkspace({
     onSuccess: (nextDataset) => {
       setMergedDataset(null)
       setStructureValidity({ key: '', valid: false })
+      setShowImportPanel(false)
       onDatasetReady?.(nextDataset)
     },
   })
@@ -128,27 +130,58 @@ export function DataWorkspace({
 
   return (
     <section className="data-workspace" aria-labelledby="data-heading">
-      {dataset && onClearWorkspace ? <div className="current-dataset-actions">
-        <div><strong>当前数据 · {dataset.originalFile.name}</strong><p>清空仅退出当前数据；已保存的版本、草稿和结果仍保留在本机。</p></div>
-        <button type="button" className="secondary-button" disabled={importMutation.isPending || dictionaryMutation.isPending || loadingDemo || showMergeWizard} onClick={() => {
-          if (!onClearWorkspace()) return
-          importMutation.reset(); dictionaryMutation.reset()
-          setSelectedFile(null); setMergedDataset(null); setActiveSheet(''); setShowMergeWizard(false)
-          setStructureValidity({ key: '', valid: false }); setFileInputKey(key => key + 1)
-        }}>清空当前数据</button>
-      </div> : null}
-      <DataImportDropzone
-        key={fileInputKey}
-        selectedFile={selectedFile}
-        onFileSelect={(file) => {
-          setSelectedFile(file)
-          setActiveSheet('')
-        }}
-        onImport={handleImport}
-        isPending={importMutation.isPending}
-        dataStructureLabel={dataStructureLabel}
-        dependenceStructure={studyContext?.dependenceStructure}
-      />
+      {dataset ? (
+        <div className="current-dataset-actions">
+          <div>
+            <strong>当前数据 · {dataset.originalFile.name}</strong>
+            <p>{dataset.rowCount} 个案例 · {dataset.columnCount} 个变量 · 原始文件只读保存在本机。</p>
+          </div>
+          <div>
+            <button
+              type="button"
+              className="secondary-button"
+              disabled={importMutation.isPending || dictionaryMutation.isPending || loadingDemo || showMergeWizard}
+              onClick={() => setShowImportPanel(current => !current)}
+            >
+              {showImportPanel ? '收起导入' : '导入 / 替换'}
+            </button>
+            {onClearWorkspace ? (
+              <button
+                type="button"
+                className="text-button"
+                disabled={importMutation.isPending || dictionaryMutation.isPending || loadingDemo || showMergeWizard}
+                onClick={() => {
+                  if (!onClearWorkspace()) return
+                  importMutation.reset()
+                  dictionaryMutation.reset()
+                  setSelectedFile(null)
+                  setMergedDataset(null)
+                  setActiveSheet('')
+                  setShowMergeWizard(false)
+                  setShowImportPanel(false)
+                  setStructureValidity({ key: '', valid: false })
+                  setFileInputKey(key => key + 1)
+                }}
+              >关闭当前数据</button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
+      {!dataset || showImportPanel ? (
+        <DataImportDropzone
+          key={fileInputKey}
+          selectedFile={selectedFile}
+          onFileSelect={(file) => {
+            setSelectedFile(file)
+            setActiveSheet('')
+          }}
+          onImport={handleImport}
+          isPending={importMutation.isPending}
+          dataStructureLabel={dataStructureLabel}
+          dependenceStructure={studyContext?.dependenceStructure}
+        />
+      ) : null}
 
       {dataset ? (
         <DataWorkspaceDatasetBody
