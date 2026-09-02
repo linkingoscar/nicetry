@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import type { EmpiricalResultTab } from '../empirical/EmpiricalResultsNav'
+import type { WorkspaceView } from '../../hooks/workspaceStateTypes'
 import { SearchIcon } from './Icons'
 import type { CommandItem } from './CommandPalette.commands'
 import { buildCommandPaletteCommands } from './CommandPalette.commands'
@@ -10,7 +11,7 @@ export type { CommandItem } from './CommandPalette.commands'
 interface CommandPaletteProps {
   isOpen: boolean
   onClose: () => void
-  onSelectView: (view: 'data' | 'empirical' | 'model' | 'methods') => void
+  onSelectView: (view: WorkspaceView) => void
   onSelectEmpiricalTab?: (tab: EmpiricalResultTab) => void
   onLoadDemo?: () => void
   variables?: Array<{ id: string; label: string }>
@@ -129,8 +130,8 @@ export function CommandPalette({
                 ? `cmd-option-${filteredCommands[selectedIndex].id}`
                 : undefined
             }
-            aria-label="搜索工作区、分析分区、变量或快捷指令"
-            placeholder="搜索工作区、分析分区、变量或快捷指令 (Esc 退出)..."
+            aria-label="搜索工作区、分析方法、变量或快捷指令"
+            placeholder="搜索数据、分析、输出、方法或变量 (Esc 退出)..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
@@ -138,9 +139,7 @@ export function CommandPalette({
             }}
             className={styles.searchInput}
           />
-          <kbd className={styles.kbd}>
-            ESC
-          </kbd>
+          <kbd className={styles.kbd}>ESC</kbd>
         </div>
 
         <div
@@ -150,9 +149,7 @@ export function CommandPalette({
           className={styles.listbox}
         >
           {filteredCommands.length === 0 ? (
-            <div className={styles.emptyState}>
-              未找到匹配的命令或变量
-            </div>
+            <div className={styles.emptyState}>未找到匹配的命令或变量</div>
           ) : (
             filteredCommands.map((cmd, idx) => {
               const isSelected = idx === selectedIndex
@@ -169,16 +166,10 @@ export function CommandPalette({
                 >
                   <span className={styles.optionIcon}>{cmd.icon}</span>
                   <div className={styles.optionContent}>
-                    <span className={`${styles.optionTitle} ${isSelected ? styles.optionTitleSelected : ''}`}>
-                      {cmd.title}
-                    </span>
-                    {cmd.subtitle ? (
-                      <span className={styles.optionSubtitle}>{cmd.subtitle}</span>
-                    ) : null}
+                    <span className={`${styles.optionTitle} ${isSelected ? styles.optionTitleSelected : ''}`}>{cmd.title}</span>
+                    {cmd.subtitle ? <span className={styles.optionSubtitle}>{cmd.subtitle}</span> : null}
                   </div>
-                  {isSelected ? (
-                    <span className={styles.executeHint}>↵ 执行</span>
-                  ) : null}
+                  {isSelected ? <span className={styles.executeHint}>↵ 执行</span> : null}
                 </button>
               )
             })
