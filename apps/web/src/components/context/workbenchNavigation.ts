@@ -1,3 +1,4 @@
+import type { EmpiricalProcedure } from '../../types/empirical-types'
 import type { EmpiricalResultTab } from '../empirical/EmpiricalResultsNav'
 
 export interface WorkbenchTarget {
@@ -5,6 +6,7 @@ export interface WorkbenchTarget {
   tab?: EmpiricalResultTab
   sliceId: string
   label: string
+  procedure?: EmpiricalProcedure
 }
 
 export interface MethodRequest {
@@ -12,6 +14,7 @@ export interface MethodRequest {
   label: string
   contextHash: string
   key: number
+  procedure?: EmpiricalProcedure
 }
 
 export interface EmpiricalTabRequest {
