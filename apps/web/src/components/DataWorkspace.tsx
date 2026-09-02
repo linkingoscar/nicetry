@@ -129,7 +129,7 @@ export function DataWorkspace({
       : '或者，您也可以一键加载系统内置的标准问卷示例数据与模型：'
 
   return (
-    <section className="data-workspace" aria-labelledby="data-heading">
+    <section className="data-workspace" aria-label="数据工作区">
       {dataset ? (
         <div className="current-dataset-actions">
           <div>
