@@ -66,6 +66,7 @@ export function App() {
       label: definition.label,
       contextHash: resolvedContext?.contextHash ?? '',
       key: Date.now(),
+      procedure,
     }
     setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
     setAnalysisSurface('empirical')
@@ -215,8 +216,8 @@ export function App() {
                   context={resolvedContext}
                   variables={activeDataset.variables}
                   onPrepare={() => setActiveView('data')}
-                  onNavigate={({ view, tab, sliceId, label }) => {
-                    const method = { sliceId, label, contextHash: resolvedContext.contextHash, key: Date.now() }
+                  onNavigate={({ view, tab, sliceId, label, procedure }) => {
+                    const method = { sliceId, label, contextHash: resolvedContext.contextHash, key: Date.now(), procedure }
                     if (view === 'model') {
                       setModelMethodRequest(method)
                       setAnalysisSurface('model')
