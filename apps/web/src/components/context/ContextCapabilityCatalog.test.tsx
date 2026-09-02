@@ -113,6 +113,7 @@ describe('ContextCapabilityCatalog', () => {
     expect(screen.getByText('需要补充设置')).toBeInTheDocument()
     expect(screen.getByText('t 检验解析功效')).toBeInTheDocument()
     expect(screen.getByText('当前不可运行')).toBeInTheDocument()
+    expect(screen.getAllByText('实验性').length).toBeGreaterThan(0)
     expect(screen.queryByText('MICE generation')).not.toBeInTheDocument()
     expect(screen.queryByText('有条件：仍需论文证据图')).not.toBeInTheDocument()
 
