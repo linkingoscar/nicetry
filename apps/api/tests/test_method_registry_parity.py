@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TypedDict, cast
 
 from app.capability_catalog import ACTIVE_CAPABILITIES
 
@@ -9,14 +10,29 @@ ROOT = Path(__file__).resolve().parents[3]
 REGISTRY_PATH = ROOT / "apps" / "web" / "src" / "methods" / "methodRegistry.json"
 
 
-def _registry() -> dict[str, object]:
-    return json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+class MethodRegistryEntry(TypedDict):
+    id: str
+    label: str
+    description: str
+    aliases: list[str]
+    keywords: list[str]
+    visibilityTier: str
+    adapter: str
+    resultKind: str
+    capabilitySliceIds: list[str]
+    consumerCapabilitySliceIds: list[str]
+
+
+class MethodRegistryDocument(TypedDict):
+    methods: list[MethodRegistryEntry]
+
+
+def _registry() -> MethodRegistryDocument:
+    return cast(MethodRegistryDocument, json.loads(REGISTRY_PATH.read_text(encoding="utf-8")))
 
 
 def test_method_registry_covers_every_product_visible_capability() -> None:
-    document = _registry()
-    methods = document["methods"]
-    assert isinstance(methods, list)
+    methods = _registry()["methods"]
 
     active_by_id = {definition.slice_id: definition for definition in ACTIVE_CAPABILITIES}
     visible_slice_ids = {
@@ -33,7 +49,7 @@ def test_method_registry_covers_every_product_visible_capability() -> None:
     mapped_consumers: set[str] = set()
     for method in methods:
         capability_ids = set(method["capabilitySliceIds"])
-        consumer_ids = set(method.get("consumerCapabilitySliceIds", []))
+        consumer_ids = set(method["consumerCapabilitySliceIds"])
         assert capability_ids, f"{method['id']} must map at least one active capability"
         ghost = sorted((capability_ids | consumer_ids) - active_by_id.keys())
         assert ghost == [], f"{method['id']} points at unknown capability slices: {ghost}"
