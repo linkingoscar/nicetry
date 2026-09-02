@@ -5,14 +5,21 @@ import { describe, expect, it, vi } from 'vitest'
 import { ResearchStart } from './ResearchStart'
 
 describe('ResearchStart', () => {
-  it('separates planning from analysis as the first decision', async () => {
+  it('uses import and analysis as the primary entry while keeping planning as a no-data tool', async () => {
     const onSelect = vi.fn()
+    const user = userEvent.setup()
     render(<ResearchStart onSelect={onSelect} />)
 
-    expect(screen.getByRole('button', { name: /规划新研究/ })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /分析已有数据/ })).toBeInTheDocument()
+    const analyze = screen.getByRole('button', { name: /导入数据并开始分析/ })
+    const planning = screen.getByRole('button', { name: /功效与研究规划/ })
+    expect(analyze).toBeInTheDocument()
+    expect(planning).toBeInTheDocument()
+    expect(screen.queryByText(/你现在处于哪个阶段/)).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: /分析已有数据/ }))
+    await user.click(analyze)
     expect(onSelect).toHaveBeenCalledWith('analyze')
+
+    await user.click(planning)
+    expect(onSelect).toHaveBeenCalledWith('plan')
   })
 })
