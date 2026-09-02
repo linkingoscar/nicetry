@@ -71,10 +71,11 @@ describe('ContextCapabilityCatalog', () => {
         capabilities: [
           capability({}),
           capability({
+            family: 'multilevel_model',
             sliceId: 'multilevel_model.gaussian.two_level',
             label: '两层 Gaussian LMM',
             applicable: false,
-            blockedReason: 'clusterId',
+            blockedReason: '需要先指定 clusterId。',
             missingRequirements: ['clusterId'],
           }),
           capability({
@@ -83,7 +84,14 @@ describe('ContextCapabilityCatalog', () => {
             label: 'MICE generation',
             productVisible: false,
           }),
-          capability({ sliceId: 'future.unavailable', label: '不可执行方法', executionAvailable: false }),
+          capability({
+            family: 'power_analysis',
+            sliceId: 'power_analysis.analytic.t_test',
+            label: 't test power',
+            executionAvailable: false,
+            applicable: false,
+            blockedReason: '当前版本未开放执行。',
+          }),
         ],
       },
       isLoading: false,
@@ -93,21 +101,22 @@ describe('ContextCapabilityCatalog', () => {
     vi.mocked(getAnalysisDraftValidity).mockResolvedValue({ validity: 'ready' } as never)
   })
 
-  it('renders only applicable executable product methods and keeps blocked reasons inspectable', async () => {
+  it('keeps blocked and unavailable product methods visible while hiding internal consumers', async () => {
     render(
       <QueryClientProvider client={new QueryClient()}>
         <ContextCapabilityCatalog context={context} />
       </QueryClientProvider>,
     )
 
-    expect(screen.getByText('组间 ANOVA')).toBeInTheDocument()
-    expect(screen.getByText('已验证')).toBeInTheDocument()
-    expect(screen.getByText('有条件：仍需论文证据图')).toBeInTheDocument()
-    expect(screen.getByText(/查看 1 个当前不可用的方法/)).toBeInTheDocument()
+    expect(screen.getByText('组间析因方差分析')).toBeInTheDocument()
+    expect(screen.getByText('两层 Gaussian LMM')).toBeInTheDocument()
+    expect(screen.getByText('需要补充设置')).toBeInTheDocument()
+    expect(screen.getByText('t 检验解析功效')).toBeInTheDocument()
+    expect(screen.getByText('当前不可运行')).toBeInTheDocument()
     expect(screen.queryByText('MICE generation')).not.toBeInTheDocument()
-    expect(screen.queryByText(/不可执行方法/)).not.toBeInTheDocument()
+    expect(screen.queryByText('有条件：仍需论文证据图')).not.toBeInTheDocument()
 
-    await userEvent.setup().click(screen.getByRole('button', { name: '配置组间 ANOVA' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: '配置组间析因方差分析' }))
     await waitFor(() => {
       expect(createAnalysisDraft).toHaveBeenCalledWith('dataset_demo', {
         sliceId: 'experimental_design.factorial_anova.long.single_outcome',
@@ -116,7 +125,7 @@ describe('ContextCapabilityCatalog', () => {
     })
   })
 
-  it('routes built-in empirical and model capabilities without creating an advanced draft', async () => {
+  it('routes built-in empirical and model capabilities through registry adapters without creating an advanced draft', async () => {
     const onNavigate = vi.fn()
     vi.mocked(useApplicableCapabilities).mockReturnValue({
       data: {
@@ -136,29 +145,38 @@ describe('ContextCapabilityCatalog', () => {
       </QueryClientProvider>,
     )
 
-    await userEvent.setup().click(screen.getByRole('button', { name: '配置结构方程模型' }))
+    await userEvent.setup().click(screen.getByRole('button', { name: '配置结构方程模型（SEM）' }))
     expect(onNavigate).toHaveBeenCalledWith(expect.objectContaining({ view: 'model', sliceId: 'model.sem' }))
     expect(createAnalysisDraft).not.toHaveBeenCalled()
   })
 
-  it('filters without exposing unavailable methods and restores the list when filters clear', async () => {
+  it('searches aliases and blocked methods, filters readiness, and restores the list when filters clear', async () => {
+    const user = userEvent.setup()
     render(<QueryClientProvider client={new QueryClient()}><ContextCapabilityCatalog context={context} /></QueryClientProvider>)
     expect(screen.getByText(context.contextHash)).not.toBeVisible()
-    await userEvent.type(screen.getByRole('searchbox', { name: '搜索方法' }), 'anova')
-    expect(screen.getByRole('button', { name: '配置组间 ANOVA' })).toBeVisible()
-    await userEvent.clear(screen.getByRole('searchbox', { name: '搜索方法' }))
-    await userEvent.type(screen.getByRole('searchbox', { name: '搜索方法' }), 'MICE')
-    expect(screen.queryByRole('button', { name: /配置/ })).not.toBeInTheDocument()
-    expect(screen.getByText(/没有匹配的方法/)).toBeVisible()
-    await userEvent.click(screen.getByRole('button', { name: '清除筛选' }))
-    expect(screen.getByRole('button', { name: '配置组间 ANOVA' })).toBeVisible()
+
+    await user.type(screen.getByRole('searchbox', { name: '搜索方法' }), 'factorial ANOVA')
+    expect(screen.getByRole('button', { name: '配置组间析因方差分析' })).toBeVisible()
+
+    await user.clear(screen.getByRole('searchbox', { name: '搜索方法' }))
+    await user.type(screen.getByRole('searchbox', { name: '搜索方法' }), 'LMM')
+    expect(screen.getByText('两层 Gaussian LMM')).toBeVisible()
+    expect(screen.getByText('需要先指定 clusterId。')).toBeVisible()
+
+    await user.clear(screen.getByRole('searchbox', { name: '搜索方法' }))
+    await user.selectOptions(screen.getByRole('combobox', { name: '当前状态' }), 'needs-setup')
+    expect(screen.getByText('两层 Gaussian LMM')).toBeVisible()
+    expect(screen.queryByText('组间析因方差分析')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '清除筛选' }))
+    expect(screen.getByRole('button', { name: '配置组间析因方差分析' })).toBeVisible()
   })
 
   it('leaves a failed draft recoverable instead of silently doing nothing', async () => {
     vi.mocked(createAnalysisDraft).mockRejectedValueOnce(new Error('数据版本已更新'))
     render(<QueryClientProvider client={new QueryClient()}><ContextCapabilityCatalog context={context} /></QueryClientProvider>)
-    await userEvent.click(screen.getByRole('button', { name: '配置组间 ANOVA' }))
+    await userEvent.click(screen.getByRole('button', { name: '配置组间析因方差分析' }))
     expect(await screen.findByRole('alert')).toHaveTextContent('数据版本已更新')
-    expect(screen.getByRole('button', { name: '配置组间 ANOVA' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '配置组间析因方差分析' })).toBeEnabled()
   })
 })
