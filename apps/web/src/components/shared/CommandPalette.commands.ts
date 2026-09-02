@@ -1,3 +1,4 @@
+import type { WorkspaceView } from '../../hooks/workspaceStateTypes'
 import type { EmpiricalResultTab } from '../empirical/EmpiricalResultsNav'
 
 export interface CommandItem {
@@ -10,7 +11,7 @@ export interface CommandItem {
 }
 
 interface BuildCommandPaletteCommandsOptions {
-  onSelectView: (view: 'data' | 'empirical' | 'model' | 'methods') => void
+  onSelectView: (view: WorkspaceView) => void
   onSelectEmpiricalTab?: (tab: EmpiricalResultTab) => void
   onLoadDemo?: () => void
   variables?: Array<{ id: string; label: string }>
@@ -24,12 +25,18 @@ export function buildCommandPaletteCommands({
   variables = [],
   onClose,
 }: BuildCommandPaletteCommandsOptions): CommandItem[] {
+  const openAnalysis = (tab?: EmpiricalResultTab) => {
+    onSelectView('analyze')
+    if (tab && onSelectEmpiricalTab) onSelectEmpiricalTab(tab)
+    onClose()
+  }
+
   const list: CommandItem[] = [
     {
       id: 'view_data',
       category: 'workspace',
-      title: '跳转: 数据与测量 (Ctrl+1)',
-      subtitle: '导入问卷数据、数据质量筛查与构念测量计分',
+      title: '跳转: 数据 (Ctrl+1)',
+      subtitle: '查看数据、变量、量表、样本和数据结构',
       icon: '📁',
       action: () => {
         onSelectView('data')
@@ -37,131 +44,87 @@ export function buildCommandPaletteCommands({
       },
     },
     {
-      id: 'view_empirical',
+      id: 'view_analyze',
       category: 'workspace',
-      title: '跳转: 问卷实证分析 (Ctrl+2)',
-      subtitle: '描述正态、相关矩阵、EFA/CFA 信效度与实证管道',
+      title: '跳转: 分析 (Ctrl+2)',
+      subtitle: '从统一方法入口选择描述、测量、回归、PROCESS、SEM 或高级方法',
       icon: '📊',
-      action: () => {
-        onSelectView('empirical')
-        onClose()
-      },
+      action: () => openAnalysis(),
     },
     {
-      id: 'view_model',
+      id: 'view_output',
       category: 'workspace',
-      title: '跳转: 模型画布 PROCESS & SEM (Ctrl+3)',
-      subtitle: 'PROCESS 经典模型与高阶 SEM / 多群组工作室画板',
-      icon: '🧩',
+      title: '跳转: 输出 (Ctrl+3)',
+      subtitle: '查看已提交分析的运行记录与历史结果',
+      icon: '📑',
       action: () => {
-        onSelectView('model')
+        onSelectView('output')
         onClose()
       },
     },
     {
       id: 'action_higher_order_sem',
       category: 'action',
-      title: '高阶 SEM: 创建二阶潜变量 (Higher-Order Latent)',
-      subtitle: '归纳 3+ 个一阶因子构建高阶潜结构模型',
+      title: '分析: 高阶 SEM',
+      subtitle: '进入统一方法入口后打开高级 SEM 编辑能力',
       icon: '🧬',
-      action: () => {
-        onSelectView('model')
-        onClose()
-      },
+      action: () => openAnalysis(),
     },
     {
       id: 'action_multi_group_sem',
       category: 'action',
-      title: '多群组 SEM: 测量等值性检验工作室 (MGA Studio)',
-      subtitle: '配置 2–5 组 5 阶段等值性检验与部分等值释放',
+      title: '分析: 多群组 SEM / 测量等值性',
+      subtitle: '进入统一方法入口选择对应方法',
       icon: '👥',
-      action: () => {
-        onSelectView('model')
-        onClose()
-      },
+      action: () => openAnalysis(),
     },
     {
       id: 'action_longitudinal_swimlane',
       category: 'empirical_tab',
-      title: '实证分区: 7. 纵向面板',
-      subtitle: 'CLPM、RI-CLPM、LCM-SR与纵向测量等值性真实结果',
+      title: '分析: 纵向面板',
+      subtitle: 'CLPM、RI-CLPM、LCM-SR 与纵向测量等值性',
       icon: '🌊',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('longitudinal')
-        onClose()
-      },
-    },
-    {
-      id: 'view_methods',
-      category: 'workspace',
-      title: '跳转: 当前数据的专属方法 (Ctrl+4)',
-      subtitle: '按研究上下文开放缺失处理、实验分析和测量扩展',
-      icon: '🧪',
-      action: () => {
-        onSelectView('methods')
-        onClose()
-      },
+      action: () => openAnalysis('longitudinal'),
     },
     {
       id: 'tab_diary',
       category: 'empirical_tab',
-      title: '实证分区: 8. 日记 / ESM',
-      subtitle: 'LMM、GLMM、多层中介与Bayesian DSEM真实结果',
+      title: '分析: 日记 / ESM',
+      subtitle: 'LMM、GLMM、多层中介与 Bayesian DSEM',
       icon: '🗓️',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('diary')
-        onClose()
-      },
+      action: () => openAnalysis('diary'),
     },
     {
       id: 'tab_overview',
       category: 'empirical_tab',
-      title: '实证分区: 1. 描述与正态性',
-      subtitle: '样本描述、缺失值诊断与偏度/峰度正态性检验',
+      title: '分析: 描述与数据检查',
+      subtitle: '描述统计、频数与缺失诊断',
       icon: '📈',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('overview')
-        onClose()
-      },
+      action: () => openAnalysis('overview'),
     },
     {
       id: 'tab_correlation',
       category: 'empirical_tab',
-      title: '实证分区: 2. 相关与矩阵',
-      subtitle: 'Pearson / Spearman 相关矩阵与控制变量偏相关',
+      title: '分析: 相关与偏相关',
+      subtitle: 'Pearson、Spearman 与控制变量偏相关',
       icon: '🔗',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('correlation')
-        onClose()
-      },
+      action: () => openAnalysis('correlation'),
     },
     {
       id: 'tab_measurement',
       category: 'empirical_tab',
-      title: '实证分区: 3. 信效度 (EFA/CFA)',
-      subtitle: 'Cronbach α、AVE/CR、EFA 平行分析与 Harman CMB 检验',
+      title: '分析: 量表与测量',
+      subtitle: '信度、EFA、CFA、效度与测量等值性',
       icon: '📏',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('measurement')
-        onClose()
-      },
+      action: () => openAnalysis('measurement'),
     },
     {
       id: 'tab_regression',
       category: 'empirical_tab',
-      title: '实证分区: 5. 分层回归',
-      subtitle: '分区块R²、ΔR²、稳健标准误与影响点敏感性',
+      title: '分析: 回归模型',
+      subtitle: '分层回归、相对重要性与响应面',
       icon: '📐',
-      action: () => {
-        onSelectView('empirical')
-        if (onSelectEmpiricalTab) onSelectEmpiricalTab('regression')
-        onClose()
-      },
+      action: () => openAnalysis('regression'),
     },
   ]
 
@@ -169,7 +132,7 @@ export function buildCommandPaletteCommands({
     list.push({
       id: 'action_demo',
       category: 'action',
-      title: '快捷操作: 一键加载当前时间结构示例项目',
+      title: '快捷操作: 加载当前时间结构示例项目',
       subtitle: '按当前选择导入横截面、追踪面板或密集追踪示例数据',
       icon: '🚀',
       action: () => {
@@ -184,7 +147,7 @@ export function buildCommandPaletteCommands({
       id: `var_${v.id}`,
       category: 'variable',
       title: `变量: ${v.label} (${v.id})`,
-      subtitle: '查看数据字典与变量取值分布',
+      subtitle: '返回数据工作区查看变量定义与数据',
       icon: '🏷️',
       action: () => {
         onSelectView('data')
