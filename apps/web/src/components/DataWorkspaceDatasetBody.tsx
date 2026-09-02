@@ -180,9 +180,7 @@ export function DataWorkspaceDatasetBody({
         </>
       ) : (
         <p className="measurement-gate">
-          {dataset.dictionary.status !== 'confirmed'
-            ? '确认全部变量类型后，才会开放构念分组和量表计分。'
-            : '确认当前数据结构所需的 ID、聚类或时间角色后，才会开放测量准备。'}
+          量表与特殊结构准备仍会按其自身要求检查；描述、频数、缺失和兼容变量的基础分析不再等待全部数据准备完成。
         </p>
       )}
 
@@ -194,12 +192,12 @@ export function DataWorkspaceDatasetBody({
         />
       )}
 
-      {structureReady && dataset.dictionary.status === 'confirmed' && onContinueToAnalysis ? (
+      {onContinueToAnalysis ? (
         <section className="workflow-next-step" aria-label="下一步">
           <div>
-            <span className="eyebrow">下一步</span>
-            <strong>{activeMeasurement ? '数据字典与测量版本均已就绪' : '数据字典已就绪，可直接分析原始变量'}</strong>
-            <p>{activeMeasurement ? '先检查上方样本质量与量表结果；确认无误后进入实证分析。' : '描述、频数、缺失、相关和原始变量回归不要求构念计分；量表分析可稍后配置。'}</p>
+            <span className="eyebrow">按需分析</span>
+            <strong>数据已导入，可以进入统一方法库</strong>
+            <p>进入“分析”后，系统只检查当前方法和所选变量真正需要的条件；无关变量、量表或结构设置不会阻塞基础方法。</p>
           </div>
           <button type="button" className="run-button" onClick={onContinueToAnalysis}>
             {analysisLabel}
