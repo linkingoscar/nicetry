@@ -220,9 +220,11 @@ export function useEmpiricalAnalysisState({
         setToastText('当前任务仍在运行，已保留配置；请在任务结束或取消后重新选择目录方法。')
         return
       }
-      const restored = readEmpiricalDraft(draftKey, target[tabRequest.tab])
-      const base = restored?.config ?? { ...initialEmpiricalConfig(measurement, derived, researchParadigm), procedure: target[tabRequest.tab] }
-      const next = tabRequest.method ? configForMethod(base, tabRequest.method.sliceId, analysisContext) : base
+      const targetProcedure = tabRequest.method?.procedure ?? target[tabRequest.tab]
+      const restored = readEmpiricalDraft(draftKey, targetProcedure)
+      const base = restored?.config ?? { ...initialEmpiricalConfig(measurement, derived, researchParadigm), procedure: targetProcedure }
+      const directBase = tabRequest.method?.procedure ? { ...base, procedure: tabRequest.method.procedure } : base
+      const next = tabRequest.method ? configForMethod(directBase, tabRequest.method.sliceId, analysisContext) : directBase
       if (tabRequest.method && JSON.stringify(next) !== JSON.stringify(base)
         && !window.confirm(`进入“${tabRequest.method.label}”将调整本方法草稿的模型类型或所需选项，保留兼容的变量配置；既有结果仍属于原运行配置，不会自动重新计算。取消则保留原草稿。是否继续？`)) {
         setToastText('已取消目录方法切换，原草稿保持不变。')
@@ -231,7 +233,7 @@ export function useEmpiricalAnalysisState({
       setConfig(next)
       if (tabRequest.method) setToastText(`已进入：${tabRequest.method.label}。请检查变量与估计设置后手动运行。`)
 
-      setActiveTab(tabRequest.tab)
+      setActiveTab(procedureDefinition(targetProcedure).tab)
       setActiveRunId(restored?.activeRunId ?? null)
       setLastRunConfig(restored?.lastRunConfig ?? null)
       setConfigExpanded(true)
