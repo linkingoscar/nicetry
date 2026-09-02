@@ -1,4 +1,5 @@
-import { methodForCapability } from '../../methods/methodDefinitions'
+import { methodForCapability, type MethodDefinition } from '../../methods/methodDefinitions'
+import type { MethodLibraryDefinition } from '../../methods/methodLibraryPresets'
 import type { ApplicableCapability } from '../../types/analysis-context'
 import type { DatasetVariable } from '../../types/datasets'
 import type { AdvancedAnalysisCapability, CapabilityMaturity, PublicationEligibility } from '../../types/advanced'
@@ -65,12 +66,19 @@ export function wizardCapability(capability: ApplicableCapability): AdvancedAnal
   }
 }
 
-export function internalWorkbenchTarget(capability: ApplicableCapability): WorkbenchTarget | null {
+export function internalWorkbenchTarget(
+  capability: ApplicableCapability,
+  definitionOverride?: MethodLibraryDefinition | MethodDefinition,
+): WorkbenchTarget | null {
   if (!capability.executionAvailable) return null
-  const definition = methodForCapability(capability.sliceId)
+  const definition = definitionOverride ?? methodForCapability(capability.sliceId)
   if (!definition || definition.adapter === 'advanced-wizard') return null
 
-  const method = { sliceId: capability.sliceId, label: definition.label }
+  const method = {
+    sliceId: capability.sliceId,
+    label: definition.label,
+    ...('procedure' in definition && definition.procedure ? { procedure: definition.procedure } : {}),
+  }
   if (definition.adapter === 'model') return { view: 'model', ...method }
   if (definition.adapter === 'empirical-longitudinal') return { view: 'empirical', tab: 'longitudinal', ...method }
   if (definition.adapter === 'empirical-diary') return { view: 'empirical', tab: 'diary', ...method }
