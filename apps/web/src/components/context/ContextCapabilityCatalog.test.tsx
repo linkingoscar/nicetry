@@ -151,6 +151,46 @@ describe('ContextCapabilityCatalog', () => {
     expect(createAnalysisDraft).not.toHaveBeenCalled()
   })
 
+  it('expands shared empirical capabilities into direct user methods and routes the selected procedure', async () => {
+    const onNavigate = vi.fn()
+    vi.mocked(useApplicableCapabilities).mockReturnValue({
+      data: {
+        schemaVersion: '1.0.0',
+        contextHash: context.contextHash,
+        capabilities: [
+          capability({
+            family: 'empirical',
+            sliceId: 'empirical.cross_sectional.overview',
+            label: '横截面概览',
+          }),
+        ],
+      },
+      isLoading: false,
+      error: null,
+    } as ReturnType<typeof useApplicableCapabilities>)
+
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ContextCapabilityCatalog context={context} onNavigate={onNavigate} />
+      </QueryClientProvider>,
+    )
+
+    expect(screen.getByText('描述统计')).toBeInTheDocument()
+    expect(screen.getByText('频数分析')).toBeInTheDocument()
+    expect(screen.getByText('缺失数据诊断')).toBeInTheDocument()
+    expect(screen.getByText('相关与偏相关')).toBeInTheDocument()
+    expect(screen.queryByText('描述、频数、缺失与相关')).not.toBeInTheDocument()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: '配置频数分析' }))
+    expect(onNavigate).toHaveBeenCalledWith(expect.objectContaining({
+      view: 'empirical',
+      tab: 'overview',
+      sliceId: 'empirical.cross_sectional.overview',
+      procedure: 'frequencies',
+    }))
+    expect(createAnalysisDraft).not.toHaveBeenCalled()
+  })
+
   it('searches aliases and blocked methods, filters readiness, and restores the list when filters clear', async () => {
     const user = userEvent.setup()
     render(<QueryClientProvider client={new QueryClient()}><ContextCapabilityCatalog context={context} /></QueryClientProvider>)
