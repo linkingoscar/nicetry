@@ -123,7 +123,7 @@ export function DataWorkspaceDatasetBody({
         <div><span>数据行</span><strong>{dataset.rowCount}</strong></div>
         <div><span>变量列</span><strong>{dataset.columnCount}</strong></div>
         <div><span>文件格式</span><strong>{dataset.originalFile.format.toUpperCase()}</strong></div>
-        <div><span>需确认变量</span><strong>{dataset.dictionary.totalCount - dataset.dictionary.confirmedCount}</strong></div>
+        <div><span>未人工确认</span><strong>{dataset.dictionary.totalCount - dataset.dictionary.confirmedCount}</strong></div>
       </section>
 
       <div className="dataset-provenance">
