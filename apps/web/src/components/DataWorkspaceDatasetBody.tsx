@@ -50,6 +50,14 @@ const subviews: Array<{ id: DataSubview; label: string }> = [
   { id: 'scales', label: '量表' },
 ]
 
+function subviewTabId(id: DataSubview) {
+  return `data-subview-tab-${id}`
+}
+
+function subviewPanelId(id: DataSubview) {
+  return `data-subview-panel-${id}`
+}
+
 export function DataWorkspaceDatasetBody({
   dataset,
   selectedFile,
@@ -145,6 +153,7 @@ export function DataWorkspaceDatasetBody({
           type="button"
           className="secondary-button"
           aria-pressed={showDataQuality}
+          aria-controls="data-quality-tool"
           onClick={() => setShowDataQuality(current => !current)}
         >
           数据检查
@@ -154,6 +163,7 @@ export function DataWorkspaceDatasetBody({
             type="button"
             className="secondary-button"
             aria-pressed={showStructure}
+            aria-controls="data-structure-tool"
             onClick={() => setShowStructure(current => !current)}
           >
             数据结构
@@ -174,80 +184,100 @@ export function DataWorkspaceDatasetBody({
         />
       ) : null}
 
-      {showDataQuality ? (
+      <section id="data-quality-tool" hidden={!showDataQuality} aria-label="数据检查工具">
         <DataQualityWorkspace key={`${dataset.id}:quality`} dataset={dataset} />
+      </section>
+
+      {studyContext ? (
+        <section id="data-structure-tool" hidden={!showStructure} aria-label="数据结构工具">
+          <DataStructureSetup
+            key={`${dataset.id}:${structureKey}`}
+            datasetId={dataset.id}
+            variables={dataset.variables}
+            context={studyContext}
+            studyContextVersionId={resolvedContext?.studyContext?.id ?? null}
+            initialStructure={resolvedContext?.structure ?? null}
+            onValidityChange={onStructureValidityChange}
+            onStructureSaved={onStructureSaved}
+          />
+        </section>
       ) : null}
 
-      {showStructure && studyContext ? (
-        <DataStructureSetup
-          key={`${dataset.id}:${structureKey}`}
-          datasetId={dataset.id}
-          variables={dataset.variables}
-          context={studyContext}
-          studyContextVersionId={resolvedContext?.studyContext?.id ?? null}
-          initialStructure={resolvedContext?.structure ?? null}
-          onValidityChange={onStructureValidityChange}
-          onStructureSaved={onStructureSaved}
-        />
-      ) : null}
-
-      <nav className={styles.dataSubviewNav} aria-label="数据工作区子导航">
-        {subviews.map((subview) => (
-          <button
-            key={subview.id}
-            type="button"
-            className={activeSubview === subview.id ? styles.activeSubview : undefined}
-            aria-current={activeSubview === subview.id ? 'page' : undefined}
-            onClick={() => setActiveSubview(subview.id)}
-          >
-            {subview.label}
-          </button>
-        ))}
-      </nav>
+      <div className={styles.dataSubviewNav} role="tablist" aria-label="数据工作区子导航">
+        {subviews.map((subview) => {
+          const selected = activeSubview === subview.id
+          return (
+            <button
+              key={subview.id}
+              id={subviewTabId(subview.id)}
+              type="button"
+              role="tab"
+              className={selected ? styles.activeSubview : undefined}
+              aria-selected={selected}
+              aria-controls={subviewPanelId(subview.id)}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setActiveSubview(subview.id)}
+            >
+              {subview.label}
+            </button>
+          )
+        })}
+      </div>
 
       <div className={styles.dataSubviewBody}>
-        {activeSubview === 'data' ? (
-          <>
-            <DataGridView dataset={dataset} />
-            {dataset.warnings.map((warning) => (
-              <p className="method-warning" key={`${warning.code}:${warning.message}`}>{warning.message}</p>
-            ))}
-          </>
-        ) : null}
+        <section
+          id={subviewPanelId('data')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('data')}
+          hidden={activeSubview !== 'data'}
+        >
+          <DataGridView dataset={dataset} />
+          {dataset.warnings.map((warning) => (
+            <p className="method-warning" key={`${warning.code}:${warning.message}`}>{warning.message}</p>
+          ))}
+        </section>
 
-        {activeSubview === 'variables' ? (
+        <section
+          id={subviewPanelId('variables')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('variables')}
+          hidden={activeSubview !== 'variables'}
+        >
           <VariableTable
             key={`${dataset.id}:${dataset.dictionary.version}`}
             variables={dataset.variables}
             isSaving={dictionaryMutation.isPending}
             onSave={onDictionarySave}
           />
-        ) : null}
+        </section>
 
-        {activeSubview === 'scales' ? (
-          <>
-            {needsSpecialPreparation && studyContext ? (
-              <StructureMeasurementPreparation
-                context={studyContext}
-                roles={resolvedContext?.structure?.roles}
-                profile={resolvedContext?.structure?.profile}
-                measurement={resolvedContext?.measurement}
-                variables={dataset.variables}
-              />
-            ) : null}
-            <MeasurementWorkspace
-              key={`${dataset.id}:measurement:${activeMeasurement?.version ?? 'new'}`}
-              datasetId={dataset.id}
+        <section
+          id={subviewPanelId('scales')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('scales')}
+          hidden={activeSubview !== 'scales'}
+        >
+          {needsSpecialPreparation && studyContext ? (
+            <StructureMeasurementPreparation
+              context={studyContext}
+              roles={resolvedContext?.structure?.roles}
+              profile={resolvedContext?.structure?.profile}
+              measurement={resolvedContext?.measurement}
               variables={dataset.variables}
-              initialMeasurement={
-                activeMeasurement?.datasetVersionId === dataset.id
-                  ? activeMeasurement
-                  : undefined
-              }
-              onReady={(measurement) => onMeasurementReady?.(dataset, measurement)}
             />
-          </>
-        ) : null}
+          ) : null}
+          <MeasurementWorkspace
+            key={`${dataset.id}:measurement:${activeMeasurement?.version ?? 'new'}`}
+            datasetId={dataset.id}
+            variables={dataset.variables}
+            initialMeasurement={
+              activeMeasurement?.datasetVersionId === dataset.id
+                ? activeMeasurement
+                : undefined
+            }
+            onReady={(measurement) => onMeasurementReady?.(dataset, measurement)}
+          />
+        </section>
       </div>
 
       {!structureReady ? (
