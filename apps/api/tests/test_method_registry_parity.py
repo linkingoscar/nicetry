@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TypedDict, cast
+from typing import TypedDict
 
 from app.capability_catalog import ACTIVE_CAPABILITIES
 
@@ -28,13 +28,14 @@ class MethodRegistryDocument(TypedDict):
 
 
 def _registry() -> MethodRegistryDocument:
-    return cast(MethodRegistryDocument, json.loads(REGISTRY_PATH.read_text(encoding="utf-8")))
+    document: MethodRegistryDocument = json.loads(REGISTRY_PATH.read_text(encoding="utf-8"))
+    return document
 
 
 def test_method_registry_covers_every_product_visible_capability() -> None:
     methods = _registry()["methods"]
 
-    active_by_id = {definition.slice_id: definition for definition in ACTIVE_CAPABILITIES}
+    active_slice_ids = {definition.slice_id for definition in ACTIVE_CAPABILITIES}
     visible_slice_ids = {
         definition.slice_id for definition in ACTIVE_CAPABILITIES if definition.product_visible
     }
@@ -51,7 +52,7 @@ def test_method_registry_covers_every_product_visible_capability() -> None:
         capability_ids = set(method["capabilitySliceIds"])
         consumer_ids = set(method["consumerCapabilitySliceIds"])
         assert capability_ids, f"{method['id']} must map at least one active capability"
-        ghost = sorted((capability_ids | consumer_ids) - active_by_id.keys())
+        ghost = sorted((capability_ids | consumer_ids) - active_slice_ids)
         assert ghost == [], f"{method['id']} points at unknown capability slices: {ghost}"
         mapped_visible.update(capability_ids)
         mapped_consumers.update(consumer_ids)
