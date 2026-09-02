@@ -17,7 +17,6 @@ import { ImputationPlanWorkspace } from './ImputationPlanWorkspace'
 import { InvalidationNotice } from './InvalidationNotice'
 import {
   internalWorkbenchTarget,
-  maturityLabel,
   toWizardVariables,
   wizardCapability,
 } from './contextCapabilityCatalogUtils'
@@ -298,7 +297,7 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
                         <div className="method-card-status-row">
                           <span className={`context-method-status method-status-${availability.state}`}>{availability.label}</span>
                           {capability.maturityLevel === 'experimental' || method.experimental ? (
-                            <span className="context-method-status">{maturityLabel(capability.maturityLevel)}</span>
+                            <span className="context-method-status">实验性</span>
                           ) : null}
                         </div>
                         <p>{method.description}</p>
