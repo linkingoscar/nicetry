@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createAnalysisDraft, getAnalysisDraftValidity } from '../../api/analysis-context'
 import { useApplicableCapabilities } from '../../hooks/useApplicableCapabilities'
 import { METHOD_CATEGORY_ORDER, methodCategoryLabel } from '../../methods/methodCategories'
-import { methodForCapability, methodSearchText, type MethodDefinition } from '../../methods/methodDefinitions'
+import { methodSearchText } from '../../methods/methodDefinitions'
+import { libraryMethodsForCapability, type MethodLibraryDefinition } from '../../methods/methodLibraryPresets'
 import { resolveMethodAvailability, type MethodAvailability } from '../../methods/resolveMethodAvailability'
 import type { ApplicableCapability, ResolvedAnalysisContext } from '../../types/analysis-context'
 import type { DatasetVariable } from '../../types/datasets'
@@ -31,7 +32,7 @@ interface ContextCapabilityCatalogProps {
 
 interface CatalogEntry {
   capability: ApplicableCapability
-  method: MethodDefinition
+  method: MethodLibraryDefinition
   availability: MethodAvailability
 }
 
@@ -78,11 +79,11 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
   const allCapabilities = capabilitiesQuery.data?.capabilities ?? []
   const catalogEntries = useMemo<CatalogEntry[]>(() => allCapabilities
     .filter((capability) => capability.productVisible)
-    .map((capability) => {
-      const method = methodForCapability(capability.sliceId)
-      return method ? { capability, method, availability: resolveMethodAvailability(capability) } : null
-    })
-    .filter((entry): entry is CatalogEntry => entry !== null)
+    .flatMap((capability) => libraryMethodsForCapability(capability).map((method) => ({
+      capability,
+      method,
+      availability: resolveMethodAvailability(capability),
+    })))
     .sort((a, b) => categoryRank(a.method.categoryId) - categoryRank(b.method.categoryId)
       || a.method.label.localeCompare(b.method.label, 'zh-CN')),
   [allCapabilities])
@@ -289,9 +290,9 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
               <h2 id={`method-category-${categoryId}`}>{methodCategoryLabel(categoryId)}</h2>
               <div className="context-method-grid">
                 {entries.map(({ capability, method, availability }) => {
-                  const target = availability.state === 'ready' ? internalWorkbenchTarget(capability) : null
+                  const target = availability.state === 'ready' ? internalWorkbenchTarget(capability, method) : null
                   return (
-                    <article key={method.id} className="context-method-card" aria-label={method.label}>
+                    <article key={method.libraryId} className="context-method-card" aria-label={method.label}>
                       <div>
                         <h3>{method.label}</h3>
                         <div className="method-card-status-row">
