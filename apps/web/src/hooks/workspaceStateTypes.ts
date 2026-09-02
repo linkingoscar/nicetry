@@ -1,1 +1,1 @@
-export type WorkspaceView = 'data' | 'empirical' | 'model' | 'methods'
+export type WorkspaceView = 'data' | 'analyze' | 'output'
