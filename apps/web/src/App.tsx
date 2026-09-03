@@ -6,7 +6,12 @@ import { AppHydratingScreen } from './AppHydratingScreen'
 import { AppWorkspaceTabs } from './AppWorkspaceTabs'
 import { DataWorkspace } from './components/DataWorkspace'
 import { OutputWorkspace } from './components/OutputWorkspace'
-import { ensureEmpiricalAnalysisDocument } from './components/analyses/analysisDocuments'
+import {
+  createEmpiricalAnalysisDocument,
+  ensureEmpiricalAnalysisDocument,
+  loadEmpiricalAnalysisIndex,
+} from './components/analyses/analysisDocuments'
+import { cloneEmpiricalDraftToAnalysis } from './components/empirical/empiricalDrafts'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { LocalPrivacyBadge } from './components/shared/LocalPrivacyBadge'
 import { ResearchStart } from './components/shared/ResearchStart'
@@ -77,6 +82,41 @@ export function App() {
     setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
     setAnalysisSurface('empirical')
     setActiveView('analyze')
+  }
+
+  const duplicateActiveEmpiricalAnalysis = () => {
+    const procedure = empiricalTabRequest?.method?.procedure
+    if (!activeDataset || !resolvedContext || !activeAnalysisId || !procedure) return
+
+    const measurement = modelContext?.measurement ?? null
+    const source = loadEmpiricalAnalysisIndex(activeDataset, measurement).documents.find(
+      (document) => document.id === activeAnalysisId,
+    )
+    const definition = procedureDefinition(procedure)
+    const duplicate = createEmpiricalAnalysisDocument(
+      activeDataset,
+      measurement,
+      procedure,
+      `${source?.title ?? definition.label} 副本`,
+    )
+    cloneEmpiricalDraftToAnalysis(
+      activeDataset,
+      measurement,
+      resolvedContext,
+      activeAnalysisId,
+      duplicate.id,
+      procedure,
+    )
+
+    const method = {
+      sliceId: definition.slice,
+      label: definition.label,
+      contextHash: resolvedContext.contextHash,
+      key: Date.now(),
+      procedure,
+    }
+    setActiveAnalysisId(duplicate.id)
+    setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
   }
 
   return (
@@ -191,10 +231,15 @@ export function App() {
             ) : activeView === 'analyze' && analysisSurface === 'empirical' && activeDataset && resolvedContext ? (
               <SectionErrorBoundary resetKey="empirical-view" title="分析">
                 <div className="analysis-shell">
-                  <button type="button" className="secondary-button" onClick={() => {
-                    setActiveAnalysisId(null)
-                    setAnalysisSurface('library')
-                  }}>← 返回方法库</button>
+                  <div className="analysis-inline-actions">
+                    <button type="button" className="secondary-button" onClick={() => {
+                      setActiveAnalysisId(null)
+                      setAnalysisSurface('library')
+                    }}>← 返回方法库</button>
+                    {activeAnalysisId && empiricalTabRequest?.method?.procedure ? (
+                      <button type="button" className="secondary-button" onClick={duplicateActiveEmpiricalAnalysis}>复制分析</button>
+                    ) : null}
+                  </div>
                   <EmpiricalAnalysis
                     key={`${activeDataset.id}:${activeDataset.dictionary.version}:${modelContext?.measurement.version ?? 'raw'}:${resolvedContext.contextHash}:${activeAnalysisId ?? 'legacy'}`}
                     dataset={activeDataset}
@@ -280,11 +325,6 @@ export function App() {
               setActiveAnalysisId(null)
               setAnalysisSurface('library')
             }
-          }}
-          onSelectEmpiricalTab={(tab) => {
-            setActiveAnalysisId(null)
-            setAnalysisSurface('empirical')
-            setEmpiricalTabRequest({ tab, key: Date.now() })
           }}
           onLoadDemo={handleLoadDemo}
           variables={

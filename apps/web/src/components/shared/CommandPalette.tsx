@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
-import type { EmpiricalResultTab } from '../empirical/EmpiricalResultsNav'
 import type { WorkspaceView } from '../../hooks/workspaceStateTypes'
 import { SearchIcon } from './Icons'
 import type { CommandItem } from './CommandPalette.commands'
@@ -12,7 +11,6 @@ interface CommandPaletteProps {
   isOpen: boolean
   onClose: () => void
   onSelectView: (view: WorkspaceView) => void
-  onSelectEmpiricalTab?: (tab: EmpiricalResultTab) => void
   onLoadDemo?: () => void
   variables?: Array<{ id: string; label: string }>
 }
@@ -21,7 +19,6 @@ export function CommandPalette({
   isOpen,
   onClose,
   onSelectView,
-  onSelectEmpiricalTab,
   onLoadDemo,
   variables = [],
 }: CommandPaletteProps) {
@@ -32,12 +29,11 @@ export function CommandPalette({
   const commands = useMemo<CommandItem[]>(
     () => buildCommandPaletteCommands({
       onSelectView,
-      onSelectEmpiricalTab,
       onLoadDemo,
       variables,
       onClose,
     }),
-    [onSelectView, onSelectEmpiricalTab, onLoadDemo, variables, onClose],
+    [onSelectView, onLoadDemo, variables, onClose],
   )
 
   const filteredCommands = useMemo(() => {

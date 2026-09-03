@@ -30,25 +30,17 @@ describe('CommandPalette', () => {
     expect(onClose).toHaveBeenCalledOnce()
   })
 
-  it('routes longitudinal and diary commands through analysis while preserving empirical tab intent', () => {
+  it('routes longitudinal and diary commands to the method library instead of an internal empirical tab', () => {
     const onSelectView = vi.fn()
-    const onSelectEmpiricalTab = vi.fn()
     const onClose = vi.fn()
 
-    render(
-      <CommandPalette
-        isOpen={true}
-        onClose={onClose}
-        onSelectView={onSelectView}
-        onSelectEmpiricalTab={onSelectEmpiricalTab}
-      />,
-    )
+    render(<CommandPalette isOpen={true} onClose={onClose} onSelectView={onSelectView} />)
 
     fireEvent.click(screen.getByText(/分析: 纵向面板/))
-    expect(onSelectView).toHaveBeenCalledWith('analyze')
-    expect(onSelectEmpiricalTab).toHaveBeenCalledWith('longitudinal')
-
     fireEvent.click(screen.getByText(/分析: 日记 \/ ESM/))
-    expect(onSelectEmpiricalTab).toHaveBeenCalledWith('diary')
+
+    expect(onSelectView).toHaveBeenNthCalledWith(1, 'analyze')
+    expect(onSelectView).toHaveBeenNthCalledWith(2, 'analyze')
+    expect(onClose).toHaveBeenCalledTimes(2)
   })
 })

@@ -199,6 +199,15 @@ function ensureDocument(
   return document
 }
 
+function uniqueAnalysisId(index: AnalysisDocumentIndex): string {
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const token = `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}_${attempt}`
+    const id = `analysis_${token}`
+    if (ID_PATTERN.test(id) && !index.documents.some((document) => document.id === id)) return id
+  }
+  return `analysis_${Date.now().toString(36)}_${stableHash(String(Math.random()))}`
+}
+
 export function ensureEmpiricalAnalysisDocument(
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
@@ -210,6 +219,21 @@ export function ensureEmpiricalAnalysisDocument(
   if (existing) return existing
 
   const document = ensureDocument(index, dataset, measurement, procedure, new Date().toISOString())
+  saveIndex(dataset.projectId, index)
+  return document
+}
+
+export function createEmpiricalAnalysisDocument(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  procedure: EmpiricalProcedure,
+  title?: string,
+): AnalysisDocumentIndexEntry {
+  const index = readIndex(dataset.projectId)
+  const now = new Date().toISOString()
+  const document = ensureDocument(index, dataset, measurement, procedure, now, uniqueAnalysisId(index))
+  const requestedTitle = title?.trim()
+  if (requestedTitle) document.title = requestedTitle
   saveIndex(dataset.projectId, index)
   return document
 }

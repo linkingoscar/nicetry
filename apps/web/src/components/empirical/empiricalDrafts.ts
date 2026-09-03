@@ -79,3 +79,24 @@ export function migrateEmpiricalDraftToAnalysis(
   saveEmpiricalDraft(scopedKey, legacyDraft)
   return legacyDraft
 }
+
+export function cloneEmpiricalDraftToAnalysis(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  context: ResolvedAnalysisContext | null | undefined,
+  sourceAnalysisId: string,
+  targetAnalysisId: string,
+  procedure: EmpiricalProcedure,
+): EmpiricalDraft | null {
+  if (!ANALYSIS_ID_PATTERN.test(sourceAnalysisId) || !ANALYSIS_ID_PATTERN.test(targetAnalysisId)) return null
+  if (sourceAnalysisId === targetAnalysisId) return null
+
+  const source = readEmpiricalDraft(empiricalDraftKey(dataset, measurement, context, sourceAnalysisId), procedure)
+  if (!source) return null
+  const cloned: EmpiricalDraft = {
+    config: source.config,
+    activeRunId: null,
+    lastRunConfig: null,
+  }
+  return saveEmpiricalDraft(empiricalDraftKey(dataset, measurement, context, targetAnalysisId), cloned) ? cloned : null
+}

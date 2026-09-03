@@ -1,9 +1,8 @@
 import type { WorkspaceView } from '../../hooks/workspaceStateTypes'
-import type { EmpiricalResultTab } from '../empirical/EmpiricalResultsNav'
 
 export interface CommandItem {
   id: string
-  category: 'workspace' | 'empirical_tab' | 'action' | 'variable'
+  category: 'workspace' | 'analysis_library' | 'action' | 'variable'
   title: string
   subtitle?: string
   icon: string
@@ -12,7 +11,6 @@ export interface CommandItem {
 
 interface BuildCommandPaletteCommandsOptions {
   onSelectView: (view: WorkspaceView) => void
-  onSelectEmpiricalTab?: (tab: EmpiricalResultTab) => void
   onLoadDemo?: () => void
   variables?: Array<{ id: string; label: string }>
   onClose: () => void
@@ -20,14 +18,12 @@ interface BuildCommandPaletteCommandsOptions {
 
 export function buildCommandPaletteCommands({
   onSelectView,
-  onSelectEmpiricalTab,
   onLoadDemo,
   variables = [],
   onClose,
 }: BuildCommandPaletteCommandsOptions): CommandItem[] {
-  const openAnalysis = (tab?: EmpiricalResultTab) => {
+  const openAnalysis = () => {
     onSelectView('analyze')
-    if (tab && onSelectEmpiricalTab) onSelectEmpiricalTab(tab)
     onClose()
   }
 
@@ -49,7 +45,7 @@ export function buildCommandPaletteCommands({
       title: '跳转: 分析 (Ctrl+2)',
       subtitle: '从统一方法入口选择描述、测量、回归、PROCESS、SEM 或高级方法',
       icon: '📊',
-      action: () => openAnalysis(),
+      action: openAnalysis,
     },
     {
       id: 'view_output',
@@ -64,67 +60,67 @@ export function buildCommandPaletteCommands({
     },
     {
       id: 'action_higher_order_sem',
-      category: 'action',
+      category: 'analysis_library',
       title: '分析: 高阶 SEM',
-      subtitle: '进入统一方法入口后打开高级 SEM 编辑能力',
+      subtitle: '打开统一方法库并选择高级 SEM；不绕过正式方法入口',
       icon: '🧬',
-      action: () => openAnalysis(),
+      action: openAnalysis,
     },
     {
       id: 'action_multi_group_sem',
-      category: 'action',
+      category: 'analysis_library',
       title: '分析: 多群组 SEM / 测量等值性',
-      subtitle: '进入统一方法入口选择对应方法',
+      subtitle: '打开统一方法库并选择对应方法',
       icon: '👥',
-      action: () => openAnalysis(),
+      action: openAnalysis,
     },
     {
       id: 'action_longitudinal_swimlane',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 纵向面板',
-      subtitle: 'CLPM、RI-CLPM、LCM-SR 与纵向测量等值性',
+      subtitle: '在统一方法库中选择 CLPM、RI-CLPM、LCM-SR 或纵向等值性',
       icon: '🌊',
-      action: () => openAnalysis('longitudinal'),
+      action: openAnalysis,
     },
     {
       id: 'tab_diary',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 日记 / ESM',
-      subtitle: 'LMM、GLMM、多层中介与 Bayesian DSEM',
+      subtitle: '在统一方法库中选择 LMM、GLMM、多层中介或 Bayesian DSEM',
       icon: '🗓️',
-      action: () => openAnalysis('diary'),
+      action: openAnalysis,
     },
     {
       id: 'tab_overview',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 描述与数据检查',
-      subtitle: '描述统计、频数与缺失诊断',
+      subtitle: '在统一方法库中选择描述统计、频数或缺失诊断',
       icon: '📈',
-      action: () => openAnalysis('overview'),
+      action: openAnalysis,
     },
     {
       id: 'tab_correlation',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 相关与偏相关',
-      subtitle: 'Pearson、Spearman 与控制变量偏相关',
+      subtitle: '在统一方法库中选择相关或偏相关方法',
       icon: '🔗',
-      action: () => openAnalysis('correlation'),
+      action: openAnalysis,
     },
     {
       id: 'tab_measurement',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 量表与测量',
-      subtitle: '信度、EFA、CFA、效度与测量等值性',
+      subtitle: '在统一方法库中选择信度、EFA、CFA、效度或等值性',
       icon: '📏',
-      action: () => openAnalysis('measurement'),
+      action: openAnalysis,
     },
     {
       id: 'tab_regression',
-      category: 'empirical_tab',
+      category: 'analysis_library',
       title: '分析: 回归模型',
-      subtitle: '分层回归、相对重要性与响应面',
+      subtitle: '在统一方法库中选择分层回归、相对重要性或响应面',
       icon: '📐',
-      action: () => openAnalysis('regression'),
+      action: openAnalysis,
     },
   ]
 
