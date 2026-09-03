@@ -6,9 +6,11 @@ export interface EmpiricalRunEntry {
   procedure: EmpiricalProcedure
   createdAt: string
   analysisId?: string
+  methodId?: string
 }
 
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
+const METHOD_ID_PATTERN = /^[A-Za-z0-9_.-]{1,160}$/
 
 export function readEmpiricalHistory(key: string): EmpiricalRunEntry[] {
   try {
@@ -16,7 +18,8 @@ export function readEmpiricalHistory(key: string): EmpiricalRunEntry[] {
     if (!Array.isArray(value)) return []
     return value.filter((v): v is EmpiricalRunEntry => v && typeof v.id === 'string' && ID_PATTERN.test(v.id)
       && empiricalProcedures.some((p) => p.id === v.procedure) && typeof v.createdAt === 'string'
-      && (v.analysisId === undefined || (typeof v.analysisId === 'string' && ID_PATTERN.test(v.analysisId)))).slice(0, 30)
+      && (v.analysisId === undefined || (typeof v.analysisId === 'string' && ID_PATTERN.test(v.analysisId)))
+      && (v.methodId === undefined || (typeof v.methodId === 'string' && METHOD_ID_PATTERN.test(v.methodId)))).slice(0, 30)
   } catch { return [] }
 }
 

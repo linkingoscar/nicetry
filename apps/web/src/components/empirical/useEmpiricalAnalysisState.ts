@@ -157,6 +157,7 @@ export function useEmpiricalAnalysisState({
           procedure: options.procedure,
           createdAt: new Date().toISOString(),
           ...(analysisId ? { analysisId } : {}),
+          ...(tabRequest?.method?.methodId ? { methodId: tabRequest.method.methodId } : {}),
         }, ...runHistory].slice(0, 30)
         setRunHistory(next)
         saveEmpiricalHistory(historyKey, next)

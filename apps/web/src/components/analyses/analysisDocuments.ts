@@ -295,7 +295,15 @@ export function loadEmpiricalAnalysisIndex(
 
   history.forEach((entry) => {
     const beforeDocuments = index.documents.length
-    const document = ensureDocument(index, dataset, measurement, entry.procedure, entry.createdAt, entry.analysisId)
+    const document = ensureDocument(
+      index,
+      dataset,
+      measurement,
+      entry.procedure,
+      entry.createdAt,
+      entry.analysisId,
+      entry.methodId,
+    )
     if (index.documents.length !== beforeDocuments) changed = true
 
     let runReference = index.runs.find((run) => run.id === entry.id)

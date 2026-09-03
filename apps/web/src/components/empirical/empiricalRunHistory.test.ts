@@ -1,0 +1,55 @@
+import { beforeEach, describe, expect, it } from 'vitest'
+
+import { readEmpiricalHistory, saveEmpiricalHistory } from './empiricalRunHistory'
+
+const key = 'researchpath.empirical.runs.v1:dataset_demo:null'
+
+beforeEach(() => localStorage.clear())
+
+describe('empiricalRunHistory method identity compatibility', () => {
+  it('persists an optional method id for method-scoped recovery', () => {
+    saveEmpiricalHistory(key, [{
+      id: 'run_ri_clpm',
+      procedure: 'longitudinal',
+      analysisId: 'analysis_ri_clpm',
+      methodId: 'longitudinal.ri-clpm',
+      createdAt: '2026-09-03T12:00:00Z',
+    }])
+
+    expect(readEmpiricalHistory(key)).toEqual([
+      expect.objectContaining({
+        id: 'run_ri_clpm',
+        analysisId: 'analysis_ri_clpm',
+        methodId: 'longitudinal.ri-clpm',
+      }),
+    ])
+  })
+
+  it('keeps legacy history entries without methodId readable', () => {
+    localStorage.setItem(key, JSON.stringify([
+      {
+        id: 'run_legacy',
+        procedure: 'descriptives',
+        createdAt: '2026-09-03T10:00:00Z',
+      },
+    ]))
+
+    expect(readEmpiricalHistory(key)).toEqual([
+      expect.objectContaining({ id: 'run_legacy', procedure: 'descriptives' }),
+    ])
+    expect(readEmpiricalHistory(key)[0].methodId).toBeUndefined()
+  })
+
+  it('rejects malformed method identity rather than trusting arbitrary storage data', () => {
+    localStorage.setItem(key, JSON.stringify([
+      {
+        id: 'run_bad',
+        procedure: 'longitudinal',
+        methodId: '../longitudinal.ri-clpm',
+        createdAt: '2026-09-03T10:00:00Z',
+      },
+    ]))
+
+    expect(readEmpiricalHistory(key)).toEqual([])
+  })
+})
