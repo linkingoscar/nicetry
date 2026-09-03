@@ -7,6 +7,7 @@ export interface WorkbenchTarget {
   sliceId: string
   label: string
   procedure?: EmpiricalProcedure
+  processModelNumber?: 1 | 4
 }
 
 export interface MethodRequest {
@@ -15,6 +16,7 @@ export interface MethodRequest {
   contextHash: string
   key: number
   procedure?: EmpiricalProcedure
+  processModelNumber?: 1 | 4
 }
 
 export interface EmpiricalTabRequest {

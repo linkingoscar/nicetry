@@ -285,8 +285,15 @@ export function App() {
                   context={resolvedContext}
                   variables={activeDataset.variables}
                   onPrepare={() => setActiveView('data')}
-                  onNavigate={({ view, tab, sliceId, label, procedure }) => {
-                    const method = { sliceId, label, contextHash: resolvedContext.contextHash, key: Date.now(), procedure }
+                  onNavigate={({ view, tab, sliceId, label, procedure, processModelNumber }) => {
+                    const method = {
+                      sliceId,
+                      label,
+                      contextHash: resolvedContext.contextHash,
+                      key: Date.now(),
+                      procedure,
+                      processModelNumber,
+                    }
                     if (view === 'model') {
                       setActiveAnalysisId(null)
                       setActiveRunRequestId(null)

@@ -1,10 +1,11 @@
 import type { ApplicableCapability } from '../types/analysis-context'
 import type { EmpiricalProcedure } from '../types/empirical-types'
-import { methodDefinitions, type MethodDefinition } from './methodDefinitions'
+import { methodDefinitions, type MethodDefinition, type MethodVisibilityTier } from './methodDefinitions'
 
 export interface MethodLibraryDefinition extends MethodDefinition {
   libraryId: string
   procedure?: EmpiricalProcedure
+  processModelNumber?: 1 | 4
 }
 
 interface ProcedurePreset {
@@ -14,6 +15,17 @@ interface ProcedurePreset {
   description: string
   keywords: string[]
   procedure: EmpiricalProcedure
+}
+
+interface ModelPreset {
+  id: string
+  label: string
+  aliases: string[]
+  description: string
+  keywords: string[]
+  processModelNumber?: 1 | 4
+  advanced?: boolean
+  visibilityTier?: MethodVisibilityTier
 }
 
 const PROCEDURE_PRESETS: Record<string, ProcedurePreset[]> = {
@@ -121,24 +133,76 @@ const PROCEDURE_PRESETS: Record<string, ProcedurePreset[]> = {
   ],
 }
 
+const MODEL_PRESETS: Record<string, ModelPreset[]> = {
+  'model.process': [
+    {
+      id: 'simple-mediation',
+      label: '简单中介（PROCESS Model 4）',
+      aliases: ['simple mediation', 'Model 4', '中介效应', '间接效应'],
+      description: '用 X、M、Y 表单配置简单中介模型，再进入现有模型草稿复核与运行。',
+      keywords: ['中介', 'Model 4', 'bootstrap', '间接效应'],
+      processModelNumber: 4,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'simple-moderation',
+      label: '简单调节（PROCESS Model 1）',
+      aliases: ['simple moderation', 'Model 1', '调节效应', 'interaction'],
+      description: '用 X、W、Y 表单配置简单调节模型，并可显式设置中心化和 bootstrap。',
+      keywords: ['调节', 'Model 1', '交互项', '中心化'],
+      processModelNumber: 1,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'full-catalog',
+      label: 'PROCESS 完整模型库（高级）',
+      aliases: ['PROCESS catalog', 'PROCESS 55 models', '条件过程模型'],
+      description: '进入完整 PROCESS 模型目录、画布与高级路径编辑。',
+      keywords: ['PROCESS', '条件过程', '高级模型', '完整模型库'],
+      advanced: true,
+      visibilityTier: 'advanced',
+    },
+  ],
+}
+
 export function methodsForCapability(sliceId: string): MethodDefinition[] {
   return methodDefinitions.filter((method) => method.capabilitySliceIds.includes(sliceId))
 }
 
 export function expandMethodForLibrary(method: MethodDefinition): MethodLibraryDefinition[] {
-  const presets = PROCEDURE_PRESETS[method.id]
-  if (!presets) return [{ ...method, libraryId: method.id }]
+  const procedurePresets = PROCEDURE_PRESETS[method.id]
+  if (procedurePresets) {
+    return procedurePresets.map((preset) => ({
+      ...method,
+      id: `${method.id}.${preset.id}`,
+      libraryId: `${method.id}.${preset.id}`,
+      label: preset.label,
+      aliases: [...new Set([...method.aliases, ...preset.aliases])],
+      description: preset.description,
+      keywords: [...new Set([...method.keywords, ...preset.keywords])],
+      procedure: preset.procedure,
+    }))
+  }
 
-  return presets.map((preset) => ({
-    ...method,
-    id: `${method.id}.${preset.id}`,
-    libraryId: `${method.id}.${preset.id}`,
-    label: preset.label,
-    aliases: [...new Set([...method.aliases, ...preset.aliases])],
-    description: preset.description,
-    keywords: [...new Set([...method.keywords, ...preset.keywords])],
-    procedure: preset.procedure,
-  }))
+  const modelPresets = MODEL_PRESETS[method.id]
+  if (modelPresets) {
+    return modelPresets.map((preset) => ({
+      ...method,
+      id: `${method.id}.${preset.id}`,
+      libraryId: `${method.id}.${preset.id}`,
+      label: preset.label,
+      aliases: [...new Set([...method.aliases, ...preset.aliases])],
+      description: preset.description,
+      keywords: [...new Set([...method.keywords, ...preset.keywords])],
+      processModelNumber: preset.processModelNumber,
+      advanced: preset.advanced ?? method.advanced,
+      visibilityTier: preset.visibilityTier ?? method.visibilityTier,
+    }))
+  }
+
+  return [{ ...method, libraryId: method.id }]
 }
 
 export function libraryMethodsForCapability(capability: ApplicableCapability): MethodLibraryDefinition[] {

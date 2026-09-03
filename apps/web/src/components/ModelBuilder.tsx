@@ -9,6 +9,7 @@ import { ModelContextBindingBanner } from './model-builder/ModelContextBindingBa
 import { ModelEstimationEditor } from './model-builder/ModelEstimationEditor'
 import { ModelBuilderSidebar } from './model-builder/ModelBuilderSidebar'
 import { ProcessQuickSetupForm } from './model-builder/ProcessQuickSetupForm'
+import type { ProcessQuickKind } from './model-builder/processQuickForm'
 import { RoleEditorSection } from './model-builder/RoleEditorSection'
 import { PathEditorSection } from './model-builder/PathEditorSection'
 import { ModerationEditor } from './model-builder/ModerationEditor'
@@ -81,6 +82,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
 
   const [methodNotice, setMethodNotice] = useState<string | null>(null)
   const [processQuickOpen, setProcessQuickOpen] = useState(false)
+  const [processQuickKind, setProcessQuickKind] = useState<ProcessQuickKind>('mediation')
   useEffect(() => {
     if (!methodRequest || draftState === 'saving') return
     onMethodHandled?.()
@@ -99,9 +101,18 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
       }
       switchEstimationFamily(family)
     }
-    setProcessQuickOpen(processRequest)
+    if (processRequest && methodRequest.processModelNumber) {
+      const kind: ProcessQuickKind = methodRequest.processModelNumber === 1 ? 'moderation' : 'mediation'
+      setProcessQuickKind(kind)
+      setProcessQuickOpen(true)
+      setMethodNotice(methodRequest.processModelNumber === 1
+        ? '已进入简单调节（PROCESS Model 1）表单。配置 X、W、Y 与推断设置后再复核并手动运行。'
+        : '已进入简单中介（PROCESS Model 4）表单。配置 X、M、Y 与推断设置后再复核并手动运行。')
+      return
+    }
+    setProcessQuickOpen(false)
     setMethodNotice(processRequest
-      ? '已进入常用 PROCESS 表单。先配置简单中介或简单调节；应用后再复核并手动运行。'
+      ? '已进入 PROCESS 完整模型库高级编辑器。可使用全部预设、画布和自定义路径；不会自动运行。'
       : `已进入：${methodRequest.label}。请核对模型并冻结版本后手动运行。`)
   }, [methodRequest, onMethodHandled, analysisContext?.contextHash, draftState, editingLocked, model.estimation.family, switchEstimationFamily])
 
@@ -144,7 +155,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
         <ProcessQuickSetupForm
           variables={variables}
           model={model}
-          initialKind={template === 'model_1' ? 'moderation' : 'mediation'}
+          initialKind={processQuickKind}
           disabled={editingLocked}
           onApply={(setup) => {
             const applied = applyProcessQuickSetup(setup)
