@@ -11,8 +11,22 @@ export interface EmpiricalDraft {
   tabRequestKey?: number
 }
 
-export function empiricalDraftKey(dataset: DatasetVersion, measurement: MeasurementVersion | null, context?: ResolvedAnalysisContext | null): string {
-  return `researchpath.empirical.draft.v1:${dataset.id}:${dataset.originalFile?.sha256 ?? ''}:${dataset.dictionary?.version ?? 0}:${(measurement?.version ?? null)}:${measurement?.derivedDataset.sha256 ?? ''}:${context?.contextHash ?? 'pending'}`
+const ANALYSIS_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
+
+export function empiricalDraftStoragePrefix(dataset: DatasetVersion, measurement: MeasurementVersion | null): string {
+  return `researchpath.empirical.draft.v1:${dataset.id}:${dataset.originalFile?.sha256 ?? ''}:${dataset.dictionary?.version ?? 0}:${(measurement?.version ?? null)}:${measurement?.derivedDataset.sha256 ?? ''}:`
+}
+
+export function empiricalDraftKey(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  context?: ResolvedAnalysisContext | null,
+  analysisId?: string | null,
+): string {
+  const base = `${empiricalDraftStoragePrefix(dataset, measurement)}${context?.contextHash ?? 'pending'}`
+  if (!analysisId) return base
+  if (!ANALYSIS_ID_PATTERN.test(analysisId)) throw new Error('Invalid analysis id')
+  return `${base}:analysis:${analysisId}`
 }
 
 function validConfig(value: unknown): value is EmpiricalConfigValue {
@@ -45,4 +59,23 @@ export function saveEmpiricalDraft(key: string, draft: EmpiricalDraft): boolean 
     localStorage.setItem(`${key}:selected`, draft.config.procedure)
     return true
   } catch { return false }
+}
+
+export function migrateEmpiricalDraftToAnalysis(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  context: ResolvedAnalysisContext | null | undefined,
+  analysisId: string,
+  procedure: EmpiricalProcedure,
+): EmpiricalDraft | null {
+  const scopedKey = empiricalDraftKey(dataset, measurement, context, analysisId)
+  const scopedDraft = readEmpiricalDraft(scopedKey, procedure)
+  if (scopedDraft) return scopedDraft
+
+  const legacyKey = empiricalDraftKey(dataset, measurement, context)
+  const legacyDraft = readEmpiricalDraft(legacyKey, procedure)
+  if (!legacyDraft) return null
+
+  saveEmpiricalDraft(scopedKey, legacyDraft)
+  return legacyDraft
 }

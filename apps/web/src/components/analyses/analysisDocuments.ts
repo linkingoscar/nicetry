@@ -5,6 +5,8 @@ import { expandMethodForLibrary } from '../../methods/methodLibraryPresets'
 import { empiricalProcedures } from '../empirical/empiricalProcedures'
 import { readEmpiricalHistory } from '../empirical/empiricalRunHistory'
 
+export type AnalysisFreshness = 'current' | 'stale'
+
 export interface AnalysisDocumentIndexEntry {
   id: string
   projectId: string
@@ -32,7 +34,7 @@ export interface AnalysisRunIndexEntry {
   datasetVersionId: string
   measurementVersionId: string | null
   runStatus: 'legacy_indexed'
-  freshness: 'current'
+  freshness: AnalysisFreshness
   resultId?: string
   warningCodes: string[]
   createdAt: string
@@ -45,9 +47,15 @@ export interface AnalysisDocumentIndex {
   runs: AnalysisRunIndexEntry[]
 }
 
+export interface AnalysisDocumentMetadataPatch {
+  title?: string
+  pinned?: boolean
+}
+
 const INDEX_PREFIX = 'researchpath.analysis.index.v1'
 const MAX_DOCUMENTS = 500
 const MAX_RUNS = 3000
+const ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
 const expandedMethods = methodDefinitions.flatMap(expandMethodForLibrary)
 
 function emptyIndex(): AnalysisDocumentIndex {
@@ -77,6 +85,14 @@ function analysisIdentity(
   procedure: EmpiricalProcedure,
 ): string {
   return `${dataset.projectId}:${dataset.id}:${measurementIdentity(measurement)}:${procedure}`
+}
+
+function defaultAnalysisId(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  procedure: EmpiricalProcedure,
+): string {
+  return `analysis_${stableHash(analysisIdentity(dataset, measurement, procedure))}`
 }
 
 function methodIdentity(procedure: EmpiricalProcedure) {
@@ -134,16 +150,34 @@ function legacyHistoryKey(dataset: DatasetVersion, measurement: MeasurementVersi
   return `researchpath.empirical.runs.v1:${dataset.id}:${measurement?.version ?? null}`
 }
 
+function documentMatches(
+  document: AnalysisDocumentIndexEntry,
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  procedure: EmpiricalProcedure,
+) {
+  return document.projectId === dataset.projectId
+    && document.datasetVersionId === dataset.id
+    && document.measurementVersionId === (measurement?.id ?? null)
+    && document.procedure === procedure
+}
+
 function ensureDocument(
   index: AnalysisDocumentIndex,
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
   procedure: EmpiricalProcedure,
   createdAt: string,
+  requestedId?: string,
 ): AnalysisDocumentIndexEntry {
-  const id = `analysis_${stableHash(analysisIdentity(dataset, measurement, procedure))}`
+  const fallbackId = defaultAnalysisId(dataset, measurement, procedure)
+  let id = requestedId && ID_PATTERN.test(requestedId) ? requestedId : fallbackId
+  const requested = index.documents.find((document) => document.id === id)
+  if (requested && documentMatches(requested, dataset, measurement, procedure)) return requested
+
+  if (requested && id !== fallbackId) id = fallbackId
   const existing = index.documents.find((document) => document.id === id)
-  if (existing) return existing
+  if (existing && documentMatches(existing, dataset, measurement, procedure)) return existing
 
   const method = methodIdentity(procedure)
   const document: AnalysisDocumentIndexEntry = {
@@ -165,6 +199,21 @@ function ensureDocument(
   return document
 }
 
+export function ensureEmpiricalAnalysisDocument(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  procedure: EmpiricalProcedure,
+): AnalysisDocumentIndexEntry {
+  const index = readIndex(dataset.projectId)
+  const id = defaultAnalysisId(dataset, measurement, procedure)
+  const existing = index.documents.find((document) => document.id === id && documentMatches(document, dataset, measurement, procedure))
+  if (existing) return existing
+
+  const document = ensureDocument(index, dataset, measurement, procedure, new Date().toISOString())
+  saveIndex(dataset.projectId, index)
+  return document
+}
+
 export function loadEmpiricalAnalysisIndex(
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
@@ -174,9 +223,13 @@ export function loadEmpiricalAnalysisIndex(
   let changed = false
 
   history.forEach((entry) => {
-    const document = ensureDocument(index, dataset, measurement, entry.procedure, entry.createdAt)
-    if (!index.runs.some((run) => run.id === entry.id)) {
-      index.runs.unshift({
+    const beforeDocuments = index.documents.length
+    const document = ensureDocument(index, dataset, measurement, entry.procedure, entry.createdAt, entry.analysisId)
+    if (index.documents.length !== beforeDocuments) changed = true
+
+    let runReference = index.runs.find((run) => run.id === entry.id)
+    if (!runReference) {
+      runReference = {
         id: entry.id,
         analysisId: document.id,
         draftRevision: 0,
@@ -187,18 +240,116 @@ export function loadEmpiricalAnalysisIndex(
         freshness: 'current',
         warningCodes: [],
         createdAt: entry.createdAt,
-      })
+      }
+      index.runs.unshift(runReference)
       changed = true
-    }
-    if (!document.latestRunId || entry.createdAt >= document.updatedAt) {
-      document.latestRunId = entry.id
-      document.updatedAt = entry.createdAt
+    } else if (entry.analysisId && runReference.analysisId !== document.id) {
+      runReference.analysisId = document.id
       changed = true
     }
   })
 
+  index.documents
+    .filter((document) => documentMatches(document, dataset, measurement, document.procedure))
+    .forEach((document) => {
+      const runs = index.runs
+        .filter((run) => run.analysisId === document.id)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      const latestRunId = runs[0]?.id
+      if (document.latestRunId !== latestRunId) {
+        document.latestRunId = latestRunId
+        changed = true
+      }
+      if (document.primaryRunId && !runs.some((run) => run.id === document.primaryRunId)) {
+        document.primaryRunId = undefined
+        changed = true
+      }
+      if (runs[0] && runs[0].createdAt > document.updatedAt) {
+        document.updatedAt = runs[0].createdAt
+        changed = true
+      }
+    })
+
   if (changed) saveIndex(dataset.projectId, index)
   return index
+}
+
+export function updateAnalysisDocumentMetadata(
+  projectId: string,
+  analysisId: string,
+  patch: AnalysisDocumentMetadataPatch,
+): AnalysisDocumentIndex {
+  const index = readIndex(projectId)
+  const document = index.documents.find((entry) => entry.id === analysisId)
+  if (!document) return index
+
+  let changed = false
+  if (patch.title !== undefined) {
+    const title = patch.title.trim()
+    if (title && title !== document.title) {
+      document.title = title
+      changed = true
+    }
+  }
+  if (patch.pinned !== undefined && patch.pinned !== document.pinned) {
+    document.pinned = patch.pinned
+    changed = true
+  }
+
+  if (changed) {
+    document.updatedAt = new Date().toISOString()
+    saveIndex(projectId, index)
+  }
+  return index
+}
+
+export function setAnalysisPrimaryRun(
+  projectId: string,
+  analysisId: string,
+  runId: string | null,
+): AnalysisDocumentIndex {
+  const index = readIndex(projectId)
+  const document = index.documents.find((entry) => entry.id === analysisId)
+  if (!document) return index
+  if (runId && !index.runs.some((run) => run.id === runId && run.analysisId === analysisId)) return index
+
+  const nextPrimaryRunId = runId ?? undefined
+  if (document.primaryRunId === nextPrimaryRunId) return index
+  document.primaryRunId = nextPrimaryRunId
+  document.updatedAt = new Date().toISOString()
+  saveIndex(projectId, index)
+  return index
+}
+
+export function analysisRunFreshness(
+  run: AnalysisRunIndexEntry,
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+): AnalysisFreshness {
+  return run.datasetVersionId === dataset.id
+    && run.measurementVersionId === (measurement?.id ?? null)
+    ? 'current'
+    : 'stale'
+}
+
+export function analysisDocumentFreshness(
+  document: AnalysisDocumentIndexEntry,
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+): AnalysisFreshness {
+  return document.datasetVersionId === dataset.id
+    && document.measurementVersionId === (measurement?.id ?? null)
+    ? 'current'
+    : 'stale'
+}
+
+export function analysisDocumentsForProject(
+  index: AnalysisDocumentIndex,
+  projectId: string,
+): AnalysisDocumentIndexEntry[] {
+  return index.documents
+    .filter((document) => !document.archived && document.projectId === projectId)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt))
 }
 
 export function analysisDocumentsForDataset(
@@ -207,11 +358,9 @@ export function analysisDocumentsForDataset(
   measurement: MeasurementVersion | null,
 ): AnalysisDocumentIndexEntry[] {
   const measurementVersionId = measurement?.id ?? null
-  return index.documents
-    .filter((document) => !document.archived
-      && document.datasetVersionId === dataset.id
+  return analysisDocumentsForProject(index, dataset.projectId)
+    .filter((document) => document.datasetVersionId === dataset.id
       && document.measurementVersionId === measurementVersionId)
-    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt))
 }
 
 export function analysisRunsForDocument(

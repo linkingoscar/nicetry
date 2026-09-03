@@ -6,6 +6,7 @@ import { AppHydratingScreen } from './AppHydratingScreen'
 import { AppWorkspaceTabs } from './AppWorkspaceTabs'
 import { DataWorkspace } from './components/DataWorkspace'
 import { OutputWorkspace } from './components/OutputWorkspace'
+import { ensureEmpiricalAnalysisDocument } from './components/analyses/analysisDocuments'
 import { CommandPalette } from './components/shared/CommandPalette'
 import { LocalPrivacyBadge } from './components/shared/LocalPrivacyBadge'
 import { ResearchStart } from './components/shared/ResearchStart'
@@ -27,6 +28,7 @@ export function App() {
   const { theme, setTheme } = useTheme()
   const [modelMethodRequest, setModelMethodRequest] = useState<MethodRequest | null>(null)
   const [analysisSurface, setAnalysisSurface] = useState<AnalysisSurface>('library')
+  const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(null)
   const {
     workspaceNavRef,
     studyIntent,
@@ -59,8 +61,11 @@ export function App() {
 
   if (hydrating && !activeDataset) return <AppHydratingScreen />
 
-  const openEmpiricalProcedure = (procedure: EmpiricalProcedure) => {
+  const openEmpiricalProcedure = (procedure: EmpiricalProcedure, analysisId?: string) => {
     const definition = procedureDefinition(procedure)
+    const document = activeDataset && !analysisId
+      ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
+      : null
     const method = {
       sliceId: definition.slice,
       label: definition.label,
@@ -68,6 +73,7 @@ export function App() {
       key: Date.now(),
       procedure,
     }
+    setActiveAnalysisId(analysisId ?? document?.id ?? null)
     setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
     setAnalysisSurface('empirical')
     setActiveView('analyze')
@@ -137,7 +143,10 @@ export function App() {
           activeView={activeView}
           onSelect={(view) => {
             setActiveView(view)
-            if (view === 'analyze') setAnalysisSurface('library')
+            if (view === 'analyze') {
+              setAnalysisSurface('library')
+              setActiveAnalysisId(null)
+            }
           }}
         />
       ) : null}
@@ -155,6 +164,7 @@ export function App() {
                     const cleared = handleClearWorkspace()
                     if (cleared) {
                       setModelMethodRequest(null)
+                      setActiveAnalysisId(null)
                       setAnalysisSurface('library')
                     }
                     return cleared
@@ -162,6 +172,7 @@ export function App() {
                   onMeasurementReady={handleMeasurementReady}
                   onStructureSaved={handleStructureSaved}
                   onContinueToAnalysis={() => {
+                    setActiveAnalysisId(null)
                     setAnalysisSurface('library')
                     setActiveView('analyze')
                   }}
@@ -180,14 +191,19 @@ export function App() {
             ) : activeView === 'analyze' && analysisSurface === 'empirical' && activeDataset && resolvedContext ? (
               <SectionErrorBoundary resetKey="empirical-view" title="分析">
                 <div className="analysis-shell">
-                  <button type="button" className="secondary-button" onClick={() => setAnalysisSurface('library')}>← 返回方法库</button>
+                  <button type="button" className="secondary-button" onClick={() => {
+                    setActiveAnalysisId(null)
+                    setAnalysisSurface('library')
+                  }}>← 返回方法库</button>
                   <EmpiricalAnalysis
-                    key={`${activeDataset.id}:${activeDataset.dictionary.version}:${modelContext?.measurement.version ?? 'raw'}:${resolvedContext.contextHash}`}
+                    key={`${activeDataset.id}:${activeDataset.dictionary.version}:${modelContext?.measurement.version ?? 'raw'}:${resolvedContext.contextHash}:${activeAnalysisId ?? 'legacy'}`}
                     dataset={activeDataset}
                     measurement={modelContext?.measurement ?? null}
                     researchParadigm={researchParadigm}
                     analysisContext={resolvedContext}
                     tabRequest={empiricalTabRequest ?? undefined}
+                    analysisId={activeAnalysisId}
+                    analysisProcedure={empiricalTabRequest?.method?.procedure}
                   />
                 </div>
               </SectionErrorBoundary>
@@ -219,9 +235,14 @@ export function App() {
                   onNavigate={({ view, tab, sliceId, label, procedure }) => {
                     const method = { sliceId, label, contextHash: resolvedContext.contextHash, key: Date.now(), procedure }
                     if (view === 'model') {
+                      setActiveAnalysisId(null)
                       setModelMethodRequest(method)
                       setAnalysisSurface('model')
                     } else {
+                      const document = procedure
+                        ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
+                        : null
+                      setActiveAnalysisId(document?.id ?? null)
                       setAnalysisSurface('empirical')
                     }
                     if (tab) setEmpiricalTabRequest({ tab, key: method.key, method })
@@ -255,9 +276,13 @@ export function App() {
           onClose={() => setIsCommandPaletteOpen(false)}
           onSelectView={(view) => {
             setActiveView(view)
-            if (view === 'analyze') setAnalysisSurface('library')
+            if (view === 'analyze') {
+              setActiveAnalysisId(null)
+              setAnalysisSurface('library')
+            }
           }}
           onSelectEmpiricalTab={(tab) => {
+            setActiveAnalysisId(null)
             setAnalysisSurface('empirical')
             setEmpiricalTabRequest({ tab, key: Date.now() })
           }}

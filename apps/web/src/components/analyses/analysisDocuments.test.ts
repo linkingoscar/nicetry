@@ -1,10 +1,16 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DatasetVersion } from '../../types'
 import {
+  analysisDocumentFreshness,
   analysisDocumentsForDataset,
+  analysisDocumentsForProject,
+  analysisRunFreshness,
   analysisRunsForDocument,
+  ensureEmpiricalAnalysisDocument,
   loadEmpiricalAnalysisIndex,
+  setAnalysisPrimaryRun,
+  updateAnalysisDocumentMetadata,
 } from './analysisDocuments'
 
 const dataset: DatasetVersion = {
@@ -32,14 +38,27 @@ const dataset: DatasetVersion = {
   },
 }
 
+const nextDataset: DatasetVersion = {
+  ...dataset,
+  id: 'dataset_next',
+  createdAt: '2026-09-03T06:00:00Z',
+  originalFile: {
+    ...dataset.originalFile,
+    name: 'survey-v2.csv',
+    sha256: 'b'.repeat(64),
+  },
+}
+
 const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
+const nextLegacyKey = 'researchpath.empirical.runs.v1:dataset_next:null'
 
 beforeEach(() => {
   localStorage.clear()
+  vi.useRealTimers()
 })
 
 describe('analysis document compatibility index', () => {
-  it('groups repeated procedure runs under one stable analysis document', () => {
+  it('groups repeated legacy procedure runs under one stable analysis document', () => {
     localStorage.setItem(legacyKey, JSON.stringify([
       { id: 'run_desc_2', procedure: 'descriptives', createdAt: '2026-09-03T02:00:00Z' },
       { id: 'run_corr_1', procedure: 'correlation', createdAt: '2026-09-03T01:30:00Z' },
@@ -66,6 +85,30 @@ describe('analysis document compatibility index', () => {
     ])
   })
 
+  it('creates the stable analysis document when a method is opened before its first run', () => {
+    const document = ensureEmpiricalAnalysisDocument(dataset, null, 'descriptives')
+    const index = loadEmpiricalAnalysisIndex(dataset, null)
+
+    expect(index.documents).toContainEqual(document)
+    expect(document).toMatchObject({ procedure: 'descriptives', latestRunId: undefined })
+    expect(index.runs).toHaveLength(0)
+  })
+
+  it('uses an explicit analysis id from new run history instead of grouping only by procedure', () => {
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_a', procedure: 'descriptives', analysisId: 'analysis_a', createdAt: '2026-09-03T02:00:00Z' },
+      { id: 'run_b', procedure: 'descriptives', analysisId: 'analysis_b', createdAt: '2026-09-03T01:00:00Z' },
+    ]))
+
+    const index = loadEmpiricalAnalysisIndex(dataset, null)
+    expect(index.documents.filter((document) => document.procedure === 'descriptives').map((document) => document.id).sort()).toEqual([
+      'analysis_a',
+      'analysis_b',
+    ])
+    expect(index.runs.find((run) => run.id === 'run_a')?.analysisId).toBe('analysis_a')
+    expect(index.runs.find((run) => run.id === 'run_b')?.analysisId).toBe('analysis_b')
+  })
+
   it('is idempotent and keeps the legacy recovery index intact', () => {
     localStorage.setItem(legacyKey, JSON.stringify([
       { id: 'run_freq_1', procedure: 'frequencies', createdAt: '2026-09-03T01:00:00Z' },
@@ -84,5 +127,103 @@ describe('analysis document compatibility index', () => {
       draftRevision: 0,
     })
     expect(localStorage.getItem(legacyKey)).toContain('run_freq_1')
+  })
+
+  it('persists user-facing analysis metadata without changing run ownership', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-03T05:00:00Z'))
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_desc_1', procedure: 'descriptives', createdAt: '2026-09-03T01:00:00Z' },
+      { id: 'run_corr_1', procedure: 'correlation', createdAt: '2026-09-03T02:00:00Z' },
+    ]))
+
+    const initial = loadEmpiricalAnalysisIndex(dataset, null)
+    const descriptives = initial.documents.find((document) => document.procedure === 'descriptives')
+    expect(descriptives).toBeDefined()
+
+    const updated = updateAnalysisDocumentMetadata(dataset.projectId, descriptives?.id ?? '', {
+      title: '核心变量描述',
+      pinned: true,
+    })
+    const reloaded = loadEmpiricalAnalysisIndex(dataset, null)
+    const updatedDocument = reloaded.documents.find((document) => document.id === descriptives?.id)
+
+    expect(updatedDocument).toMatchObject({
+      title: '核心变量描述',
+      pinned: true,
+      latestRunId: 'run_desc_1',
+      updatedAt: '2026-09-03T05:00:00.000Z',
+    })
+    expect(analysisRunsForDocument(updated, descriptives?.id ?? '').map((run) => run.id)).toEqual(['run_desc_1'])
+    expect(analysisDocumentsForDataset(reloaded, dataset, null)[0]?.id).toBe(descriptives?.id)
+  })
+
+  it('keeps the newest run identity even when analysis metadata was edited later', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-09-03T05:00:00Z'))
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_desc_1', procedure: 'descriptives', createdAt: '2026-09-03T01:00:00Z' },
+    ]))
+    const initial = loadEmpiricalAnalysisIndex(dataset, null)
+    const descriptives = initial.documents[0]
+    updateAnalysisDocumentMetadata(dataset.projectId, descriptives.id, { title: '描述统计 A' })
+
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_desc_2', procedure: 'descriptives', createdAt: '2026-09-03T04:00:00Z' },
+      { id: 'run_desc_1', procedure: 'descriptives', createdAt: '2026-09-03T01:00:00Z' },
+    ]))
+    const reloaded = loadEmpiricalAnalysisIndex(dataset, null)
+
+    expect(reloaded.documents[0]).toMatchObject({
+      title: '描述统计 A',
+      latestRunId: 'run_desc_2',
+      updatedAt: '2026-09-03T05:00:00.000Z',
+    })
+  })
+
+  it('keeps old dataset analyses discoverable and marks their runs stale', () => {
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_old', procedure: 'correlation', createdAt: '2026-09-03T01:00:00Z' },
+    ]))
+    const oldIndex = loadEmpiricalAnalysisIndex(dataset, null)
+    expect(oldIndex.documents).toHaveLength(1)
+
+    localStorage.setItem(nextLegacyKey, JSON.stringify([
+      { id: 'run_current', procedure: 'descriptives', createdAt: '2026-09-03T07:00:00Z' },
+    ]))
+    const index = loadEmpiricalAnalysisIndex(nextDataset, null)
+    const projectDocuments = analysisDocumentsForProject(index, dataset.projectId)
+    const oldDocument = projectDocuments.find((document) => document.datasetVersionId === dataset.id)
+    const currentDocument = projectDocuments.find((document) => document.datasetVersionId === nextDataset.id)
+    const oldRun = index.runs.find((run) => run.id === 'run_old')
+    const currentRun = index.runs.find((run) => run.id === 'run_current')
+
+    expect(projectDocuments).toHaveLength(2)
+    expect(analysisDocumentsForDataset(index, nextDataset, null)).toHaveLength(1)
+    expect(oldDocument && analysisDocumentFreshness(oldDocument, nextDataset, null)).toBe('stale')
+    expect(currentDocument && analysisDocumentFreshness(currentDocument, nextDataset, null)).toBe('current')
+    expect(oldRun && analysisRunFreshness(oldRun, nextDataset, null)).toBe('stale')
+    expect(currentRun && analysisRunFreshness(currentRun, nextDataset, null)).toBe('current')
+  })
+
+  it('sets and clears a primary run only within its owning analysis', () => {
+    localStorage.setItem(legacyKey, JSON.stringify([
+      { id: 'run_desc_2', procedure: 'descriptives', createdAt: '2026-09-03T02:00:00Z' },
+      { id: 'run_desc_1', procedure: 'descriptives', createdAt: '2026-09-03T01:00:00Z' },
+      { id: 'run_corr_1', procedure: 'correlation', createdAt: '2026-09-03T01:30:00Z' },
+    ]))
+    const initial = loadEmpiricalAnalysisIndex(dataset, null)
+    const descriptives = initial.documents.find((document) => document.procedure === 'descriptives')
+    const correlation = initial.documents.find((document) => document.procedure === 'correlation')
+
+    const selected = setAnalysisPrimaryRun(dataset.projectId, descriptives?.id ?? '', 'run_desc_1')
+    expect(selected.documents.find((document) => document.id === descriptives?.id)?.primaryRunId).toBe('run_desc_1')
+
+    const rejected = setAnalysisPrimaryRun(dataset.projectId, descriptives?.id ?? '', 'run_corr_1')
+    expect(rejected.documents.find((document) => document.id === descriptives?.id)?.primaryRunId).toBe('run_desc_1')
+    expect(rejected.documents.find((document) => document.id === correlation?.id)?.primaryRunId).toBeUndefined()
+
+    const cleared = setAnalysisPrimaryRun(dataset.projectId, descriptives?.id ?? '', null)
+    expect(cleared.documents.find((document) => document.id === descriptives?.id)?.primaryRunId).toBeUndefined()
   })
 })
