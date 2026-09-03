@@ -7,6 +7,7 @@ import { ImputationWizard, type ImputationWizardSpec } from './ImputationWizard'
 import { MultilevelWizard, type MultilevelWizardSpec } from './MultilevelWizard'
 import type { DatasetVariableItem } from './DatasetVariablePicker'
 import type { ResolvedAnalysisContext } from '../../types/analysis-context'
+import type { AnalysisWizardPresentation } from './analysisWizardPresentation'
 
 interface WizardConfigStepProps {
   capability: AdvancedAnalysisCapability
@@ -30,6 +31,7 @@ interface WizardConfigStepProps {
   validating: boolean
   validationError: string | null
   handleValidate: () => void
+  presentation?: AnalysisWizardPresentation
 }
 
 export function WizardConfigStep({
@@ -47,37 +49,52 @@ export function WizardConfigStep({
   validating,
   validationError,
   handleValidate,
+  presentation = 'advanced',
 }: WizardConfigStepProps) {
+  const guided = supportsGuidedEditor(capability.family)
+  const modeButtons = guided ? (
+    <div style={{ marginTop: '10px' }}>
+      <button
+        type="button"
+        className={editMode === 'visual' ? 'adv-btn-primary' : 'adv-btn-secondary'}
+        style={{ marginRight: '8px' }}
+        onClick={() => setEditMode('visual')}
+      >
+        字段表单
+      </button>
+      <button
+        type="button"
+        className={editMode === 'json' ? 'adv-btn-primary' : 'adv-btn-secondary'}
+        onClick={() => setEditMode('json')}
+      >
+        高级 JSON 编辑
+      </button>
+    </div>
+  ) : null
+
   return (
     <div className="adv-wizard-panel">
       <div className="adv-panel-header">
-        <h2>{capability.label} — 规格配置</h2>
+        <h2>{capability.label} — {presentation === 'standard' ? '分析设置' : '规格配置'}</h2>
         <p className="muted">
-          {editMode === 'json'
-            ? '编辑以下 JSON 规格。所有字段含义请参阅方法规范文档。'
-            : capability.family === 'questionnaire_measurement'
-              ? '通过字段化表单声明题项与构念；所有字段含义请参阅方法规范文档。'
-              : '通过字段化向导配置分析规格；所有字段含义请参阅方法规范文档。'}
+          {presentation === 'standard'
+            ? editMode === 'json'
+              ? '正在直接编辑完整分析设置。完成后仍会走同一套后端校验与运行流程。'
+              : '选择变量和分析参数。检查通过后再运行；高级 JSON 仅在需要直接编辑完整设置时使用。'
+            : editMode === 'json'
+              ? '编辑以下 JSON 规格。所有字段含义请参阅方法规范文档。'
+              : capability.family === 'questionnaire_measurement'
+                ? '通过字段化表单声明题项与构念；所有字段含义请参阅方法规范文档。'
+                : '通过字段化向导配置分析规格；所有字段含义请参阅方法规范文档。'}
         </p>
-        {supportsGuidedEditor(capability.family) && (
-          <div style={{ marginTop: '10px' }}>
-            <button
-              type="button"
-              className={editMode === 'visual' ? 'adv-btn-primary' : 'adv-btn-secondary'}
-              style={{ marginRight: '8px' }}
-              onClick={() => setEditMode('visual')}
-            >
-              向导配置
-            </button>
-            <button
-              type="button"
-              className={editMode === 'json' ? 'adv-btn-primary' : 'adv-btn-secondary'}
-              onClick={() => setEditMode('json')}
-            >
-              高级 JSON 编辑
-            </button>
-          </div>
-        )}
+        {guided ? (
+          presentation === 'standard' ? (
+            <details className="adv-spec-detail">
+              <summary>高级设置</summary>
+              {modeButtons}
+            </details>
+          ) : modeButtons
+        ) : null}
       </div>
 
       {editMode === 'json' ? (
@@ -162,7 +179,7 @@ export function WizardConfigStep({
 
       {validationError && (
         <div className="adv-error-banner" id="adv-validation-error" role="alert">
-          <strong>验证失败</strong>
+          <strong>{presentation === 'standard' ? '设置检查失败' : '验证失败'}</strong>
           <pre className="adv-error-detail">{validationError}</pre>
         </div>
       )}
@@ -175,9 +192,9 @@ export function WizardConfigStep({
           disabled={validating || !specJson.trim()}
         >
           {validating ? (
-            <><span className="adv-btn-spinner" aria-hidden="true" /> 验证中...</>
+            <><span className="adv-btn-spinner" aria-hidden="true" /> {presentation === 'standard' ? '检查中...' : '验证中...'}</>
           ) : (
-            '验证规格'
+            presentation === 'standard' ? '检查设置' : '验证规格'
           )}
         </button>
       </div>

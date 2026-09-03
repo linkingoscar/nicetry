@@ -9,6 +9,7 @@ import { collectDraftRoleOverrides } from './draftAdapters'
 import { WizardConfigStep } from './WizardConfigStep'
 import { WizardStatusCard } from './WizardStatusCard'
 import { buildAnalysisSpecTemplate } from './AnalysisWizard.template'
+import { analysisWizardPresentation } from './analysisWizardPresentation'
 
 export { buildAnalysisSpecTemplate } from './AnalysisWizard.template'
 
@@ -60,6 +61,7 @@ export function AnalysisWizard({
   draftRevision = null,
   onJobStarted,
 }: AnalysisWizardProps) {
+  const presentation = analysisWizardPresentation(capability)
   const [step, setStep] = useState<WizardStep>('config')
   const [currentDraftRevision, setCurrentDraftRevision] = useState<number | null>(draftRevision)
 
@@ -152,28 +154,30 @@ export function AnalysisWizard({
   const stepIndex = STEP_ORDER.indexOf(step)
 
   return (
-    <div className="adv-wizard">
-      <nav className="adv-step-indicator" aria-label="向导步骤">
-        {STEP_ORDER.map((s, i) => (
-          <div
-            key={s}
-            className={`adv-step ${i < stepIndex ? 'is-complete' : ''} ${i === stepIndex ? 'is-active' : ''}`}
-            aria-current={i === stepIndex ? 'step' : undefined}
-          >
-            <div className="adv-step-number" aria-hidden="true">
-              {i < stepIndex ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <title>Completed</title>
-                  <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              ) : (
-                i + 1
-              )}
+    <div className={`adv-wizard${presentation === 'standard' ? ' is-standard-analysis' : ''}`}>
+      {presentation === 'advanced' ? (
+        <nav className="adv-step-indicator" aria-label="向导步骤">
+          {STEP_ORDER.map((s, i) => (
+            <div
+              key={s}
+              className={`adv-step ${i < stepIndex ? 'is-complete' : ''} ${i === stepIndex ? 'is-active' : ''}`}
+              aria-current={i === stepIndex ? 'step' : undefined}
+            >
+              <div className="adv-step-number" aria-hidden="true">
+                {i < stepIndex ? (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <title>Completed</title>
+                    <path d="M3 7l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                ) : (
+                  i + 1
+                )}
+              </div>
+              <span className="adv-step-label">{STAGE_LABELS[s]}</span>
             </div>
-            <span className="adv-step-label">{STAGE_LABELS[s]}</span>
-          </div>
-        ))}
-      </nav>
+          ))}
+        </nav>
+      ) : null}
 
       {step === 'config' && (
         <WizardConfigStep
@@ -191,6 +195,7 @@ export function AnalysisWizard({
           validating={validating}
           validationError={validationError}
           handleValidate={handleValidate}
+          presentation={presentation}
         />
       )}
 
@@ -206,6 +211,7 @@ export function AnalysisWizard({
           submitting={submitting}
           onBackToConfig={() => setStep('config')}
           onSubmit={handleSubmit}
+          presentation={presentation}
         />
       )}
 
@@ -213,7 +219,7 @@ export function AnalysisWizard({
         <div className="adv-wizard-panel">
           <div className="adv-loading-state" role="status" aria-live="polite">
             <div className="adv-spinner" />
-            <p>正在提交分析任务...</p>
+            <p>{presentation === 'standard' ? '正在启动分析…' : '正在提交分析任务...'}</p>
           </div>
         </div>
       )}
