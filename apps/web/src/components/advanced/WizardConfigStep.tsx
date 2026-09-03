@@ -125,6 +125,7 @@ export function WizardConfigStep({
           })()}
           variables={variables}
           onChange={newSpec => setSpecJson(JSON.stringify(newSpec, null, 2))}
+          sliceId={capability.sliceId}
         />
       ) : capability.family === 'power_analysis' ? (
         <PowerWizard
