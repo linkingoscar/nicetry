@@ -5,6 +5,7 @@ import type {
 } from '../types'
 import type { AnalysisParadigm } from '../types/study-context'
 import type { ResolvedAnalysisContext } from '../types/analysis-context'
+import { useEmpiricalAnalysisIndexSync } from './analyses/useEmpiricalAnalysisIndexSync'
 import { useEmpiricalAnalysisState } from './empirical/useEmpiricalAnalysisState'
 import { EmpiricalAnalysisProvider } from './empirical/EmpiricalAnalysisContext'
 import { EmpiricalAnalysisShellHeader } from './empirical/EmpiricalAnalysisShellHeader'
@@ -33,6 +34,7 @@ export function EmpiricalAnalysis({
     researchParadigm,
     analysisContext,
   })
+  useEmpiricalAnalysisIndexSync(dataset, measurement, state.analysisJob)
 
   return (
     <EmpiricalAnalysisProvider value={state}>
