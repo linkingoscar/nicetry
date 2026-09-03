@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import type { DatasetVersion } from '../../types'
+import type { ResolvedAnalysisContext } from '../../types/analysis-context'
 import type { EmpiricalConfigValue } from './empiricalConfigTypes'
 import {
+  cloneEmpiricalDraftsToAnalysis,
   empiricalDraftKey,
   migrateEmpiricalDraftToAnalysis,
   readEmpiricalDraft,
@@ -66,5 +68,39 @@ describe('analysis-scoped empirical drafts', () => {
     expect(readEmpiricalDraft(secondKey, 'descriptives')?.activeRunId).toBe('run_b')
     expect(readEmpiricalDraft(firstKey, 'descriptives')?.config.analysisVariableIds).toEqual(['score'])
     expect(readEmpiricalDraft(secondKey, 'descriptives')?.config.analysisVariableIds).toEqual(['age'])
+  })
+
+  it('clones every context-scoped draft into a new analysis without inheriting run identity', () => {
+    const contextA = { contextHash: 'c'.repeat(64) } as ResolvedAnalysisContext
+    const contextB = { contextHash: 'd'.repeat(64) } as ResolvedAnalysisContext
+    const sourceA = empiricalDraftKey(dataset, null, contextA, 'analysis_source')
+    const sourceB = empiricalDraftKey(dataset, null, contextB, 'analysis_source')
+    const targetA = empiricalDraftKey(dataset, null, contextA, 'analysis_copy')
+    const targetB = empiricalDraftKey(dataset, null, contextB, 'analysis_copy')
+    const secondConfig = { ...config, analysisVariableIds: ['age'] }
+
+    saveEmpiricalDraft(sourceA, { config, activeRunId: 'run_a', lastRunConfig: config })
+    saveEmpiricalDraft(sourceB, { config: secondConfig, activeRunId: 'run_b', lastRunConfig: secondConfig })
+
+    expect(cloneEmpiricalDraftsToAnalysis(
+      dataset,
+      null,
+      'analysis_source',
+      'analysis_copy',
+      'descriptives',
+    )).toBe(2)
+
+    expect(readEmpiricalDraft(targetA, 'descriptives')).toEqual({
+      config,
+      activeRunId: null,
+      lastRunConfig: null,
+    })
+    expect(readEmpiricalDraft(targetB, 'descriptives')).toEqual({
+      config: secondConfig,
+      activeRunId: null,
+      lastRunConfig: null,
+    })
+    expect(readEmpiricalDraft(sourceA, 'descriptives')?.activeRunId).toBe('run_a')
+    expect(readEmpiricalDraft(sourceB, 'descriptives')?.activeRunId).toBe('run_b')
   })
 })

@@ -8,12 +8,14 @@ import {
   analysisDocumentsForProject,
   analysisRunFreshness,
   analysisRunsForDocument,
+  createEmpiricalAnalysisDocument,
   loadEmpiricalAnalysisIndex,
   setAnalysisPrimaryRun,
   updateAnalysisDocumentMetadata,
 } from './analyses/analysisDocuments'
 import { readAnalysisRunDetails } from './analyses/analysisRunDetails'
 import { useOutputRunJobs } from './analyses/useOutputRunJobs'
+import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
 
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
@@ -80,6 +82,24 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   }
   const updatePrimaryRun = (analysisId: string, runId: string | null) => {
     setIndex(setAnalysisPrimaryRun(dataset.projectId, analysisId, runId))
+  }
+  const duplicateDocument = (document: (typeof documents)[number]) => {
+    if (analysisDocumentFreshness(document, dataset, measurement) !== 'current') return
+    const duplicate = createEmpiricalAnalysisDocument(
+      dataset,
+      measurement,
+      document.procedure,
+      `${document.title} 副本`,
+    )
+    cloneEmpiricalDraftsToAnalysis(
+      dataset,
+      measurement,
+      document.id,
+      duplicate.id,
+      document.procedure,
+    )
+    setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
+    onOpenProcedure(duplicate.procedure, duplicate.id)
   }
 
   return (
@@ -248,6 +268,15 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                       >
                         重命名
                       </button>
+                      {latestFreshness === 'current' ? (
+                        <button
+                          type="button"
+                          className="secondary-button"
+                          onClick={() => duplicateDocument(document)}
+                        >
+                          复制分析
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="secondary-button"

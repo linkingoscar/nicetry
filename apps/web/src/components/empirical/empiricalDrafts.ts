@@ -100,3 +100,42 @@ export function cloneEmpiricalDraftToAnalysis(
   }
   return saveEmpiricalDraft(empiricalDraftKey(dataset, measurement, context, targetAnalysisId), cloned) ? cloned : null
 }
+
+export function cloneEmpiricalDraftsToAnalysis(
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  sourceAnalysisId: string,
+  targetAnalysisId: string,
+  procedure: EmpiricalProcedure,
+): number {
+  if (!ANALYSIS_ID_PATTERN.test(sourceAnalysisId) || !ANALYSIS_ID_PATTERN.test(targetAnalysisId)) return 0
+  if (sourceAnalysisId === targetAnalysisId) return 0
+
+  const prefix = empiricalDraftStoragePrefix(dataset, measurement)
+  const sourceMarker = `:analysis:${sourceAnalysisId}:`
+  const targetMarker = `:analysis:${targetAnalysisId}:`
+  const suffix = `:${procedure}`
+  const sourceDraftKeys: string[] = []
+
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const storageKey = localStorage.key(index)
+    if (!storageKey?.startsWith(prefix) || !storageKey.endsWith(suffix) || !storageKey.includes(sourceMarker)) continue
+    sourceDraftKeys.push(storageKey.slice(0, -suffix.length))
+  }
+
+  let clonedCount = 0
+  sourceDraftKeys.forEach((sourceKey) => {
+    const source = readEmpiricalDraft(sourceKey, procedure)
+    if (!source) return
+    const targetKey = sourceKey.replace(sourceMarker.slice(0, -1), targetMarker.slice(0, -1))
+    if (readEmpiricalDraft(targetKey, procedure)) return
+    const cloned: EmpiricalDraft = {
+      config: source.config,
+      activeRunId: null,
+      lastRunConfig: null,
+    }
+    if (saveEmpiricalDraft(targetKey, cloned)) clonedCount += 1
+  })
+
+  return clonedCount
+}
