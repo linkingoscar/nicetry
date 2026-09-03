@@ -8,6 +8,7 @@ import {
   analysisRunsForDocument,
   loadEmpiricalAnalysisIndex,
 } from './analyses/analysisDocuments'
+import { readAnalysisRunDetails } from './analyses/analysisRunDetails'
 
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
@@ -15,10 +16,28 @@ interface OutputWorkspaceProps {
   onOpenProcedure: (procedure: EmpiricalProcedure) => void
 }
 
+function runStatusLabel(status?: string) {
+  if (status === 'queued') return '排队中'
+  if (status === 'running') return '运行中'
+  if (status === 'cancelling') return '取消中'
+  if (status === 'succeeded') return '已完成'
+  if (status === 'failed') return '失败'
+  if (status === 'cancelled') return '已取消'
+  return '历史状态待服务端结果索引确认'
+}
+
 export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: OutputWorkspaceProps) {
   const index = useMemo(
     () => loadEmpiricalAnalysisIndex(dataset, measurement),
     [dataset, measurement],
+  )
+  const runDetails = useMemo(
+    () => readAnalysisRunDetails(dataset.projectId),
+    [dataset.projectId],
+  )
+  const detailsByRun = useMemo(
+    () => new Map(runDetails.map((detail) => [detail.runId, detail])),
+    [runDetails],
   )
   const documents = useMemo(
     () => analysisDocumentsForDataset(index, dataset, measurement),
@@ -52,6 +71,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             {documents.map((document) => {
               const runs = analysisRunsForDocument(index, document.id)
               const latestRun = runs[0]
+              const latestDetail = latestRun ? detailsByRun.get(latestRun.id) : undefined
               const draft = empiricalDraftStatusForOutput(
                 dataset,
                 measurement,
@@ -65,11 +85,14 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                     <h3>{document.title}</h3>
                     <p>{runs.length} 次运行{latestRun ? ` · 最近 ${new Date(latestRun.createdAt).toLocaleString()}` : ''}</p>
                     <div className="method-card-status-row">
+                      {latestRun ? <span className="context-method-status">{runStatusLabel(latestDetail?.runStatus)}</span> : null}
                       {draft.dirtySinceLastRun ? <span className="context-method-status method-status-needs-setup">有未运行更改</span> : null}
                       {draft.hasSavedDraft ? <span className="context-method-status">草稿已保存</span> : null}
                     </div>
-                    {latestRun ? (
-                      <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 历史索引引用</p>
+                    {latestDetail ? (
+                      <p className="muted">运行 {latestDetail.runId.slice(0, 12)} · 草稿修订 {latestDetail.draftRevision} · {latestDetail.qualityStatus === 'warning' ? '含警告' : '无已记录警告'}</p>
+                    ) : latestRun ? (
+                      <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 仅有旧本地索引引用</p>
                     ) : null}
                   </div>
 
@@ -77,13 +100,17 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                     <details>
                       <summary>查看运行历史</summary>
                       <ol>
-                        {runs.map((run) => (
-                          <li key={run.id}>
-                            <code>{run.id.slice(0, 12)}</code>
-                            {' · '}{new Date(run.createdAt).toLocaleString()}
-                            {' · '}历史状态待服务端结果索引确认
-                          </li>
-                        ))}
+                        {runs.map((run) => {
+                          const detail = detailsByRun.get(run.id)
+                          return (
+                            <li key={run.id}>
+                              <code>{run.id.slice(0, 12)}</code>
+                              {' · '}{new Date(run.createdAt).toLocaleString()}
+                              {' · '}{runStatusLabel(detail?.runStatus)}
+                              {detail ? ` · 修订 ${detail.draftRevision}` : ''}
+                            </li>
+                          )
+                        })}
                       </ol>
                     </details>
                   ) : null}
