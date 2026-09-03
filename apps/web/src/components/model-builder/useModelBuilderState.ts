@@ -176,6 +176,7 @@ export function useModelBuilderState({
   const {
     updateModel,
     switchEstimationFamily,
+    applyProcessQuickSetup,
     applyTemplate,
     startCustomModel,
     assignVariable,
@@ -247,6 +248,7 @@ export function useModelBuilderState({
     updateModel,
     handleUndo,
     handleRedo,
+    applyProcessQuickSetup,
     applyTemplate,
     startCustomModel,
     assignVariable,

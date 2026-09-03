@@ -13,6 +13,11 @@ import type {
 import { addStructuralNodeModel, assignVariableToModel, removeStructuralNodeModel } from './modelStructureActions'
 import { buildModelForEstimationFamily } from './modelBuilderEstimation'
 import { createCustomModelTemplate, createModelTemplate, templateLabels, type ModelTemplate } from './modelTemplates'
+import {
+  buildProcessQuickModel,
+  processTemplateForQuickSetup,
+  type ProcessQuickSetup,
+} from './processQuickForm'
 
 interface ModelBuilderActionsDeps {
   currentModel: ModelSpec
@@ -68,6 +73,22 @@ export function createModelBuilderActions({
     updateModel((current) => buildModelForEstimationFamily(current, family, variables, measurement))
   }
 
+  const applyProcessQuickSetup = (setup: ProcessQuickSetup): boolean => {
+    if (editingLocked) return false
+    try {
+      const nextTemplate = processTemplateForQuickSetup(setup.kind)
+      const nextModel = buildProcessQuickModel(setup, variables, measurement)
+      setBuilderError(null)
+      setCustomMode(false)
+      setTemplate(nextTemplate)
+      updateModel(() => nextModel)
+      return true
+    } catch (error) {
+      setBuilderError(error instanceof Error ? error.message : 'PROCESS 快速表单配置失败')
+      return false
+    }
+  }
+
   const applyTemplate = (nextTemplate: ModelTemplate, mediatorCount?: number) => {
     if (editingLocked) return
     if (!window.confirm(`确定要切换到“${templateLabels[nextTemplate]}”模板吗？这会覆盖您当前的画布编辑和自定义连线。`)) {
@@ -119,6 +140,7 @@ export function createModelBuilderActions({
   return {
     updateModel,
     switchEstimationFamily,
+    applyProcessQuickSetup,
     applyTemplate,
     startCustomModel,
     assignVariable,
