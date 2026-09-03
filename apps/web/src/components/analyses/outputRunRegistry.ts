@@ -80,6 +80,8 @@ export function registeredOutputFreshness(
   measurement: MeasurementVersion | null,
 ): RegisteredOutputFreshness {
   if (run.datasetVersionId !== dataset.id) return 'stale'
-  if (run.measurementVersionId && run.measurementVersionId !== (measurement?.id ?? null)) return 'stale'
+  const measurementBound = run.source === 'model'
+    || (run.source === 'advanced' && run.family === 'questionnaire_measurement')
+  if (measurementBound && run.measurementVersionId && run.measurementVersionId !== (measurement?.id ?? null)) return 'stale'
   return 'current'
 }

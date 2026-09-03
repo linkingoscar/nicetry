@@ -64,7 +64,7 @@ describe('outputRunRegistry', () => {
     expect(runs[0]).toMatchObject({ label: 'ANCOVA', createdAt: '2026-09-03T12:00:00Z' })
   })
 
-  it('marks old dataset or measurement references stale', () => {
+  it('marks model runs stale when their dataset or measurement identity changes', () => {
     const current = {
       runId: 'run_1',
       projectId: dataset.projectId,
@@ -78,5 +78,21 @@ describe('outputRunRegistry', () => {
     expect(registeredOutputFreshness(current, dataset, { id: 'measurement_1' } as never)).toBe('current')
     expect(registeredOutputFreshness({ ...current, datasetVersionId: 'dataset_old' }, dataset, { id: 'measurement_1' } as never)).toBe('stale')
     expect(registeredOutputFreshness(current, dataset, { id: 'measurement_2' } as never)).toBe('stale')
+  })
+
+  it('does not make experiment or multilevel runs stale only because the measurement changed', () => {
+    const advanced = {
+      runId: 'run_anova',
+      projectId: dataset.projectId,
+      datasetVersionId: dataset.id,
+      measurementVersionId: 'measurement_1',
+      source: 'advanced' as const,
+      label: 'ANOVA',
+      methodId: 'experimental_design.factorial_anova.long.single_outcome',
+      family: 'experimental_design',
+      createdAt: '2026-09-03T10:00:00Z',
+    }
+    expect(registeredOutputFreshness(advanced, dataset, { id: 'measurement_2' } as never)).toBe('current')
+    expect(registeredOutputFreshness({ ...advanced, family: 'questionnaire_measurement' }, dataset, { id: 'measurement_2' } as never)).toBe('stale')
   })
 })
