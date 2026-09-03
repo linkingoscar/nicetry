@@ -2,8 +2,12 @@ import { useMemo } from 'react'
 
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
-import { empiricalProcedures } from './empirical/empiricalProcedures'
-import { readEmpiricalHistory } from './empirical/empiricalRunHistory'
+import {
+  analysisDocumentsForDataset,
+  analysisRunsForDocument,
+  empiricalDraftStatus,
+  loadEmpiricalAnalysisIndex,
+} from './analyses/analysisDocuments'
 
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
@@ -12,42 +16,76 @@ interface OutputWorkspaceProps {
 }
 
 export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: OutputWorkspaceProps) {
-  const historyKey = `researchpath.empirical.runs.v1:${dataset.id}:${measurement?.version ?? null}`
-  const history = useMemo(() => readEmpiricalHistory(historyKey), [historyKey])
-  const procedureById = useMemo(() => new Map(empiricalProcedures.map((item) => [item.id, item])), [])
+  const index = useMemo(
+    () => loadEmpiricalAnalysisIndex(dataset, measurement),
+    [dataset, measurement],
+  )
+  const documents = useMemo(
+    () => analysisDocumentsForDataset(index, dataset, measurement),
+    [dataset, index, measurement],
+  )
+  const runCount = documents.reduce(
+    (count, document) => count + analysisRunsForDocument(index, document.id).length,
+    0,
+  )
 
   return (
     <main className="analysis-shell" aria-labelledby="output-workspace-heading">
       <header className="analysis-shell-header">
         <div>
-          <p className="eyebrow">统一结果入口</p>
+          <p className="eyebrow">分析对象与运行</p>
           <h1 id="output-workspace-heading">输出</h1>
-          <p>集中回看已经提交的分析运行。第一阶段先接入现有实证运行索引，旧结果保持不可变；模型与高级任务会继续沿用现有结果组件并逐步汇入这里。</p>
+          <p>一项分析可以保留多次不可变运行。修改当前草稿不会覆盖旧运行；旧浏览器运行索引会先作为兼容引用归入对应分析对象。</p>
         </div>
       </header>
 
-      {history.length ? (
-        <section className="context-catalog" aria-label="最近实证运行">
+      {documents.length ? (
+        <section className="context-catalog" aria-label="当前数据的分析对象">
           <div className="section-heading-row">
             <div>
-              <p className="eyebrow">最近运行</p>
-              <h2>当前数据的实证结果</h2>
+              <p className="eyebrow">当前数据</p>
+              <h2>分析与运行</h2>
             </div>
-            <span className="status-badge">{history.length} 次</span>
+            <span className="status-badge">{documents.length} 项分析 · {runCount} 次运行</span>
           </div>
           <div className="method-grid">
-            {history.map((entry, index) => {
-              const definition = procedureById.get(entry.procedure)
+            {documents.map((document) => {
+              const runs = analysisRunsForDocument(index, document.id)
+              const latestRun = runs[0]
+              const draft = empiricalDraftStatus(dataset, measurement, document.procedure)
               return (
-                <article className="method-card" key={entry.id}>
+                <article className="method-card" key={document.id}>
                   <div>
-                    <p className="eyebrow">运行 {history.length - index}</p>
-                    <h3>{definition?.label ?? entry.procedure}</h3>
-                    <p>{new Date(entry.createdAt).toLocaleString()}</p>
+                    <p className="eyebrow">{document.categoryId.replaceAll('-', ' ')}</p>
+                    <h3>{document.title}</h3>
+                    <p>{runs.length} 次运行{latestRun ? ` · 最近 ${new Date(latestRun.createdAt).toLocaleString()}` : ''}</p>
+                    <div className="method-card-status-row">
+                      {draft.dirtySinceLastRun ? <span className="context-method-status method-status-needs-setup">有未运行更改</span> : null}
+                      {draft.hasSavedDraft ? <span className="context-method-status">草稿已保存</span> : null}
+                    </div>
+                    {latestRun ? (
+                      <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 历史索引引用</p>
+                    ) : null}
                   </div>
+
+                  {runs.length ? (
+                    <details>
+                      <summary>查看运行历史</summary>
+                      <ol>
+                        {runs.map((run) => (
+                          <li key={run.id}>
+                            <code>{run.id.slice(0, 12)}</code>
+                            {' · '}{new Date(run.createdAt).toLocaleString()}
+                            {' · '}历史状态待服务端结果索引确认
+                          </li>
+                        ))}
+                      </ol>
+                    </details>
+                  ) : null}
+
                   <div className="method-card-actions">
-                    <button type="button" className="secondary-button" onClick={() => onOpenProcedure(entry.procedure)}>
-                      打开分析与结果
+                    <button type="button" className="secondary-button" onClick={() => onOpenProcedure(document.procedure)}>
+                      编辑设置 / 打开当前结果
                     </button>
                   </div>
                 </article>
@@ -58,7 +96,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
       ) : (
         <section className="centered-state">
           <h2>还没有运行任何分析</h2>
-          <p>从“分析”选择一个方法并显式运行后，运行记录会出现在这里。</p>
+          <p>从“分析”选择一个方法并显式运行后，这里会先创建分析对象，再把每次运行归到它的历史中。</p>
         </section>
       )}
     </main>
