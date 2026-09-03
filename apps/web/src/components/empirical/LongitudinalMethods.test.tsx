@@ -51,7 +51,7 @@ function DiaryHarness() {
 describe('longitudinal empirical method configuration', () => {
   it('creates a three-wave RI-CLPM configuration by default', () => {
     render(<LongitudinalHarness />)
-    fireEvent.click(screen.getByRole('checkbox', { name: /启用交叉滞后面板分析/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /启用纵向面板分析/ }))
     expect(screen.getByLabelText('波次 1 标签')).toHaveValue('T1')
     expect(screen.getByLabelText('波次 3 标签')).toHaveValue('T3')
     expect(screen.getByLabelText('被试 ID')).toHaveValue('person_id')

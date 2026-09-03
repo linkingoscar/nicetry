@@ -13,7 +13,7 @@ export function configForMethod(config: EmpiricalConfigValue, sliceId: string, c
     const method = sliceId.slice('empirical.panel.'.length)
     let next = panel
     if (method === 'clpm' || method === 'ri_clpm' || method === 'lcm_sr') {
-      const minimum = method === 'lcm_sr' ? 5 : method === 'ri_clpm' ? 3 : 2
+      const minimum = method === 'lcm_sr' ? 5 : 3
       next = { ...panel, modelType: method,
         waves: panel.waves.length < minimum ? [...panel.waves, ...createEmptyWaves(minimum).slice(panel.waves.length)] : panel.waves,
         measurementMode: method === 'lcm_sr' ? 'latent_items' : panel.measurementMode,

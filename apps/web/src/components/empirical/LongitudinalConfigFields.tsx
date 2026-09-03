@@ -72,7 +72,7 @@ export function LongitudinalConfigFields({
             value={value.modelType}
             onChange={(event) => {
               const modelType = event.target.value as LongitudinalPanelOptions['modelType']
-              const minimumWaves = modelType === 'lcm_sr' ? 5 : modelType === 'ri_clpm' ? 3 : 2
+              const minimumWaves = modelType === 'lcm_sr' ? 5 : 3
               const waves = [...value.waves]
               while (waves.length < minimumWaves) {
                 waves.push({
@@ -94,8 +94,8 @@ export function LongitudinalConfigFields({
               })
             }}
           >
-            <option value="ri_clpm">RI-CLPM（推荐，至少三时点）</option>
-            <option value="clpm">传统 CLPM（至少两时点）</option>
+            <option value="ri_clpm">RI-CLPM（至少三时点）</option>
+            <option value="clpm">传统 CLPM（至少三时点）</option>
             <option value="lcm_sr">LCM-SR（至少五时点）</option>
           </select>
         </label>

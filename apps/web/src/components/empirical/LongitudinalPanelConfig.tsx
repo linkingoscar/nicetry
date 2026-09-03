@@ -29,7 +29,7 @@ export function LongitudinalPanelConfig({
   const createPanelForCurrentMethod = () => {
     const base = createDefaultPanel(subjectCandidates, defaultSubjectId, defaultWaveCount)
     if (!lockedModelType) return base
-    const minimum = lockedModelType === 'lcm_sr' ? 5 : lockedModelType === 'ri_clpm' ? 3 : 2
+    const minimum = lockedModelType === 'lcm_sr' ? 5 : 3
     return {
       ...base,
       modelType: lockedModelType,
@@ -78,7 +78,7 @@ export function LongitudinalPanelConfig({
         />
         <span>
           <strong>启用纵向面板分析</strong>
-          <small>传统 CLPM 支持两时点；RI-CLPM 至少三时点；LCM-SR 至少五时点。</small>
+          <small>传统 CLPM 与 RI-CLPM 至少三时点；LCM-SR 至少五时点。</small>
         </span>
       </label>
       {value ? (

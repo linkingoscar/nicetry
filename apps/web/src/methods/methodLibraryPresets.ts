@@ -78,9 +78,6 @@ const METHOD_COPY_OVERRIDES: Record<string, MethodCopyOverride> = {
   'measurement.esem-bifactor-irt': {
     label: 'ESEM / Bifactor / IRT / DIF（高级）',
   },
-  'longitudinal.clpm': {
-    description: '传统交叉滞后面板模型；当前配置支持两时点 CLPM，三时点及以上可进一步使用 RI-CLPM 分离个体间与个体内效应。',
-  },
 }
 
 const PROCEDURE_PRESETS: Record<string, ProcedurePreset[]> = {

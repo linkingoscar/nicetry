@@ -45,10 +45,10 @@ describe('catalog method selection', () => {
     expect(base.diaryMultilevel).toBeNull()
   })
 
-  it('opens traditional CLPM with the supported two-wave starting point', () => {
+  it('opens traditional CLPM with the capability-catalog three-wave minimum', () => {
     const next = configForMethod(config(), 'empirical.panel.clpm', null)
     expect(next.longitudinalPanel?.modelType).toBe('clpm')
-    expect(next.longitudinalPanel?.waves).toHaveLength(2)
+    expect(next.longitudinalPanel?.waves).toHaveLength(3)
   })
 
   it('opens RI-CLPM with a three-wave starting point', () => {
