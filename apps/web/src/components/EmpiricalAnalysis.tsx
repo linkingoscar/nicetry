@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { EmpiricalTabRequest } from './context/workbenchNavigation'
 import type {
   DatasetVersion,
@@ -15,6 +15,7 @@ import { useEmpiricalAnalysisIndexSync } from './analyses/useEmpiricalAnalysisIn
 import { useEmpiricalAnalysisState } from './empirical/useEmpiricalAnalysisState'
 import { EmpiricalAnalysisProvider } from './empirical/EmpiricalAnalysisContext'
 import { EmpiricalMethodScopeProvider } from './empirical/EmpiricalMethodScopeContext'
+import { storedAnalysisMethodSlice } from './empirical/storedAnalysisMethodScope'
 import { EmpiricalAnalysisShellHeader } from './empirical/EmpiricalAnalysisShellHeader'
 import { EmpiricalResultsSection } from './empirical/EmpiricalResultsSection'
 
@@ -48,7 +49,12 @@ export function EmpiricalAnalysis({
     analysisId,
     analysisProcedure,
   })
-  const [analysisTitle, setAnalysisTitle] = useState<string | null>(null)
+  const analysisDocument = useMemo(() => {
+    if (!analysisId) return undefined
+    return loadEmpiricalAnalysisIndex(dataset, measurement).documents.find((entry) => entry.id === analysisId)
+  }, [analysisId, dataset, measurement])
+  const methodSliceId = storedAnalysisMethodSlice(analysisDocument?.methodId) ?? tabRequest?.method?.sliceId
+  const [analysisTitle, setAnalysisTitle] = useState<string | null>(analysisDocument?.title ?? null)
   const handledInitialRun = useRef<string | null>(null)
 
   useEmpiricalAnalysisIndexSync(dataset, measurement, state.analysisJob)
@@ -60,13 +66,8 @@ export function EmpiricalAnalysis({
   }, [initialRunId, state])
 
   useEffect(() => {
-    if (!analysisId) {
-      setAnalysisTitle(null)
-      return
-    }
-    const document = loadEmpiricalAnalysisIndex(dataset, measurement).documents.find((entry) => entry.id === analysisId)
-    setAnalysisTitle(document?.title ?? null)
-  }, [analysisId, dataset, measurement])
+    setAnalysisTitle(analysisDocument?.title ?? null)
+  }, [analysisDocument])
 
   const renameAnalysis = () => {
     if (!analysisId) return
@@ -82,7 +83,7 @@ export function EmpiricalAnalysis({
   }
 
   return (
-    <EmpiricalMethodScopeProvider methodSliceId={tabRequest?.method?.sliceId}>
+    <EmpiricalMethodScopeProvider methodSliceId={methodSliceId}>
       <EmpiricalAnalysisProvider value={state}>
         <main className="empirical-center">
           {analysisId ? (
