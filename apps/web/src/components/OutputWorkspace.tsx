@@ -9,6 +9,7 @@ import {
   loadEmpiricalAnalysisIndex,
 } from './analyses/analysisDocuments'
 import { readAnalysisRunDetails } from './analyses/analysisRunDetails'
+import { useOutputRunJobs } from './analyses/useOutputRunJobs'
 
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
@@ -43,10 +44,9 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     () => analysisDocumentsForDataset(index, dataset, measurement),
     [dataset, index, measurement],
   )
-  const runCount = documents.reduce(
-    (count, document) => count + analysisRunsForDocument(index, document.id).length,
-    0,
-  )
+  const runIds = documents.flatMap((document) => analysisRunsForDocument(index, document.id).map((run) => run.id))
+  const serverJobsByRun = useOutputRunJobs(runIds)
+  const runCount = runIds.length
 
   return (
     <main className="analysis-shell" aria-labelledby="output-workspace-heading">
@@ -72,6 +72,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
               const runs = analysisRunsForDocument(index, document.id)
               const latestRun = runs[0]
               const latestDetail = latestRun ? detailsByRun.get(latestRun.id) : undefined
+              const latestServerJob = latestRun ? serverJobsByRun.get(latestRun.id) : undefined
               const draft = empiricalDraftStatusForOutput(
                 dataset,
                 measurement,
@@ -85,7 +86,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                     <h3>{document.title}</h3>
                     <p>{runs.length} 次运行{latestRun ? ` · 最近 ${new Date(latestRun.createdAt).toLocaleString()}` : ''}</p>
                     <div className="method-card-status-row">
-                      {latestRun ? <span className="context-method-status">{runStatusLabel(latestDetail?.runStatus)}</span> : null}
+                      {latestRun ? <span className="context-method-status">{runStatusLabel(latestServerJob?.status ?? latestDetail?.runStatus)}</span> : null}
+                      {latestServerJob ? <span className="context-method-status">服务端已确认</span> : null}
                       {draft.dirtySinceLastRun ? <span className="context-method-status method-status-needs-setup">有未运行更改</span> : null}
                       {draft.hasSavedDraft ? <span className="context-method-status">草稿已保存</span> : null}
                     </div>
@@ -102,12 +104,14 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                       <ol>
                         {runs.map((run) => {
                           const detail = detailsByRun.get(run.id)
+                          const serverJob = serverJobsByRun.get(run.id)
                           return (
                             <li key={run.id}>
                               <code>{run.id.slice(0, 12)}</code>
                               {' · '}{new Date(run.createdAt).toLocaleString()}
-                              {' · '}{runStatusLabel(detail?.runStatus)}
+                              {' · '}{runStatusLabel(serverJob?.status ?? detail?.runStatus)}
                               {detail ? ` · 修订 ${detail.draftRevision}` : ''}
+                              {serverJob ? ' · 服务端已确认' : ''}
                             </li>
                           )
                         })}
