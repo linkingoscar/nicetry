@@ -17,6 +17,7 @@ const baseSpec: PowerWizardSpec = {
   alpha: 0.05,
   targetPower: 0.8,
   effectSize: { metric: 'cohens_f2', value: 0.15 },
+  effectSizeMetric: 'cohens_f2',
   alternative: 'two_sided',
 }
 
@@ -44,6 +45,7 @@ describe('PowerWizard', () => {
       designFamily: 't_test',
       groups: 2,
       effectSize: { metric: 'cohens_d', value: 0.15 },
+      effectSizeMetric: 'cohens_d',
     }))
   })
 
@@ -66,6 +68,7 @@ describe('PowerWizard', () => {
       designFamily: 't_test',
       groups: 2,
       effectSize: { metric: 'cohens_d', value: 0.15 },
+      effectSizeMetric: 'cohens_d',
     }))
   })
 
@@ -76,6 +79,7 @@ describe('PowerWizard', () => {
       sampleSize: 200,
       alternative: 'two_sided',
       effectSize: { metric: 'cohens_f2', value: 0.15 },
+      effectSizeMetric: 'cohens_f2',
     })
   })
 
@@ -94,6 +98,8 @@ describe('PowerWizard', () => {
       ...baseSpec,
       method: 'analytic',
       designFamily: 't_test',
+      effectSize: { metric: 'cohens_d', value: 0.2 },
+      effectSizeMetric: 'cohens_d',
       solveFor: 'ci_width',
       alternative: 'one_sided',
       targetCIWidth: 0.05,
@@ -104,6 +110,8 @@ describe('PowerWizard', () => {
       designFamily: 'regression',
       solveFor: 'sample_size',
       alternative: 'two_sided',
+      effectSize: { metric: 'cohens_f2', value: 0.2 },
+      effectSizeMetric: 'cohens_f2',
     })
     expect(normalized.sampleSize).toBeUndefined()
     expect(normalized.targetCIWidth).toBeUndefined()

@@ -67,18 +67,13 @@ export function normalizePowerSpecForSlice(spec: PowerWizardSpec, sliceId?: stri
     alternative: 'two_sided',
   }
 
-  if (designChanged) {
-    next.groups = designFamily === 'regression' ? 1 : 2
-    if (solveFor !== 'effect_size' && solveFor !== 'ci_width') {
-      next.effectSize = { metric: metric.id, value: spec.effectSize?.value ?? 0.15 }
-    }
-    if (solveFor === 'effect_size') next.effectSizeMetric = metric.id
-  }
+  if (designChanged) next.groups = designFamily === 'regression' ? 1 : 2
 
   if (solveFor === 'power') {
     next.sampleSize = spec.sampleSize ?? 200
     next.targetCIWidth = undefined
-    next.effectSize = next.effectSize ?? { metric: metric.id, value: 0.15 }
+    next.effectSize = { metric: metric.id, value: spec.effectSize?.value ?? 0.15 }
+    next.effectSizeMetric = metric.id
   } else if (solveFor === 'effect_size') {
     next.sampleSize = spec.sampleSize ?? 200
     next.effectSize = undefined
@@ -87,11 +82,13 @@ export function normalizePowerSpecForSlice(spec: PowerWizardSpec, sliceId?: stri
   } else if (solveFor === 'ci_width') {
     next.sampleSize = undefined
     next.effectSize = undefined
+    next.effectSizeMetric = undefined
     next.targetCIWidth = spec.targetCIWidth ?? 0.10
   } else {
     next.sampleSize = undefined
     next.targetCIWidth = undefined
-    next.effectSize = next.effectSize ?? { metric: metric.id, value: 0.15 }
+    next.effectSize = { metric: metric.id, value: spec.effectSize?.value ?? 0.15 }
+    next.effectSizeMetric = metric.id
   }
 
   return next

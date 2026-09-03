@@ -40,16 +40,23 @@ describe('empiricalRunHistory method identity compatibility', () => {
     expect(readEmpiricalHistory(key)[0].methodId).toBeUndefined()
   })
 
-  it('rejects malformed method identity rather than trusting arbitrary storage data', () => {
+  it('drops malformed optional recovery metadata without dropping the run itself', () => {
     localStorage.setItem(key, JSON.stringify([
       {
-        id: 'run_bad',
+        id: 'run_recoverable',
         procedure: 'longitudinal',
+        analysisId: '../bad-analysis',
         methodId: '../longitudinal.ri-clpm',
         createdAt: '2026-09-03T10:00:00Z',
       },
     ]))
 
-    expect(readEmpiricalHistory(key)).toEqual([])
+    expect(readEmpiricalHistory(key)).toEqual([
+      {
+        id: 'run_recoverable',
+        procedure: 'longitudinal',
+        createdAt: '2026-09-03T10:00:00Z',
+      },
+    ])
   })
 })
