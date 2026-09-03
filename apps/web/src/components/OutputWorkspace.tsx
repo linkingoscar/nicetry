@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
+import { OutputEmpiricalRunPreview } from './OutputEmpiricalRunPreview'
 import { empiricalDraftStatusForOutput } from './analyses/analysisDraftStatus'
 import {
   analysisDocumentFreshness,
@@ -76,6 +77,9 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const selectedDetail = selectedRun ? detailsByRun.get(selectedRun.id) : undefined
   const selectedServerJob = selectedRun ? serverJobsByRun.get(selectedRun.id) : undefined
   const selectedFreshness = selectedRun ? analysisRunFreshness(selectedRun, dataset, measurement) : undefined
+  const selectedStatus = selectedServerJob?.status ?? selectedDetail?.runStatus
+  const selectedReportId = selectedServerJob?.reportId ?? selectedDetail?.resultId ?? undefined
+  const selectedOptions = selectedServerJob?.options ?? selectedDetail?.submittedSpec
 
   const updateDocument = (analysisId: string, patch: { title?: string; pinned?: boolean }) => {
     setIndex(updateAnalysisDocumentMetadata(dataset.projectId, analysisId, patch))
@@ -118,7 +122,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <div>
               <p className="eyebrow">当前运行</p>
               <h2>{selectedDocument.title}</h2>
-              <p className="muted">{new Date(selectedRun.createdAt).toLocaleString()} · {runStatusLabel(selectedServerJob?.status ?? selectedDetail?.runStatus)}</p>
+              <p className="muted">{new Date(selectedRun.createdAt).toLocaleString()} · {runStatusLabel(selectedStatus)}</p>
             </div>
             <button type="button" className="secondary-button" onClick={() => setSelectedRunId(null)}>关闭详情</button>
           </div>
@@ -141,6 +145,16 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
           ) : (
             <p className="muted">该记录目前只有旧本地运行索引。服务端未能确认冻结规格或结果身份，因此这里不会补造运行详情。</p>
           )}
+
+          {selectedFreshness === 'current' && selectedStatus === 'succeeded' && selectedReportId && selectedOptions ? (
+            <OutputEmpiricalRunPreview
+              datasetId={dataset.id}
+              measurementVersion={measurement?.version ?? null}
+              reportId={selectedReportId}
+              options={selectedOptions}
+            />
+          ) : null}
+
           <div className="method-card-actions">
             <button
               type="button"
