@@ -15,7 +15,7 @@ export function useOutputRunJobs(
   const queries = useQueries({
     queries: uniqueRunIds.map((runId) => ({
       queryKey: ['empirical-analysis-job', runId],
-      queryFn: () => getEmpiricalAnalysisJob(runId),
+      queryFn: ({ signal }: { signal: AbortSignal }) => getEmpiricalAnalysisJob(runId, signal),
       retry: false,
       staleTime: 2_000,
       refetchInterval: (query: { state: { data?: EmpiricalAnalysisJob; status: string } }) => {

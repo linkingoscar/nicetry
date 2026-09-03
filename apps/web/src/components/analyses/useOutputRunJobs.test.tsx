@@ -43,7 +43,7 @@ describe('useOutputRunJobs', () => {
     await waitFor(() => {
       expect(result.current.get('run_1')?.status).toBe('succeeded')
     })
-    expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1')
+    expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1', expect.any(AbortSignal))
     expect(getEmpiricalAnalysisJob).toHaveBeenCalledTimes(1)
   })
 
@@ -55,7 +55,25 @@ describe('useOutputRunJobs', () => {
       { wrapper },
     )
 
-    await waitFor(() => expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1'))
+    await waitFor(() => expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1', expect.any(AbortSignal)))
     expect(result.current.has('run_1')).toBe(false)
+  })
+
+  it('aborts an in-flight recovery request when the Output query unmounts', async () => {
+    let observedSignal: AbortSignal | undefined
+    vi.mocked(getEmpiricalAnalysisJob).mockImplementation((_runId, signal) => {
+      observedSignal = signal
+      return new Promise<EmpiricalAnalysisJob>(() => {})
+    })
+
+    const { unmount } = renderHook(
+      () => useOutputRunJobs(['run_1'], 'dataset_demo', null),
+      { wrapper },
+    )
+
+    await waitFor(() => expect(observedSignal).toBeDefined())
+    expect(observedSignal?.aborted).toBe(false)
+    unmount()
+    expect(observedSignal?.aborted).toBe(true)
   })
 })
