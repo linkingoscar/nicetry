@@ -1,0 +1,195 @@
+/* ResearchPath workbench convergence: task surfaces are stable, dense and low-decoration.
+   Brand-heavy/glass treatment may remain on the project home and expert model editor. */
+
+.app-shell {
+  background: var(--bg-app);
+}
+
+.app-shell .app-header {
+  padding-block: 9px;
+  color: var(--text-main);
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .app-header .brand {
+  color: var(--text-main);
+}
+
+.app-shell .app-header .brand span,
+.app-shell .app-header .project-name {
+  color: var(--text-muted);
+}
+
+.app-shell .app-header .header-path-button,
+.app-shell .app-header .theme-toggle-button,
+.app-shell .app-header .command-palette-trigger {
+  color: var(--text-body);
+  background: var(--bg-surface);
+  border-color: var(--border-card);
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.app-shell .app-header .header-path-button:hover,
+.app-shell .app-header .theme-toggle-button:hover,
+.app-shell .app-header .command-palette-trigger:hover {
+  background: var(--bg-hover);
+}
+
+.app-shell .app-header .command-palette-trigger kbd {
+  color: var(--text-muted);
+  background: var(--bg-subtle);
+}
+
+.app-shell .workspace-nav {
+  gap: 0;
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .workspace-nav .workspace-tab {
+  min-height: 44px;
+  margin-top: 0;
+  padding-inline: 18px;
+  border-radius: 0;
+}
+
+.app-shell .workspace-nav .workspace-tab[aria-selected="true"] {
+  color: var(--brand-primary);
+  background: transparent;
+}
+
+.app-shell .study-context-shell {
+  gap: 8px;
+  padding-block: 8px;
+  background: var(--bg-subtle);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .study-context-groups fieldset,
+.app-shell .structure-setup,
+.app-shell .upload-panel,
+.app-shell .measurement-workspace,
+.app-shell .dataset-summary,
+.app-shell .context-catalog,
+.app-shell .context-method-catalog,
+.app-shell .context-readiness-panel,
+.app-shell .empirical-config,
+.app-shell .adv-wizard-panel,
+.app-shell .adv-status-card,
+.app-shell .analysis-shell-header {
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  border-radius: 8px;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .data-main,
+.app-shell .analysis-shell,
+.app-shell .adv-main {
+  padding-top: 18px;
+}
+
+.app-shell .analysis-shell-header {
+  padding: 14px 16px;
+}
+
+.app-shell .analysis-shell-header h1,
+.app-shell .context-catalog h2,
+.app-shell .context-method-catalog h2 {
+  letter-spacing: -0.015em;
+}
+
+.app-shell .context-catalog,
+.app-shell .context-method-catalog,
+.app-shell .empirical-config,
+.app-shell .measurement-workspace {
+  padding: 18px;
+}
+
+.app-shell .method-grid {
+  gap: 10px;
+}
+
+.app-shell .method-card,
+.app-shell .context-method-card,
+.app-shell .construct-card {
+  background: var(--bg-surface);
+  background-image: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: none;
+  transform: none;
+}
+
+.app-shell .method-card:hover,
+.app-shell .context-method-card:hover {
+  border-color: var(--border-card);
+  box-shadow: none;
+  transform: none;
+}
+
+.app-shell .method-card-status-row,
+.app-shell .context-method-status,
+.app-shell .status-badge,
+.app-shell .status-chip {
+  border-radius: 6px;
+}
+
+.app-shell .run-button {
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.app-shell .secondary-button {
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.app-shell input,
+.app-shell select,
+.app-shell textarea {
+  border-radius: 7px;
+}
+
+/* Keep the expert PROCESS/SEM editor visually distinct while removing glass from daily work. */
+.app-shell .model-builder .model-toolbar,
+.app-shell .model-builder .variable-library,
+.app-shell .model-builder .model-sidebar,
+.app-shell .model-builder .canvas-panel {
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .app-shell .app-header {
+    align-items: flex-start;
+  }
+
+  .app-shell .workspace-nav .workspace-tab {
+    flex: 1 1 0;
+    padding-inline: 10px;
+  }
+
+  .app-shell .context-catalog,
+  .app-shell .context-method-catalog,
+  .app-shell .empirical-config,
+  .app-shell .measurement-workspace {
+    padding: 14px;
+  }
+}
