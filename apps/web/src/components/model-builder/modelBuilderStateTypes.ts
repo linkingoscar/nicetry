@@ -16,6 +16,7 @@ import type {
 import type { ResolvedAnalysisContext } from '../../types/analysis-context'
 import type { PathEvidence } from './pathEvidence'
 import type { ProcessQuickSetup } from './processQuickForm'
+import type { SemQuickSetup } from './semQuickForm'
 import type { ModelTemplate } from './modelTemplates'
 
 export interface UseModelBuilderStateOptions {
@@ -52,6 +53,7 @@ export interface ModelBuilderState {
   handleUndo: () => void
   handleRedo: () => void
   applyProcessQuickSetup: (setup: ProcessQuickSetup) => boolean
+  applySemQuickSetup: (setup: SemQuickSetup) => boolean
   applyTemplate: (nextTemplate: ModelTemplate, mediatorCount?: number) => void
   startCustomModel: () => void
   assignVariable: (nodeId: string, variableId: string) => void

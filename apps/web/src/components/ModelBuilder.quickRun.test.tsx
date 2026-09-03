@@ -8,6 +8,7 @@ import { ModelBuilder } from './ModelBuilder'
 
 const mocks = vi.hoisted(() => ({
   applyProcessQuickSetup: vi.fn(() => true),
+  applySemQuickSetup: vi.fn(() => true),
   switchEstimationFamily: vi.fn(),
 }))
 
@@ -39,6 +40,7 @@ vi.mock('./model-builder/useModelBuilderState', () => ({
     handleUndo: vi.fn(),
     handleRedo: vi.fn(),
     applyProcessQuickSetup: mocks.applyProcessQuickSetup,
+    applySemQuickSetup: mocks.applySemQuickSetup,
     applyTemplate: vi.fn(),
     startCustomModel: vi.fn(),
     assignVariable: vi.fn(),
@@ -72,8 +74,20 @@ vi.mock('./model-builder/ProcessQuickSetupForm', () => ({
   }) => (
     <div>
       <span>quick-kind:{initialKind}</span>
-      <button type="button" onClick={() => onApply({} as never)}>apply-quick</button>
-      <button type="button" onClick={onOpenAdvanced}>open-advanced</button>
+      <button type="button" onClick={() => onApply({} as never)}>apply-process</button>
+      <button type="button" onClick={onOpenAdvanced}>open-process-advanced</button>
+    </div>
+  ),
+}))
+vi.mock('./model-builder/SemQuickSetupForm', () => ({
+  SemQuickSetupForm: ({ onApply, onOpenAdvanced }: {
+    onApply: (setup: never) => boolean
+    onOpenAdvanced: () => void
+  }) => (
+    <div>
+      <span>sem-quick-form</span>
+      <button type="button" onClick={() => onApply({} as never)}>apply-sem</button>
+      <button type="button" onClick={onOpenAdvanced}>open-sem-advanced</button>
     </div>
   ),
 }))
@@ -91,10 +105,10 @@ vi.mock('./ModelCanvas', () => ({ ModelCanvas: () => null }))
 vi.mock('./ResultPanel', () => ({ ResultPanel: () => null }))
 
 const dataset = { id: 'dataset_demo', variables: [] } as unknown as DatasetVersion
-const measurement = { id: 'measurement_demo' } as unknown as MeasurementVersion
+const measurement = { id: 'measurement_demo', constructs: [] } as unknown as MeasurementVersion
 const context = { contextHash: 'context_demo' } as unknown as ResolvedAnalysisContext
 
-function request(processModelNumber?: 1 | 4): MethodRequest {
+function processRequest(processModelNumber?: 1 | 4): MethodRequest {
   return {
     sliceId: 'model.process_catalog',
     label: processModelNumber === 1 ? '简单调节' : processModelNumber === 4 ? '简单中介' : '完整模型库',
@@ -104,29 +118,61 @@ function request(processModelNumber?: 1 | 4): MethodRequest {
   }
 }
 
+function semRequest(): MethodRequest {
+  return {
+    sliceId: 'model.sem',
+    label: '结构方程模型',
+    contextHash: 'context_demo',
+    key: 2,
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   mocks.applyProcessQuickSetup.mockReturnValue(true)
+  mocks.applySemQuickSetup.mockReturnValue(true)
 })
 
-describe('ModelBuilder form-first PROCESS routing', () => {
+describe('ModelBuilder form-first model routing', () => {
   it('keeps Model 4 on the quick form and reveals the shared run controls only after apply', async () => {
-    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={request(4)} />)
+    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={processRequest(4)} />)
 
     expect(await screen.findByText('quick-kind:mediation')).toBeInTheDocument()
     expect(screen.queryByText('run-controls')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'apply-quick' }))
+    fireEvent.click(screen.getByRole('button', { name: 'apply-process' }))
     expect(mocks.applyProcessQuickSetup).toHaveBeenCalledTimes(1)
     expect(screen.getByText('run-controls')).toBeInTheDocument()
     expect(screen.queryByText('advanced-toolbar')).not.toBeInTheDocument()
   })
 
   it('opens Model 1 as moderation and keeps the full catalog in the advanced editor', async () => {
-    const view = render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={request(1)} />)
+    const view = render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={processRequest(1)} />)
     expect(await screen.findByText('quick-kind:moderation')).toBeInTheDocument()
 
-    view.rerender(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={request()} />)
+    view.rerender(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={processRequest()} />)
     expect(await screen.findByText('advanced-toolbar')).toBeInTheDocument()
     expect(screen.queryByText(/quick-kind:/)).not.toBeInTheDocument()
+  })
+
+  it('opens SEM on the basic form, then exposes the same run controls after apply', async () => {
+    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={semRequest()} />)
+
+    expect(await screen.findByText('sem-quick-form')).toBeInTheDocument()
+    expect(mocks.switchEstimationFamily).toHaveBeenCalledWith('sem')
+    expect(screen.queryByText('run-controls')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'apply-sem' }))
+    expect(mocks.applySemQuickSetup).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('run-controls')).toBeInTheDocument()
+    expect(screen.queryByText('advanced-toolbar')).not.toBeInTheDocument()
+  })
+
+  it('keeps advanced SEM as an explicit optional path', async () => {
+    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={semRequest()} />)
+    expect(await screen.findByText('sem-quick-form')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'open-sem-advanced' }))
+    expect(screen.getByText('advanced-toolbar')).toBeInTheDocument()
+    expect(screen.queryByText('sem-quick-form')).not.toBeInTheDocument()
   })
 })

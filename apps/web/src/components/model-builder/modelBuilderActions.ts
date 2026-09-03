@@ -18,6 +18,7 @@ import {
   processTemplateForQuickSetup,
   type ProcessQuickSetup,
 } from './processQuickForm'
+import { buildBasicSemModel, type SemQuickSetup } from './semQuickForm'
 
 interface ModelBuilderActionsDeps {
   currentModel: ModelSpec
@@ -89,6 +90,20 @@ export function createModelBuilderActions({
     }
   }
 
+  const applySemQuickSetup = (setup: SemQuickSetup): boolean => {
+    if (editingLocked) return false
+    try {
+      const nextModel = buildBasicSemModel(setup, variables, measurement)
+      setBuilderError(null)
+      setCustomMode(false)
+      updateModel(() => nextModel)
+      return true
+    } catch (error) {
+      setBuilderError(error instanceof Error ? error.message : '基础 SEM 表单配置失败')
+      return false
+    }
+  }
+
   const applyTemplate = (nextTemplate: ModelTemplate, mediatorCount?: number) => {
     if (editingLocked) return
     if (!window.confirm(`确定要切换到“${templateLabels[nextTemplate]}”模板吗？这会覆盖您当前的画布编辑和自定义连线。`)) {
@@ -141,6 +156,7 @@ export function createModelBuilderActions({
     updateModel,
     switchEstimationFamily,
     applyProcessQuickSetup,
+    applySemQuickSetup,
     applyTemplate,
     startCustomModel,
     assignVariable,

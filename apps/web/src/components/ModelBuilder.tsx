@@ -10,6 +10,7 @@ import { ModelEstimationEditor } from './model-builder/ModelEstimationEditor'
 import { ModelBuilderSidebar } from './model-builder/ModelBuilderSidebar'
 import { ProcessQuickSetupForm } from './model-builder/ProcessQuickSetupForm'
 import type { ProcessQuickKind } from './model-builder/processQuickForm'
+import { SemQuickSetupForm } from './model-builder/SemQuickSetupForm'
 import { RoleEditorSection } from './model-builder/RoleEditorSection'
 import { PathEditorSection } from './model-builder/PathEditorSection'
 import { ModerationEditor } from './model-builder/ModerationEditor'
@@ -56,6 +57,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
     handleUndo,
     handleRedo,
     applyProcessQuickSetup,
+    applySemQuickSetup,
     applyTemplate,
     startCustomModel,
     assignVariable,
@@ -84,6 +86,8 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
   const [processQuickOpen, setProcessQuickOpen] = useState(false)
   const [processQuickApplied, setProcessQuickApplied] = useState(false)
   const [processQuickKind, setProcessQuickKind] = useState<ProcessQuickKind>('mediation')
+  const [semQuickOpen, setSemQuickOpen] = useState(false)
+  const [semQuickApplied, setSemQuickApplied] = useState(false)
   useEffect(() => {
     if (!methodRequest || draftState === 'saving') return
     onMethodHandled?.()
@@ -93,11 +97,14 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
       return
     }
     const processRequest = methodRequest.sliceId === 'model.process_catalog'
-    const family = methodRequest.sliceId === 'model.sem' ? 'sem' : 'ols'
+    const semRequest = methodRequest.sliceId === 'model.sem'
+    const family = semRequest ? 'sem' : 'ols'
     if (model.estimation.family !== family) {
       if (!window.confirm(`进入“${methodRequest.label}”需切换估计引擎，将转换节点并重建测量定义、估计器与多组设置；自定义题项、高阶因子及部分等值约束会重置。可撤销恢复，不会自动运行。是否继续？`)) {
         setProcessQuickOpen(false)
         setProcessQuickApplied(false)
+        setSemQuickOpen(false)
+        setSemQuickApplied(false)
         setMethodNotice('已取消目录方法切换，原模型草稿保持不变。')
         return
       }
@@ -105,6 +112,8 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
     }
     if (processRequest && methodRequest.processModelNumber) {
       const kind: ProcessQuickKind = methodRequest.processModelNumber === 1 ? 'moderation' : 'mediation'
+      setSemQuickOpen(false)
+      setSemQuickApplied(false)
       setProcessQuickKind(kind)
       setProcessQuickApplied(false)
       setProcessQuickOpen(true)
@@ -113,8 +122,18 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
         : '已进入简单中介（PROCESS Model 4）表单。配置 X、M、Y 后即可在同页校验、冻结和运行。')
       return
     }
+    if (semRequest) {
+      setProcessQuickOpen(false)
+      setProcessQuickApplied(false)
+      setSemQuickApplied(false)
+      setSemQuickOpen(true)
+      setMethodNotice('已进入基础 SEM 表单。选择两个构念和估计设置后即可在同页校验、冻结和运行；复杂测量或多组模型再进入高级 SEM Studio。')
+      return
+    }
     setProcessQuickApplied(false)
     setProcessQuickOpen(false)
+    setSemQuickApplied(false)
+    setSemQuickOpen(false)
     setMethodNotice(processRequest
       ? '已进入 PROCESS 完整模型库高级编辑器。可使用全部预设、画布和自定义路径；不会自动运行。'
       : `已进入：${methodRequest.label}。请核对模型并冻结版本后手动运行。`)
@@ -145,7 +164,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
   return (
     <main className="model-builder">
       {methodNotice ? <p className="method-note" role="status">{methodNotice}</p> : null}
-      {!processQuickOpen ? (
+      {!processQuickOpen && !semQuickOpen ? (
         <ModelBuilderToolbar
           template={template}
           isCustom={customMode}
@@ -195,6 +214,33 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
           {processQuickApplied ? runControls : (
             <section className="centered-state process-quick-run-placeholder" aria-live="polite">
               <h3>先完成表单设置</h3>
+              <p>应用后，这里会显示当前草稿的校验、冻结和运行控制；不会自动提交分析。</p>
+            </section>
+          )}
+        </div>
+      ) : semQuickOpen ? (
+        <div className={`process-quick-run-grid${semQuickApplied ? ' is-applied' : ''}`}>
+          <SemQuickSetupForm
+            measurement={measurement}
+            model={model}
+            disabled={editingLocked}
+            onApply={(setup) => {
+              const applied = applySemQuickSetup(setup)
+              if (applied) {
+                setSemQuickApplied(true)
+                setMethodNotice('基础 SEM 设置已写入当前草稿。校验通过后可直接冻结并运行；复杂测量、多组或约束模型再打开高级 SEM Studio。')
+              }
+              return applied
+            }}
+            onOpenAdvanced={() => {
+              setSemQuickApplied(false)
+              setSemQuickOpen(false)
+              setMethodNotice('已打开高级 SEM Studio；当前草稿和既有运行保持不变。')
+            }}
+          />
+          {semQuickApplied ? runControls : (
+            <section className="centered-state process-quick-run-placeholder" aria-live="polite">
+              <h3>先完成基础 SEM 设置</h3>
               <p>应用后，这里会显示当前草稿的校验、冻结和运行控制；不会自动提交分析。</p>
             </section>
           )}
