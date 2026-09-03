@@ -74,11 +74,12 @@ export function internalWorkbenchTarget(
   const definition = definitionOverride ?? methodForCapability(capability.sliceId)
   if (!definition || definition.adapter === 'advanced-wizard') return null
 
-  const method = {
+  const method: Pick<WorkbenchTarget, 'sliceId' | 'label' | 'procedure'> = {
     sliceId: capability.sliceId,
     label: definition.label,
-    ...('procedure' in definition && definition.procedure ? { procedure: definition.procedure } : {}),
   }
+  if ('libraryId' in definition && definition.procedure) method.procedure = definition.procedure
+
   if (definition.adapter === 'model') return { view: 'model', ...method }
   if (definition.adapter === 'empirical-longitudinal') return { view: 'empirical', tab: 'longitudinal', ...method }
   if (definition.adapter === 'empirical-diary') return { view: 'empirical', tab: 'diary', ...method }
