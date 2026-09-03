@@ -9,6 +9,9 @@ const STANDARD_FORM_SLICES = new Set([
   'experimental_design.mixed_design.single_within',
   'multilevel_model.aggregation.icc_rwg',
   'multilevel_model.gaussian.two_level',
+  'power_analysis.analytic.regression',
+  'power_analysis.analytic.t_test',
+  'power_analysis.analytic.factorial_anova',
 ])
 
 export function analysisWizardPresentation(
