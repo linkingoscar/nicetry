@@ -13,6 +13,7 @@ import type { AdvancedAnalysisCapability, AdvancedJobResponse, AdvancedResultRes
 import { AnalysisWizard } from '../advanced/AnalysisWizard'
 import { AdvancedResultView } from '../advanced/AdvancedResultView'
 import { JobProgress } from '../advanced/JobProgress'
+import { registerOutputRun } from '../analyses/outputRunRegistry'
 import { ContextReadinessPanel } from './ContextReadinessPanel'
 import { ImputationPlanWorkspace } from './ImputationPlanWorkspace'
 import { InvalidationNotice } from './InvalidationNotice'
@@ -36,6 +37,7 @@ interface CatalogEntry {
   availability: MethodAvailability
 }
 
+type DraftSelection = Pick<CatalogEntry, 'capability' | 'method'>
 type AvailabilityFilter = 'all' | 'ready' | 'needs-setup' | 'not-applicable'
 type TierFilter = 'all' | 'common' | 'advanced'
 
@@ -57,19 +59,21 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
   const [selectedDraftRevision, setSelectedDraftRevision] = useState<number | null>(null)
   const [selectedDraftContextHash, setSelectedDraftContextHash] = useState<string | null>(null)
   const [activeCapability, setActiveCapability] = useState<AdvancedAnalysisCapability | null>(null)
+  const [activeMethodId, setActiveMethodId] = useState<string | null>(null)
   const [activeJob, setActiveJob] = useState<AdvancedJobResponse | null>(null)
   const [activeResult, setActiveResult] = useState<AdvancedResultResponse | null>(null)
 
   const draftMutation = useMutation({
-    mutationFn: (capability: ApplicableCapability) => createAnalysisDraft(context.dataset.id, {
+    mutationFn: ({ capability }: DraftSelection) => createAnalysisDraft(context.dataset.id, {
       sliceId: capability.sliceId,
       contextHash: context.contextHash,
     }),
-    onSuccess: (draft, capability) => {
+    onSuccess: (draft, { capability, method }) => {
       setSelectedDraft(draft.id)
       setSelectedDraftRevision(draft.revision)
       setSelectedDraftContextHash(draft.contextHash)
-      setActiveCapability(wizardCapability(capability))
+      setActiveCapability({ ...wizardCapability(capability), label: method.label })
+      setActiveMethodId(method.libraryId)
       setActiveJob(null)
       setActiveResult(null)
     },
@@ -132,6 +136,7 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
     setSelectedDraftRevision(null)
     setSelectedDraftContextHash(null)
     setActiveCapability(null)
+    setActiveMethodId(null)
     setActiveJob(null)
     setActiveResult(null)
     draftMutation.reset()
@@ -191,7 +196,20 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
               context={context}
               draftId={selectedDraft}
               draftRevision={selectedDraftRevision}
-              onJobStarted={setActiveJob}
+              onJobStarted={(job) => {
+                registerOutputRun({
+                  runId: job.id,
+                  projectId: context.projectId,
+                  datasetVersionId: context.dataset.id,
+                  measurementVersionId: context.measurement?.id ?? null,
+                  source: 'advanced',
+                  label: activeCapability.label,
+                  methodId: activeMethodId ?? activeCapability.sliceId ?? activeCapability.family,
+                  family: activeCapability.family,
+                  createdAt: job.createdAt ?? new Date().toISOString(),
+                })
+                setActiveJob(job)
+              }}
             />
           ) : activeJob.status === 'succeeded' && activeResult ? (
             <AdvancedResultView
@@ -324,11 +342,11 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
                             aria-label={`配置${method.label}`}
                             onClick={(event) => {
                               returnButtonRef.current = event.currentTarget
-                              draftMutation.mutate(capability)
+                              draftMutation.mutate({ capability, method })
                             }}
                             disabled={draftMutation.isPending}
                           >
-                            {draftMutation.isPending && draftMutation.variables?.sliceId === capability.sliceId ? '正在打开…' : '选择变量与参数 →'}
+                            {draftMutation.isPending && draftMutation.variables?.capability.sliceId === capability.sliceId ? '正在打开…' : '选择变量与参数 →'}
                           </button>
                         )
                       ) : availability.state === 'needs-setup' ? (

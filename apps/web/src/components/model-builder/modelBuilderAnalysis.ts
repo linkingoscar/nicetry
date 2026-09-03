@@ -16,6 +16,7 @@ import type {
   ResultBundle,
 } from '../../types'
 import { useJobProgress } from '../../hooks/useJobProgress'
+import { registerOutputRun } from '../analyses/outputRunRegistry'
 import { activeRunStorageKey } from './runPersistence'
 
 interface UseModelBuilderAnalysisOptions {
@@ -49,7 +50,20 @@ export function useModelBuilderAnalysis({
       if (!modelVersion) throw new Error('请先冻结 ModelVersion')
       return runFrozenModel(dataset.id, model.modelId, modelVersion)
     },
-    onSuccess: (job) => setActiveRunId(job.id),
+    onSuccess: (job) => {
+      setActiveRunId(job.id)
+      registerOutputRun({
+        runId: job.id,
+        projectId: dataset.projectId,
+        datasetVersionId: dataset.id,
+        measurementVersionId: model.measurementVersionId ?? null,
+        source: 'model',
+        label: model.name || (model.estimation.family === 'sem' ? '结构方程模型（SEM）' : 'PROCESS 模型'),
+        methodId: model.estimation.family === 'sem' ? 'model.sem' : 'model.process',
+        modelId: model.modelId,
+        createdAt: job.createdAt ?? new Date().toISOString(),
+      })
+    },
   })
   const analysisQuery = useQuery({
     queryKey: ['analysis-job', activeRunId],

@@ -15,6 +15,10 @@ import {
   updateAnalysisDocumentMetadata,
 } from './analyses/analysisDocuments'
 import { readAnalysisRunDetails } from './analyses/analysisRunDetails'
+import {
+  readRegisteredOutputRuns,
+  registeredOutputFreshness,
+} from './analyses/outputRunRegistry'
 import { useOutputRunJobs } from './analyses/useOutputRunJobs'
 import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
 
@@ -34,13 +38,20 @@ function runStatusLabel(status?: string) {
   return '历史状态待服务端结果索引确认'
 }
 
+function registeredSourceLabel(source: 'model' | 'advanced', methodId: string) {
+  if (source === 'model') return methodId === 'model.sem' ? 'SEM' : 'PROCESS / 模型'
+  return '高级 / 结构化分析'
+}
+
 export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: OutputWorkspaceProps) {
   const [index, setIndex] = useState(() => loadEmpiricalAnalysisIndex(dataset, measurement))
+  const [registeredRuns, setRegisteredRuns] = useState(() => readRegisteredOutputRuns(dataset.projectId))
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
+    setRegisteredRuns(readRegisteredOutputRuns(dataset.projectId))
     setSelectedRunId(null)
   }, [dataset, measurement])
 
@@ -64,6 +75,12 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
       .toLocaleLowerCase()
       .includes(normalizedSearch)
   }), [documents, index, normalizedSearch])
+  const filteredRegisteredRuns = useMemo(() => registeredRuns.filter((run) => {
+    if (!normalizedSearch) return true
+    return `${run.label} ${run.methodId} ${run.runId} ${run.family ?? ''} ${run.modelId ?? ''}`
+      .toLocaleLowerCase()
+      .includes(normalizedSearch)
+  }), [normalizedSearch, registeredRuns])
 
   const allRuns = documents.flatMap((document) => analysisRunsForDocument(index, document.id))
   const currentRunIds = allRuns
@@ -71,6 +88,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     .map((run) => run.id)
   const serverJobsByRun = useOutputRunJobs(currentRunIds, dataset.id, measurement?.version ?? null)
   const runCount = allRuns.length
+  const totalOutputCount = documents.length + registeredRuns.length
+  const filteredOutputCount = filteredDocuments.length + filteredRegisteredRuns.length
 
   const selectedRun = selectedRunId ? index.runs.find((run) => run.id === selectedRunId) : undefined
   const selectedDocument = selectedRun ? documents.find((document) => document.id === selectedRun.analysisId) : undefined
@@ -112,9 +131,34 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         <div>
           <p className="eyebrow">分析对象与运行</p>
           <h1 id="output-workspace-heading">输出</h1>
-          <p>一项分析可以保留多次不可变运行。旧数据或量表版本的结果继续可见，并明确标记为“基于旧设置”。</p>
+          <p>统一查看当前项目的实证、PROCESS/SEM 与结构化高级分析。旧数据或量表版本的结果继续可见，并明确标记为“基于旧设置”。</p>
         </div>
       </header>
+
+      {totalOutputCount ? (
+        <section className="context-catalog" aria-label="项目输出索引">
+          <div className="section-heading-row">
+            <div>
+              <p className="eyebrow">当前项目</p>
+              <h2>输出索引</h2>
+            </div>
+            <span className="status-badge">{documents.length} 项实证分析 · {registeredRuns.length} 个模型/高级运行</span>
+          </div>
+          <div className="method-catalog-filters">
+            <label>
+              搜索输出
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="分析名称、方法或运行 ID"
+              />
+            </label>
+            <button type="button" className="secondary-button" disabled={!search} onClick={() => setSearch('')}>清除搜索</button>
+          </div>
+          <p className="catalog-result-count" role="status">显示 {filteredOutputCount} / {totalOutputCount} 项输出</p>
+        </section>
+      ) : null}
 
       {selectedRun && selectedDocument ? (
         <section className="context-catalog" aria-label="选中的运行">
@@ -179,29 +223,52 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         </section>
       ) : null}
 
-      {documents.length ? (
-        <section className="context-catalog" aria-label="项目分析对象">
+      {registeredRuns.length ? (
+        <section className="context-catalog" aria-label="模型与高级运行">
           <div className="section-heading-row">
             <div>
-              <p className="eyebrow">当前项目</p>
+              <p className="eyebrow">统一运行引用</p>
+              <h2>PROCESS / SEM / 高级分析</h2>
+              <p className="muted">这里只保存服务端 runId 与来源身份，不在浏览器中复制结果或伪造任务状态。</p>
+            </div>
+            <span className="status-badge">{registeredRuns.length} 个运行</span>
+          </div>
+          {filteredRegisteredRuns.length ? (
+            <div className="method-grid">
+              {filteredRegisteredRuns.map((run) => {
+                const freshness = registeredOutputFreshness(run, dataset, measurement)
+                return (
+                  <article className="method-card" key={`${run.source}:${run.runId}`}>
+                    <div>
+                      <p className="eyebrow">{registeredSourceLabel(run.source, run.methodId)}</p>
+                      <h3>{run.label}</h3>
+                      <p>{new Date(run.createdAt).toLocaleString()}</p>
+                      <div className="method-card-status-row">
+                        <span className={`context-method-status${freshness === 'stale' ? ' method-status-needs-setup' : ''}`}>
+                          {freshness === 'stale' ? '基于旧设置' : '当前数据/量表'}
+                        </span>
+                        <span className="context-method-status">运行引用</span>
+                      </div>
+                      <p className="muted">方法 {run.methodId} · run {run.runId.slice(0, 12)}</p>
+                      <p className="muted">服务端状态和只读结果将在下一层按 runId 恢复；本地索引不声明任务成功或失败。</p>
+                    </div>
+                  </article>
+                )
+              })}
+            </div>
+          ) : <p className="muted">当前搜索没有匹配的 PROCESS、SEM 或高级运行。</p>}
+        </section>
+      ) : null}
+
+      {documents.length ? (
+        <section className="context-catalog" aria-label="实证分析对象">
+          <div className="section-heading-row">
+            <div>
+              <p className="eyebrow">实证分析对象</p>
               <h2>分析与运行</h2>
             </div>
             <span className="status-badge">{documents.length} 项分析 · {runCount} 次运行</span>
           </div>
-
-          <div className="method-catalog-filters">
-            <label>
-              搜索输出
-              <input
-                type="search"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="分析名称、方法或运行 ID"
-              />
-            </label>
-            <button type="button" className="secondary-button" disabled={!search} onClick={() => setSearch('')}>清除搜索</button>
-          </div>
-          <p className="catalog-result-count" role="status">显示 {filteredDocuments.length} / {documents.length} 项分析</p>
 
           {filteredDocuments.length ? (
             <div className="method-grid">
@@ -305,19 +372,16 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                 )
               })}
             </div>
-          ) : (
-            <div className="centered-state">
-              <h3>没有匹配的输出</h3>
-              <p>可以按分析名称、方法 ID、procedure 或运行 ID 搜索。</p>
-            </div>
-          )}
+          ) : <p className="muted">当前搜索没有匹配的实证分析。</p>}
         </section>
-      ) : (
+      ) : null}
+
+      {!totalOutputCount ? (
         <section className="centered-state">
           <h2>还没有运行任何分析</h2>
-          <p>从“分析”选择一个方法并显式运行后，这里会先创建分析对象，再把每次运行归到它的历史中。</p>
+          <p>从“分析”选择一个方法并显式运行后，这里会记录分析对象或服务端运行引用。</p>
         </section>
-      )}
+      ) : null}
     </main>
   )
 }
