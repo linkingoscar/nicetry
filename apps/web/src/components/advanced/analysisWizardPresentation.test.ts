@@ -15,11 +15,17 @@ describe('analysisWizardPresentation', () => {
     'experimental_design.mixed_design.single_within',
     'multilevel_model.aggregation.icc_rwg',
     'multilevel_model.gaussian.two_level',
+    'power_analysis.analytic.regression',
+    'power_analysis.analytic.t_test',
+    'power_analysis.analytic.factorial_anova',
   ])('uses the standard form presentation for %s', (sliceId) => {
     expect(analysisWizardPresentation(capability(sliceId))).toBe('standard')
   })
 
-  it('keeps specialist methods in the advanced presentation', () => {
-    expect(analysisWizardPresentation(capability('questionnaire_measurement.esem_bifactor_irt'))).toBe('advanced')
+  it.each([
+    'questionnaire_measurement.esem_bifactor_irt',
+    'power_analysis.monte_carlo',
+  ])('keeps specialist method %s in the advanced presentation', (sliceId) => {
+    expect(analysisWizardPresentation(capability(sliceId))).toBe('advanced')
   })
 })
