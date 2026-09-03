@@ -8,6 +8,7 @@ import type { EmpiricalProcedure } from '../types/empirical-types'
 import type { AnalysisParadigm } from '../types/study-context'
 import type { ResolvedAnalysisContext } from '../types/analysis-context'
 import {
+  analysisRunsForDocument,
   loadEmpiricalAnalysisIndex,
   updateAnalysisDocumentMetadata,
 } from './analyses/analysisDocuments'
@@ -15,6 +16,7 @@ import { useEmpiricalAnalysisIndexSync } from './analyses/useEmpiricalAnalysisIn
 import { useEmpiricalAnalysisState } from './empirical/useEmpiricalAnalysisState'
 import { EmpiricalAnalysisProvider } from './empirical/EmpiricalAnalysisContext'
 import { EmpiricalMethodScopeProvider } from './empirical/EmpiricalMethodScopeContext'
+import { filterEmpiricalRunHistoryForAnalysis } from './empirical/empiricalRunOwnership'
 import { storedAnalysisMethodSlice } from './empirical/storedAnalysisMethodScope'
 import { EmpiricalAnalysisShellHeader } from './empirical/EmpiricalAnalysisShellHeader'
 import { EmpiricalResultsSection } from './empirical/EmpiricalResultsSection'
@@ -49,10 +51,33 @@ export function EmpiricalAnalysis({
     analysisId,
     analysisProcedure,
   })
-  const analysisDocument = useMemo(() => {
-    if (!analysisId) return undefined
-    return loadEmpiricalAnalysisIndex(dataset, measurement).documents.find((entry) => entry.id === analysisId)
-  }, [analysisId, dataset, measurement])
+  const analysisIndex = useMemo(
+    () => loadEmpiricalAnalysisIndex(dataset, measurement),
+    [dataset, measurement, state.runHistory],
+  )
+  const analysisDocument = analysisId
+    ? analysisIndex.documents.find((entry) => entry.id === analysisId)
+    : undefined
+  const indexedRunIds = useMemo(() => {
+    if (!analysisId) return null
+    return new Set(analysisRunsForDocument(analysisIndex, analysisId).map((run) => run.id))
+  }, [analysisId, analysisIndex])
+  const scopedRunHistory = useMemo(
+    () => filterEmpiricalRunHistoryForAnalysis(
+      state.runHistory,
+      analysisProcedure,
+      analysisId,
+      indexedRunIds,
+    ),
+    [analysisId, analysisProcedure, indexedRunIds, state.runHistory],
+  )
+  const scopedState = useMemo(() => ({
+    ...state,
+    runHistory: scopedRunHistory,
+    onSelectRun: (runId: string) => {
+      if (scopedRunHistory.some((run) => run.id === runId)) state.onSelectRun(runId)
+    },
+  }), [scopedRunHistory, state])
   const methodSliceId = storedAnalysisMethodSlice(analysisDocument?.methodId) ?? tabRequest?.method?.sliceId
   const [analysisTitle, setAnalysisTitle] = useState<string | null>(analysisDocument?.title ?? null)
   const handledInitialRun = useRef<string | null>(null)
@@ -84,7 +109,7 @@ export function EmpiricalAnalysis({
 
   return (
     <EmpiricalMethodScopeProvider methodSliceId={methodSliceId}>
-      <EmpiricalAnalysisProvider value={state}>
+      <EmpiricalAnalysisProvider value={scopedState}>
         <main className="empirical-center">
           {analysisId ? (
             <section className="method-note" aria-label="当前分析">
