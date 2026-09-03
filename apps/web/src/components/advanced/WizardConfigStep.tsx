@@ -136,6 +136,7 @@ export function WizardConfigStep({
             }
           })()}
           onChange={newSpec => setSpecJson(JSON.stringify(newSpec, null, 2))}
+          sliceId={capability.sliceId}
         />
       ) : capability.family === 'experimental_design' ? (
         <ExperimentWizard
