@@ -66,6 +66,12 @@ export function wizardCapability(capability: ApplicableCapability): AdvancedAnal
   }
 }
 
+function isMethodLibraryDefinition(
+  definition: MethodLibraryDefinition | MethodDefinition,
+): definition is MethodLibraryDefinition {
+  return 'libraryId' in definition
+}
+
 export function internalWorkbenchTarget(
   capability: ApplicableCapability,
   definitionOverride?: MethodLibraryDefinition | MethodDefinition,
@@ -78,7 +84,7 @@ export function internalWorkbenchTarget(
     sliceId: capability.sliceId,
     label: definition.label,
   }
-  if ('libraryId' in definition && definition.procedure) method.procedure = definition.procedure
+  if (isMethodLibraryDefinition(definition) && definition.procedure) method.procedure = definition.procedure
 
   if (definition.adapter === 'model') return { view: 'model', ...method }
   if (definition.adapter === 'empirical-longitudinal') return { view: 'empirical', tab: 'longitudinal', ...method }
