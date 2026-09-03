@@ -1,26 +1,30 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
+import { getAdvancedAnalysisResult } from '../../api/advanced'
 import {
   createImputationPlan,
   getImputationPlanCompatibility,
   runImputationPlan,
 } from '../../api/imputation-plans'
-import { getAdvancedAnalysisResult } from '../../api/advanced'
+import type { AdvancedAnalysisCapability } from '../../types'
 import type { ResolvedAnalysisContext } from '../../types/analysis-context'
 import type { AdvancedJobResponse, AdvancedResultResponse } from '../../types/advanced'
 import type { ImputationPlanCreateRequest } from '../../types/workflows'
 import type { DatasetVariableItem } from '../advanced/DatasetVariablePicker'
-import { ImputationWizard, type ImputationWizardSpec } from '../advanced/ImputationWizard'
 import { AdvancedResultView } from '../advanced/AdvancedResultView'
+import { ImputationWizard, type ImputationWizardSpec } from '../advanced/ImputationWizard'
 import { JobProgress } from '../advanced/JobProgress'
-import type { AdvancedAnalysisCapability } from '../../types'
+import { registerOutputRun } from '../analyses/outputRunRegistry'
 
 interface ImputationPlanWorkspaceProps {
   context: ResolvedAnalysisContext
   variables: DatasetVariableItem[]
   draftId?: string | null
 }
+
+const MI_METHOD_ID = 'missing.multiple-imputation'
+const MI_METHOD_LABEL = '多重插补与 Rubin 合并'
 
 function initialSpec(context: ResolvedAnalysisContext, variables: DatasetVariableItem[]): ImputationWizardSpec {
   const numeric = variables.filter((variable) => variable.type === 'numeric')
@@ -60,7 +64,7 @@ function initialSpec(context: ResolvedAnalysisContext, variables: DatasetVariabl
 function capability(): AdvancedAnalysisCapability {
   return {
     family: 'multiple_imputation',
-    label: '上下文绑定多重插补（Rubin 线性回归）',
+    label: MI_METHOD_LABEL,
     status: 'supported',
     specVersion: '0.1.0',
     resultVersion: '0.1.0',
@@ -124,6 +128,17 @@ export function ImputationPlanWorkspace({ context, variables, draftId = null }: 
   const runMutation = useMutation({
     mutationFn: () => runImputationPlan(plan?.id ?? ''),
     onSuccess: (started) => {
+      registerOutputRun({
+        runId: started.job.id,
+        projectId: context.projectId,
+        datasetVersionId: context.dataset.id,
+        measurementVersionId: context.measurement?.id ?? null,
+        source: 'advanced',
+        label: MI_METHOD_LABEL,
+        methodId: MI_METHOD_ID,
+        family: 'multiple_imputation',
+        createdAt: started.job.createdAt ?? new Date().toISOString(),
+      })
       setJob(started.job)
       setResult(null)
     },
@@ -148,16 +163,16 @@ export function ImputationPlanWorkspace({ context, variables, draftId = null }: 
   return (
     <section className="context-mi-workspace" aria-labelledby="context-mi-heading">
       <header>
-        <p className="eyebrow">MI 计划 → 分析草稿 → R runner</p>
-        <h2 id="context-mi-heading">上下文绑定的多重插补</h2>
-        <p className="muted">先把缺失机制边界、插补矩阵和下游线性模型保存为 ImputationPlanVersion，再运行 R mice；结果和派生插补数据版本沿用同一条 lineage。</p>
+        <p className="eyebrow">分析设置 → 检查插补计划 → 运行分析</p>
+        <h2 id="context-mi-heading">{MI_METHOD_LABEL}</h2>
+        <p className="muted">先冻结下游线性模型、缺失变量和插补矩阵，再显式运行。服务端任务是结果真相源，运行引用会进入统一输出工作区。</p>
       </header>
       {!plan ? (
         <>
           <ImputationWizard spec={spec} onChange={setSpec} variables={variables} />
           {planMutation.error ? <p className="error-message" role="alert">插补计划创建失败：{planMutation.error.message}</p> : null}
           <button type="button" className="run-button" onClick={() => planMutation.mutate()} disabled={planMutation.isPending || (structureRequired && !context.structure?.id) || !spec.pooledAnalysis.outcomeId || spec.pooledAnalysis.predictorIds.length === 0 || spec.variables.length === 0}>
-            {planMutation.isPending ? '校验并保存计划…' : '保存 ImputationPlanVersion'}
+            {planMutation.isPending ? '正在检查并保存设置…' : '检查并保存插补设置'}
           </button>
         </>
       ) : displayedResult ? (
@@ -180,7 +195,7 @@ export function ImputationPlanWorkspace({ context, variables, draftId = null }: 
           <div className="context-lineage-grid">
             {planLineage.map(([label, value]) => <div key={label}><span>{label}</span><code>{value}</code></div>)}
           </div>
-          {compatibilityQuery.data ? <p className={compatibilityQuery.data.compatible ? 'method-note' : 'method-warning'} role="status">分析草稿兼容性：{compatibilityQuery.data.compatible ? 'compatible' : compatibilityQuery.data.reasons.join('、')}</p> : null}
+          {compatibilityQuery.data ? <p className={compatibilityQuery.data.compatible ? 'method-note' : 'method-warning'} role="status">分析草稿兼容性：{compatibilityQuery.data.compatible ? '可以运行' : compatibilityQuery.data.reasons.join('、')}</p> : null}
           {job ? (
             <JobProgress
               jobId={job.id}
@@ -196,9 +211,9 @@ export function ImputationPlanWorkspace({ context, variables, draftId = null }: 
             <>
               {runMutation.error ? <p className="error-message" role="alert">插补运行失败：{runMutation.error.message}</p> : null}
               <button type="button" className="run-button" onClick={() => runMutation.mutate()} disabled={runMutation.isPending || compatibilityQuery.data?.compatible === false}>
-                {runMutation.isPending ? '提交 R runner…' : '运行插补并生成派生数据版本'}
+                {runMutation.isPending ? '正在启动分析…' : '运行多重插补与 Rubin 合并'}
               </button>
-              <button type="button" className="secondary-button" onClick={() => setPlan(null)}>返回修改计划</button>
+              <button type="button" className="secondary-button" onClick={() => setPlan(null)}>返回修改设置</button>
             </>
           )}
         </>
