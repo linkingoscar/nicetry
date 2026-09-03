@@ -148,6 +148,7 @@ export function WizardConfigStep({
           })()}
           onChange={newSpec => setSpecJson(JSON.stringify(newSpec, null, 2))}
           variables={variables}
+          sliceId={capability.sliceId}
         />
       ) : capability.family === 'multiple_imputation' ? (
         <ImputationWizard
@@ -172,6 +173,7 @@ export function WizardConfigStep({
           })()}
           onChange={newSpec => setSpecJson(JSON.stringify(newSpec, null, 2))}
           variables={variables}
+          sliceId={capability.sliceId}
         />
       ) : (
         <div />
