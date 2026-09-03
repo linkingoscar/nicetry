@@ -43,16 +43,25 @@ export function powerDesignFamilyForSlice(sliceId?: string): PowerWizardSpec['de
   return undefined
 }
 
+function powerMethodForSlice(sliceId?: string): PowerWizardSpec['method'] | undefined {
+  if (sliceId === 'power_analysis.monte_carlo') return 'monte_carlo'
+  if (sliceId?.startsWith('power_analysis.analytic.')) return 'analytic'
+  return undefined
+}
+
 export function normalizePowerSpecForSlice(spec: PowerWizardSpec, sliceId?: string): PowerWizardSpec {
   const lockedDesign = powerDesignFamilyForSlice(sliceId)
+  const lockedMethod = powerMethodForSlice(sliceId)
   const designFamily = lockedDesign ?? spec.designFamily
   const designChanged = designFamily !== spec.designFamily
   const metric = effectMetricForDesign(designFamily)
-  const monteCarlo = sliceId === 'power_analysis.monte_carlo' || spec.method === 'monte_carlo'
+  const method = lockedMethod ?? spec.method
+  const monteCarlo = method === 'monte_carlo'
   const solveFor = monteCarlo && spec.solveFor === 'ci_width' ? 'sample_size' : spec.solveFor
 
   const next: PowerWizardSpec = {
     ...spec,
+    ...(method ? { method } : {}),
     designFamily,
     solveFor,
     alternative: 'two_sided',
@@ -91,7 +100,7 @@ export function normalizePowerSpecForSlice(spec: PowerWizardSpec, sliceId?: stri
 export const PowerWizard: React.FC<PowerWizardProps> = ({ spec, onChange, sliceId }) => {
   const normalizedSpec = normalizePowerSpecForSlice(spec, sliceId)
   const lockedDesign = powerDesignFamilyForSlice(sliceId)
-  const monteCarlo = sliceId === 'power_analysis.monte_carlo' || normalizedSpec.method === 'monte_carlo'
+  const monteCarlo = normalizedSpec.method === 'monte_carlo'
 
   useEffect(() => {
     if (JSON.stringify(normalizedSpec) !== JSON.stringify(spec)) onChange(normalizedSpec)

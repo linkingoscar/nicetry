@@ -11,6 +11,7 @@ import {
 
 const baseSpec: PowerWizardSpec = {
   family: 'power_analysis',
+  method: 'analytic',
   designFamily: 'regression',
   solveFor: 'sample_size',
   alpha: 0.05,
@@ -46,11 +47,11 @@ describe('PowerWizard', () => {
     }))
   })
 
-  it('locks analytic method cards to the design declared by their capability slice', () => {
+  it('locks analytic method cards to the method and design declared by their capability slice', () => {
     const onChange = vi.fn()
     render(
       <PowerWizard
-        spec={baseSpec}
+        spec={{ ...baseSpec, method: 'monte_carlo' }}
         onChange={onChange}
         sliceId="power_analysis.analytic.t_test"
       />,
@@ -61,6 +62,7 @@ describe('PowerWizard', () => {
     expect(screen.getByLabelText(/设计类型/)).toHaveValue('t_test')
     expect(screen.getByText("Cohen's d")).toBeInTheDocument()
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
+      method: 'analytic',
       designFamily: 't_test',
       groups: 2,
       effectSize: { metric: 'cohens_d', value: 0.15 },
@@ -69,6 +71,7 @@ describe('PowerWizard', () => {
 
   it('adds the required current N when solving achieved power', () => {
     expect(normalizePowerSpecForSlice({ ...baseSpec, solveFor: 'power' }, 'power_analysis.analytic.regression')).toMatchObject({
+      method: 'analytic',
       solveFor: 'power',
       sampleSize: 200,
       alternative: 'two_sided',
@@ -86,10 +89,10 @@ describe('PowerWizard', () => {
     expect(normalized.effectSizeMetric).toBe('cohens_f2')
   })
 
-  it('normalizes unsupported guided Monte Carlo settings to the registered regression DGP boundary', () => {
+  it('normalizes unsupported guided Monte Carlo settings to the registered method and regression DGP boundary', () => {
     const normalized = normalizePowerSpecForSlice({
       ...baseSpec,
-      method: 'monte_carlo',
+      method: 'analytic',
       designFamily: 't_test',
       solveFor: 'ci_width',
       alternative: 'one_sided',
