@@ -5,6 +5,7 @@ export interface WorkbenchTarget {
   view: 'empirical' | 'model'
   tab?: EmpiricalResultTab
   sliceId: string
+  methodId?: string
   label: string
   procedure?: EmpiricalProcedure
   processModelNumber?: 1 | 4
@@ -12,6 +13,7 @@ export interface WorkbenchTarget {
 
 export interface MethodRequest {
   sliceId: string
+  methodId?: string
   label: string
   contextHash: string
   key: number

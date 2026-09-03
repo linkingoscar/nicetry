@@ -19,6 +19,7 @@ import { StudyContextSwitcher } from './components/shared/StudyContextSwitcher'
 import { SectionErrorBoundary } from './components/shared/SectionErrorBoundary'
 import { ToastContainer } from './components/shared/Toast'
 import { procedureDefinition } from './components/empirical/empiricalProcedures'
+import { methodDefinitions } from './methods/methodDefinitions'
 import { useTheme } from './hooks/useTheme'
 import { useWorkspaceState } from './hooks/useWorkspaceState'
 
@@ -67,14 +68,21 @@ export function App() {
 
   if (hydrating && !activeDataset) return <AppHydratingScreen />
 
-  const openEmpiricalProcedure = (procedure: EmpiricalProcedure, analysisId?: string, runId?: string) => {
+  const openEmpiricalProcedure = (
+    procedure: EmpiricalProcedure,
+    analysisId?: string,
+    runId?: string,
+    methodId?: string,
+  ) => {
     const definition = procedureDefinition(procedure)
+    const storedMethod = methodId ? methodDefinitions.find((entry) => entry.id === methodId) : undefined
     const document = activeDataset && !analysisId
-      ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
+      ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure, methodId)
       : null
     const method = {
-      sliceId: definition.slice,
-      label: definition.label,
+      sliceId: storedMethod?.capabilitySliceIds[0] ?? definition.slice,
+      methodId,
+      label: storedMethod?.label ?? definition.label,
       contextHash: resolvedContext?.contextHash ?? '',
       key: Date.now(),
       procedure,
@@ -100,6 +108,7 @@ export function App() {
       measurement,
       procedure,
       `${source?.title ?? definition.label} 副本`,
+      source?.methodId,
     )
     cloneEmpiricalDraftToAnalysis(
       activeDataset,
@@ -110,9 +119,13 @@ export function App() {
       procedure,
     )
 
+    const sourceMethod = source?.methodId
+      ? methodDefinitions.find((entry) => entry.id === source.methodId)
+      : undefined
     const method = {
-      sliceId: definition.slice,
-      label: definition.label,
+      sliceId: sourceMethod?.capabilitySliceIds[0] ?? empiricalTabRequest.method?.sliceId ?? definition.slice,
+      methodId: source?.methodId,
+      label: sourceMethod?.label ?? empiricalTabRequest.method?.label ?? definition.label,
       contextHash: resolvedContext.contextHash,
       key: Date.now(),
       procedure,
@@ -285,9 +298,10 @@ export function App() {
                   context={resolvedContext}
                   variables={activeDataset.variables}
                   onPrepare={() => setActiveView('data')}
-                  onNavigate={({ view, tab, sliceId, label, procedure, processModelNumber }) => {
+                  onNavigate={({ view, tab, sliceId, methodId, label, procedure, processModelNumber }) => {
                     const method = {
                       sliceId,
+                      methodId,
                       label,
                       contextHash: resolvedContext.contextHash,
                       key: Date.now(),
@@ -301,7 +315,7 @@ export function App() {
                       setAnalysisSurface('model')
                     } else {
                       const document = procedure
-                        ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
+                        ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure, methodId)
                         : null
                       setActiveAnalysisId(document?.id ?? null)
                       setActiveRunRequestId(null)

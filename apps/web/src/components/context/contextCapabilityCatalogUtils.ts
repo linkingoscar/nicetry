@@ -3,6 +3,7 @@ import type { MethodLibraryDefinition } from '../../methods/methodLibraryPresets
 import type { ApplicableCapability } from '../../types/analysis-context'
 import type { DatasetVariable } from '../../types/datasets'
 import type { AdvancedAnalysisCapability, CapabilityMaturity, PublicationEligibility } from '../../types/advanced'
+import type { EmpiricalProcedure } from '../../types/empirical-types'
 import type { WorkbenchTarget } from './workbenchNavigation'
 
 export function familyLabel(family: string): string {
@@ -72,6 +73,17 @@ function isMethodLibraryDefinition(
   return 'libraryId' in definition
 }
 
+function defaultProcedureForAdapter(adapter: MethodDefinition['adapter']): EmpiricalProcedure | undefined {
+  if (adapter === 'empirical-longitudinal') return 'longitudinal'
+  if (adapter === 'empirical-diary') return 'diary'
+  if (adapter === 'empirical-overview') return 'descriptives'
+  if (adapter === 'empirical-measurement') return 'reliability'
+  if (adapter === 'empirical-groups') return 'groups'
+  if (adapter === 'empirical-regression') return 'regression'
+  if (adapter === 'empirical-advanced') return 'response_surface'
+  return undefined
+}
+
 export function internalWorkbenchTarget(
   capability: ApplicableCapability,
   definitionOverride?: MethodLibraryDefinition | MethodDefinition,
@@ -80,14 +92,16 @@ export function internalWorkbenchTarget(
   const definition = definitionOverride ?? methodForCapability(capability.sliceId)
   if (!definition || definition.adapter === 'advanced-wizard') return null
 
-  const method: Pick<WorkbenchTarget, 'sliceId' | 'label' | 'procedure' | 'processModelNumber'> = {
+  const method: Pick<WorkbenchTarget, 'sliceId' | 'methodId' | 'label' | 'procedure' | 'processModelNumber'> = {
     sliceId: capability.sliceId,
+    methodId: isMethodLibraryDefinition(definition) ? definition.libraryId : definition.id,
     label: definition.label,
   }
   if (isMethodLibraryDefinition(definition)) {
     if (definition.procedure) method.procedure = definition.procedure
     if (definition.processModelNumber) method.processModelNumber = definition.processModelNumber
   }
+  method.procedure ??= defaultProcedureForAdapter(definition.adapter)
 
   if (definition.adapter === 'model') return { view: 'model', ...method }
   if (definition.adapter === 'empirical-longitudinal') return { view: 'empirical', tab: 'longitudinal', ...method }

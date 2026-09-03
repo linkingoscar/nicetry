@@ -83,21 +83,30 @@ function analysisIdentity(
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
   procedure: EmpiricalProcedure,
+  methodId: string,
 ): string {
-  return `${dataset.projectId}:${dataset.id}:${measurementIdentity(measurement)}:${procedure}`
+  return `${dataset.projectId}:${dataset.id}:${measurementIdentity(measurement)}:${procedure}:${methodId}`
 }
 
 function defaultAnalysisId(
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
   procedure: EmpiricalProcedure,
+  methodId: string,
 ): string {
-  return `analysis_${stableHash(analysisIdentity(dataset, measurement, procedure))}`
+  return `analysis_${stableHash(analysisIdentity(dataset, measurement, procedure, methodId))}`
 }
 
-function methodIdentity(procedure: EmpiricalProcedure) {
+function methodIdentity(procedure: EmpiricalProcedure, requestedMethodId?: string) {
+  if (requestedMethodId) {
+    const requested = expandedMethods.find((method) => method.libraryId === requestedMethodId || method.id === requestedMethodId)
+    if (requested) return { methodId: requested.libraryId, title: requested.label, categoryId: requested.categoryId }
+    const registered = methodDefinitions.find((method) => method.id === requestedMethodId)
+    if (registered) return { methodId: registered.id, title: registered.label, categoryId: registered.categoryId }
+  }
+
   const expanded = expandedMethods.find((method) => method.procedure === procedure)
-  if (expanded) return { methodId: expanded.id, title: expanded.label, categoryId: expanded.categoryId }
+  if (expanded) return { methodId: expanded.libraryId, title: expanded.label, categoryId: expanded.categoryId }
 
   const procedureDefinition = empiricalProcedures.find((definition) => definition.id === procedure)
   const exact = procedureDefinition
@@ -150,7 +159,7 @@ function legacyHistoryKey(dataset: DatasetVersion, measurement: MeasurementVersi
   return `researchpath.empirical.runs.v1:${dataset.id}:${measurement?.version ?? null}`
 }
 
-function documentMatches(
+function documentBaseMatches(
   document: AnalysisDocumentIndexEntry,
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
@@ -162,6 +171,17 @@ function documentMatches(
     && document.procedure === procedure
 }
 
+function documentMatches(
+  document: AnalysisDocumentIndexEntry,
+  dataset: DatasetVersion,
+  measurement: MeasurementVersion | null,
+  procedure: EmpiricalProcedure,
+  methodId?: string,
+) {
+  return documentBaseMatches(document, dataset, measurement, procedure)
+    && (!methodId || document.methodId === methodId)
+}
+
 function ensureDocument(
   index: AnalysisDocumentIndex,
   dataset: DatasetVersion,
@@ -169,17 +189,25 @@ function ensureDocument(
   procedure: EmpiricalProcedure,
   createdAt: string,
   requestedId?: string,
+  requestedMethodId?: string,
 ): AnalysisDocumentIndexEntry {
-  const fallbackId = defaultAnalysisId(dataset, measurement, procedure)
+  const method = methodIdentity(procedure, requestedMethodId)
+
+  if (!requestedId) {
+    const compatible = index.documents.find((document) =>
+      documentMatches(document, dataset, measurement, procedure, method.methodId))
+    if (compatible) return compatible
+  }
+
+  const fallbackId = defaultAnalysisId(dataset, measurement, procedure, method.methodId)
   let id = requestedId && ID_PATTERN.test(requestedId) ? requestedId : fallbackId
   const requested = index.documents.find((document) => document.id === id)
-  if (requested && documentMatches(requested, dataset, measurement, procedure)) return requested
+  if (requested && documentMatches(requested, dataset, measurement, procedure, requestedMethodId ? method.methodId : undefined)) return requested
 
   if (requested && id !== fallbackId) id = fallbackId
   const existing = index.documents.find((document) => document.id === id)
-  if (existing && documentMatches(existing, dataset, measurement, procedure)) return existing
+  if (existing && documentMatches(existing, dataset, measurement, procedure, method.methodId)) return existing
 
-  const method = methodIdentity(procedure)
   const document: AnalysisDocumentIndexEntry = {
     id,
     projectId: dataset.projectId,
@@ -212,13 +240,23 @@ export function ensureEmpiricalAnalysisDocument(
   dataset: DatasetVersion,
   measurement: MeasurementVersion | null,
   procedure: EmpiricalProcedure,
+  requestedMethodId?: string,
 ): AnalysisDocumentIndexEntry {
   const index = readIndex(dataset.projectId)
-  const id = defaultAnalysisId(dataset, measurement, procedure)
-  const existing = index.documents.find((document) => document.id === id && documentMatches(document, dataset, measurement, procedure))
-  if (existing) return existing
+  const method = methodIdentity(procedure, requestedMethodId)
+  const existingByMethod = index.documents.find((document) =>
+    documentMatches(document, dataset, measurement, procedure, method.methodId))
+  if (existingByMethod) return existingByMethod
 
-  const document = ensureDocument(index, dataset, measurement, procedure, new Date().toISOString())
+  const document = ensureDocument(
+    index,
+    dataset,
+    measurement,
+    procedure,
+    new Date().toISOString(),
+    undefined,
+    method.methodId,
+  )
   saveIndex(dataset.projectId, index)
   return document
 }
@@ -228,10 +266,19 @@ export function createEmpiricalAnalysisDocument(
   measurement: MeasurementVersion | null,
   procedure: EmpiricalProcedure,
   title?: string,
+  requestedMethodId?: string,
 ): AnalysisDocumentIndexEntry {
   const index = readIndex(dataset.projectId)
   const now = new Date().toISOString()
-  const document = ensureDocument(index, dataset, measurement, procedure, now, uniqueAnalysisId(index))
+  const document = ensureDocument(
+    index,
+    dataset,
+    measurement,
+    procedure,
+    now,
+    uniqueAnalysisId(index),
+    requestedMethodId,
+  )
   const requestedTitle = title?.trim()
   if (requestedTitle) document.title = requestedTitle
   saveIndex(dataset.projectId, index)
@@ -274,7 +321,7 @@ export function loadEmpiricalAnalysisIndex(
   })
 
   index.documents
-    .filter((document) => documentMatches(document, dataset, measurement, document.procedure))
+    .filter((document) => documentBaseMatches(document, dataset, measurement, document.procedure))
     .forEach((document) => {
       const runs = index.runs
         .filter((run) => run.analysisId === document.id)
