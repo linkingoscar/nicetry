@@ -28,8 +28,8 @@ interface ModelPreset {
   visibilityTier?: MethodVisibilityTier
 }
 
-interface AdvancedVariantOverride {
-  label: string
+interface MethodCopyOverride {
+  label?: string
   description?: string
   aliases?: string[]
   keywords?: string[]
@@ -44,7 +44,7 @@ const COMMON_FORM_METHOD_IDS = new Set([
   'multilevel.gaussian-lmm',
 ])
 
-const ADVANCED_VARIANT_OVERRIDES: Record<string, AdvancedVariantOverride> = {
+const METHOD_COPY_OVERRIDES: Record<string, MethodCopyOverride> = {
   'measurement.ordinal-reliability': {
     label: '高级序数信度（Polychoric α / ω）',
     description: '使用高级有序题项规格估计序数 α / ω；基础“信度与项目分析”仍是常用默认入口。',
@@ -77,6 +77,9 @@ const ADVANCED_VARIANT_OVERRIDES: Record<string, AdvancedVariantOverride> = {
   },
   'measurement.esem-bifactor-irt': {
     label: 'ESEM / Bifactor / IRT / DIF（高级）',
+  },
+  'longitudinal.clpm': {
+    description: '传统交叉滞后面板模型；当前配置支持两时点 CLPM，三时点及以上可进一步使用 RI-CLPM 分离个体间与个体内效应。',
   },
 }
 
@@ -255,14 +258,14 @@ export function expandMethodForLibrary(method: MethodDefinition): MethodLibraryD
   }
 
   const commonForm = COMMON_FORM_METHOD_IDS.has(method.id)
-  const advancedVariant = ADVANCED_VARIANT_OVERRIDES[method.id]
+  const copyOverride = METHOD_COPY_OVERRIDES[method.id]
   return [{
     ...method,
     libraryId: method.id,
-    label: advancedVariant?.label ?? method.label,
-    description: advancedVariant?.description ?? method.description,
-    aliases: advancedVariant?.aliases ? [...new Set([...method.aliases, ...advancedVariant.aliases])] : method.aliases,
-    keywords: advancedVariant?.keywords ? [...new Set([...method.keywords, ...advancedVariant.keywords])] : method.keywords,
+    label: copyOverride?.label ?? method.label,
+    description: copyOverride?.description ?? method.description,
+    aliases: copyOverride?.aliases ? [...new Set([...method.aliases, ...copyOverride.aliases])] : method.aliases,
+    keywords: copyOverride?.keywords ? [...new Set([...method.keywords, ...copyOverride.keywords])] : method.keywords,
     advanced: commonForm ? false : method.advanced,
     visibilityTier: commonForm ? 'common' : method.visibilityTier,
   }]
