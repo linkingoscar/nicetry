@@ -28,6 +28,15 @@ interface ModelPreset {
   visibilityTier?: MethodVisibilityTier
 }
 
+const COMMON_FORM_METHOD_IDS = new Set([
+  'experiment.factorial-anova',
+  'experiment.ancova',
+  'experiment.repeated-measures',
+  'experiment.mixed-design',
+  'multilevel.aggregation',
+  'multilevel.gaussian-lmm',
+])
+
 const PROCEDURE_PRESETS: Record<string, ProcedurePreset[]> = {
   'empirical.overview': [
     {
@@ -202,7 +211,13 @@ export function expandMethodForLibrary(method: MethodDefinition): MethodLibraryD
     }))
   }
 
-  return [{ ...method, libraryId: method.id }]
+  const commonForm = COMMON_FORM_METHOD_IDS.has(method.id)
+  return [{
+    ...method,
+    libraryId: method.id,
+    advanced: commonForm ? false : method.advanced,
+    visibilityTier: commonForm ? 'common' : method.visibilityTier,
+  }]
 }
 
 export function libraryMethodsForCapability(capability: ApplicableCapability): MethodLibraryDefinition[] {
