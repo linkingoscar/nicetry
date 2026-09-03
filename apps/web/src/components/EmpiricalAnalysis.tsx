@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { EmpiricalTabRequest } from './context/workbenchNavigation'
 import type {
   DatasetVersion,
@@ -25,6 +25,7 @@ interface EmpiricalAnalysisProps {
   analysisContext?: ResolvedAnalysisContext | null
   analysisId?: string | null
   analysisProcedure?: EmpiricalProcedure
+  initialRunId?: string | null
 }
 
 export function EmpiricalAnalysis({
@@ -35,6 +36,7 @@ export function EmpiricalAnalysis({
   analysisContext,
   analysisId,
   analysisProcedure,
+  initialRunId,
 }: EmpiricalAnalysisProps) {
   const state = useEmpiricalAnalysisState({
     dataset,
@@ -46,8 +48,15 @@ export function EmpiricalAnalysis({
     analysisProcedure,
   })
   const [analysisTitle, setAnalysisTitle] = useState<string | null>(null)
+  const handledInitialRun = useRef<string | null>(null)
 
   useEmpiricalAnalysisIndexSync(dataset, measurement, state.analysisJob)
+
+  useEffect(() => {
+    if (!initialRunId || handledInitialRun.current === initialRunId) return
+    handledInitialRun.current = initialRunId
+    state.onSelectRun(initialRunId)
+  }, [initialRunId, state])
 
   useEffect(() => {
     if (!analysisId) {

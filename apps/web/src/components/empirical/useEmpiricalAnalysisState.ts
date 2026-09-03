@@ -316,10 +316,11 @@ export function useEmpiricalAnalysisState({
   }
   const onSelectRun = (id: string) => {
     const entry = analysisRunHistory.find((run) => run.id === id)
-    if (!entry || isRunning) return
+    const procedure = entry?.procedure ?? analysisProcedure
+    if (!procedure || isRunning) return
     restoreRun.current = id
     setActiveRunId(id)
-    setActiveTab(procedureDefinition(entry.procedure).tab)
+    setActiveTab(procedureDefinition(procedure).tab)
     mutation.reset()
   }
   return {

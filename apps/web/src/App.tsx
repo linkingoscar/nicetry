@@ -34,6 +34,7 @@ export function App() {
   const [modelMethodRequest, setModelMethodRequest] = useState<MethodRequest | null>(null)
   const [analysisSurface, setAnalysisSurface] = useState<AnalysisSurface>('library')
   const [activeAnalysisId, setActiveAnalysisId] = useState<string | null>(null)
+  const [activeRunRequestId, setActiveRunRequestId] = useState<string | null>(null)
   const {
     workspaceNavRef,
     studyIntent,
@@ -66,7 +67,7 @@ export function App() {
 
   if (hydrating && !activeDataset) return <AppHydratingScreen />
 
-  const openEmpiricalProcedure = (procedure: EmpiricalProcedure, analysisId?: string) => {
+  const openEmpiricalProcedure = (procedure: EmpiricalProcedure, analysisId?: string, runId?: string) => {
     const definition = procedureDefinition(procedure)
     const document = activeDataset && !analysisId
       ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
@@ -79,6 +80,7 @@ export function App() {
       procedure,
     }
     setActiveAnalysisId(analysisId ?? document?.id ?? null)
+    setActiveRunRequestId(runId ?? null)
     setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
     setAnalysisSurface('empirical')
     setActiveView('analyze')
@@ -115,6 +117,7 @@ export function App() {
       key: Date.now(),
       procedure,
     }
+    setActiveRunRequestId(null)
     setActiveAnalysisId(duplicate.id)
     setEmpiricalTabRequest({ tab: definition.tab, key: method.key, method })
   }
@@ -186,6 +189,7 @@ export function App() {
             if (view === 'analyze') {
               setAnalysisSurface('library')
               setActiveAnalysisId(null)
+              setActiveRunRequestId(null)
             }
           }}
         />
@@ -205,6 +209,7 @@ export function App() {
                     if (cleared) {
                       setModelMethodRequest(null)
                       setActiveAnalysisId(null)
+                      setActiveRunRequestId(null)
                       setAnalysisSurface('library')
                     }
                     return cleared
@@ -213,6 +218,7 @@ export function App() {
                   onStructureSaved={handleStructureSaved}
                   onContinueToAnalysis={() => {
                     setActiveAnalysisId(null)
+                    setActiveRunRequestId(null)
                     setAnalysisSurface('library')
                     setActiveView('analyze')
                   }}
@@ -234,6 +240,7 @@ export function App() {
                   <div className="analysis-inline-actions">
                     <button type="button" className="secondary-button" onClick={() => {
                       setActiveAnalysisId(null)
+                      setActiveRunRequestId(null)
                       setAnalysisSurface('library')
                     }}>← 返回方法库</button>
                     {activeAnalysisId && empiricalTabRequest?.method?.procedure ? (
@@ -241,7 +248,7 @@ export function App() {
                     ) : null}
                   </div>
                   <EmpiricalAnalysis
-                    key={`${activeDataset.id}:${activeDataset.dictionary.version}:${modelContext?.measurement.version ?? 'raw'}:${resolvedContext.contextHash}:${activeAnalysisId ?? 'legacy'}`}
+                    key={`${activeDataset.id}:${activeDataset.dictionary.version}:${modelContext?.measurement.version ?? 'raw'}:${resolvedContext.contextHash}:${activeAnalysisId ?? 'legacy'}:${activeRunRequestId ?? 'current'}`}
                     dataset={activeDataset}
                     measurement={modelContext?.measurement ?? null}
                     researchParadigm={researchParadigm}
@@ -249,6 +256,7 @@ export function App() {
                     tabRequest={empiricalTabRequest ?? undefined}
                     analysisId={activeAnalysisId}
                     analysisProcedure={empiricalTabRequest?.method?.procedure}
+                    initialRunId={activeRunRequestId}
                   />
                 </div>
               </SectionErrorBoundary>
@@ -281,6 +289,7 @@ export function App() {
                     const method = { sliceId, label, contextHash: resolvedContext.contextHash, key: Date.now(), procedure }
                     if (view === 'model') {
                       setActiveAnalysisId(null)
+                      setActiveRunRequestId(null)
                       setModelMethodRequest(method)
                       setAnalysisSurface('model')
                     } else {
@@ -288,6 +297,7 @@ export function App() {
                         ? ensureEmpiricalAnalysisDocument(activeDataset, modelContext?.measurement ?? null, procedure)
                         : null
                       setActiveAnalysisId(document?.id ?? null)
+                      setActiveRunRequestId(null)
                       setAnalysisSurface('empirical')
                     }
                     if (tab) setEmpiricalTabRequest({ tab, key: method.key, method })
@@ -323,6 +333,7 @@ export function App() {
             setActiveView(view)
             if (view === 'analyze') {
               setActiveAnalysisId(null)
+              setActiveRunRequestId(null)
               setAnalysisSurface('library')
             }
           }}

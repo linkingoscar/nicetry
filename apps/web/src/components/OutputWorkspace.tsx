@@ -20,7 +20,7 @@ import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
   measurement: MeasurementVersion | null
-  onOpenProcedure: (procedure: EmpiricalProcedure, analysisId?: string) => void
+  onOpenProcedure: (procedure: EmpiricalProcedure, analysisId?: string, runId?: string) => void
 }
 
 function runStatusLabel(status?: string) {
@@ -157,9 +157,9 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
               className="secondary-button"
               onClick={() => selectedFreshness === 'stale'
                 ? onOpenProcedure(selectedDocument.procedure)
-                : onOpenProcedure(selectedDocument.procedure, selectedDocument.id)}
+                : onOpenProcedure(selectedDocument.procedure, selectedDocument.id, selectedRun.id)}
             >
-              {selectedFreshness === 'stale' ? '用当前数据新建配置' : '编辑设置 / 打开对应分析'}
+              {selectedFreshness === 'stale' ? '用当前数据新建配置' : '打开该运行结果 / 设置'}
             </button>
           </div>
         </section>
