@@ -18,23 +18,44 @@ function wrapper({ children }: { children: ReactNode }) {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>
 }
 
+function recoveredJob(datasetId = 'dataset_demo'): EmpiricalAnalysisJob {
+  return {
+    id: 'run_1',
+    datasetId,
+    measurementVersion: null,
+    status: 'succeeded',
+  } as EmpiricalAnalysisJob
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
 
 describe('useOutputRunJobs', () => {
   it('recovers an indexed run from the authoritative job endpoint', async () => {
-    vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue({
-      id: 'run_1',
-      status: 'succeeded',
-    } as EmpiricalAnalysisJob)
+    vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue(recoveredJob())
 
-    const { result } = renderHook(() => useOutputRunJobs(['run_1', 'run_1']), { wrapper })
+    const { result } = renderHook(
+      () => useOutputRunJobs(['run_1', 'run_1'], 'dataset_demo', null),
+      { wrapper },
+    )
 
     await waitFor(() => {
       expect(result.current.get('run_1')?.status).toBe('succeeded')
     })
     expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1')
     expect(getEmpiricalAnalysisJob).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not bind a server job that belongs to another dataset', async () => {
+    vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue(recoveredJob('dataset_other'))
+
+    const { result } = renderHook(
+      () => useOutputRunJobs(['run_1'], 'dataset_demo', null),
+      { wrapper },
+    )
+
+    await waitFor(() => expect(getEmpiricalAnalysisJob).toHaveBeenCalledWith('run_1'))
+    expect(result.current.has('run_1')).toBe(false)
   })
 })
