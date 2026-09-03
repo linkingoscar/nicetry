@@ -2,7 +2,6 @@ import type { DatasetVersion, MeasurementVersion } from '../../types'
 import type { EmpiricalProcedure } from '../../types/empirical-types'
 import { methodDefinitions } from '../../methods/methodDefinitions'
 import { expandMethodForLibrary } from '../../methods/methodLibraryPresets'
-import { empiricalDraftKey, readEmpiricalDraft } from '../empirical/empiricalDrafts'
 import { empiricalProcedures } from '../empirical/empiricalProcedures'
 import { readEmpiricalHistory } from '../empirical/empiricalRunHistory'
 
@@ -44,12 +43,6 @@ export interface AnalysisDocumentIndex {
   migrationVersion: 1
   documents: AnalysisDocumentIndexEntry[]
   runs: AnalysisRunIndexEntry[]
-}
-
-export interface AnalysisDraftStatus {
-  activeRunId: string | null
-  dirtySinceLastRun: boolean
-  hasSavedDraft: boolean
 }
 
 const INDEX_PREFIX = 'researchpath.analysis.index.v1'
@@ -228,18 +221,4 @@ export function analysisRunsForDocument(
   return index.runs
     .filter((run) => run.analysisId === analysisId)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-}
-
-export function empiricalDraftStatus(
-  dataset: DatasetVersion,
-  measurement: MeasurementVersion | null,
-  procedure: EmpiricalProcedure,
-): AnalysisDraftStatus {
-  const draft = readEmpiricalDraft(empiricalDraftKey(dataset, measurement), procedure)
-  if (!draft) return { activeRunId: null, dirtySinceLastRun: false, hasSavedDraft: false }
-  return {
-    activeRunId: draft.activeRunId,
-    dirtySinceLastRun: Boolean(draft.lastRunConfig && JSON.stringify(draft.config) !== JSON.stringify(draft.lastRunConfig)),
-    hasSavedDraft: true,
-  }
 }
