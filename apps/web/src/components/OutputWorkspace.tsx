@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
 import { OutputEmpiricalRunPreview } from './OutputEmpiricalRunPreview'
+import { OutputRegisteredRunDetail } from './OutputRegisteredRunDetail'
 import { empiricalDraftStatusForOutput } from './analyses/analysisDraftStatus'
 import {
   analysisDocumentFreshness,
@@ -47,12 +48,14 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const [index, setIndex] = useState(() => loadEmpiricalAnalysisIndex(dataset, measurement))
   const [registeredRuns, setRegisteredRuns] = useState(() => readRegisteredOutputRuns(dataset.projectId))
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
+  const [selectedRegisteredRunId, setSelectedRegisteredRunId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   useEffect(() => {
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
     setRegisteredRuns(readRegisteredOutputRuns(dataset.projectId))
     setSelectedRunId(null)
+    setSelectedRegisteredRunId(null)
   }, [dataset, measurement])
 
   const runDetails = useMemo(
@@ -99,6 +102,9 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const selectedStatus = selectedServerJob?.status ?? selectedDetail?.runStatus
   const selectedReportId = selectedServerJob?.reportId ?? selectedDetail?.resultId ?? undefined
   const selectedOptions = selectedServerJob?.options ?? selectedDetail?.submittedSpec
+  const selectedRegisteredRun = selectedRegisteredRunId
+    ? registeredRuns.find((run) => run.runId === selectedRegisteredRunId)
+    : undefined
 
   const updateDocument = (analysisId: string, patch: { title?: string; pinned?: boolean }) => {
     setIndex(updateAnalysisDocumentMetadata(dataset.projectId, analysisId, patch))
@@ -158,6 +164,10 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
           </div>
           <p className="catalog-result-count" role="status">显示 {filteredOutputCount} / {totalOutputCount} 项输出</p>
         </section>
+      ) : null}
+
+      {selectedRegisteredRun ? (
+        <OutputRegisteredRunDetail run={selectedRegisteredRun} onClose={() => setSelectedRegisteredRunId(null)} />
       ) : null}
 
       {selectedRun && selectedDocument ? (
@@ -229,7 +239,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <div>
               <p className="eyebrow">统一运行引用</p>
               <h2>PROCESS / SEM / 高级分析</h2>
-              <p className="muted">这里只保存服务端 runId 与来源身份，不在浏览器中复制结果或伪造任务状态。</p>
+              <p className="muted">本地只保存 runId 与来源身份；点击“查看运行”后才向服务端恢复任务状态和只读结果。</p>
             </div>
             <span className="status-badge">{registeredRuns.length} 个运行</span>
           </div>
@@ -250,7 +260,18 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                         <span className="context-method-status">运行引用</span>
                       </div>
                       <p className="muted">方法 {run.methodId} · run {run.runId.slice(0, 12)}</p>
-                      <p className="muted">服务端状态和只读结果将在下一层按 runId 恢复；本地索引不声明任务成功或失败。</p>
+                    </div>
+                    <div className="method-card-actions">
+                      <button
+                        type="button"
+                        className="secondary-button"
+                        onClick={() => {
+                          setSelectedRunId(null)
+                          setSelectedRegisteredRunId(run.runId)
+                        }}
+                      >
+                        查看运行
+                      </button>
                     </div>
                   </article>
                 )
@@ -315,7 +336,10 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                             const freshness = analysisRunFreshness(run, dataset, measurement)
                             return (
                               <li key={run.id}>
-                                <button type="button" className="text-button" onClick={() => setSelectedRunId(run.id)}>
+                                <button type="button" className="text-button" onClick={() => {
+                                  setSelectedRegisteredRunId(null)
+                                  setSelectedRunId(run.id)
+                                }}>
                                   <code>{run.id.slice(0, 12)}</code>
                                   {' · '}{new Date(run.createdAt).toLocaleString()}
                                   {' · '}{runStatusLabel(serverJob?.status ?? detail?.runStatus)}
