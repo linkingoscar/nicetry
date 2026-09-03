@@ -2,10 +2,10 @@ import { useMemo } from 'react'
 
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
+import { empiricalDraftStatusForOutput } from './analyses/analysisDraftStatus'
 import {
   analysisDocumentsForDataset,
   analysisRunsForDocument,
-  empiricalDraftStatus,
   loadEmpiricalAnalysisIndex,
 } from './analyses/analysisDocuments'
 
@@ -52,7 +52,12 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             {documents.map((document) => {
               const runs = analysisRunsForDocument(index, document.id)
               const latestRun = runs[0]
-              const draft = empiricalDraftStatus(dataset, measurement, document.procedure)
+              const draft = empiricalDraftStatusForOutput(
+                dataset,
+                measurement,
+                document.procedure,
+                latestRun?.id,
+              )
               return (
                 <article className="method-card" key={document.id}>
                   <div>
