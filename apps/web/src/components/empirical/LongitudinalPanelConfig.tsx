@@ -1,10 +1,14 @@
 import type { LongitudinalPanelOptions } from '../../types'
 import { LongitudinalPowerConfig } from './PowerAnalysisConfig'
 import type { LongitudinalPanelConfigProps } from './LongitudinalPanelConfig.types'
-import { createDefaultPanel } from './LongitudinalPanelConfig.utils'
+import { createDefaultPanel, createEmptyWaves } from './LongitudinalPanelConfig.utils'
 import { LongitudinalConfigFields } from './LongitudinalConfigFields'
 import { LongitudinalWaveTable } from './LongitudinalWaveTable'
 import { PartialInvarianceFieldset } from './PartialInvarianceFieldset'
+import {
+  lockedLongitudinalModelType,
+  useEmpiricalMethodSliceId,
+} from './EmpiricalMethodScopeContext'
 
 export type { LongitudinalItemGroup } from './LongitudinalPanelConfig.types'
 
@@ -17,8 +21,25 @@ export function LongitudinalPanelConfig({
   defaultWaveCount,
   onChange,
 }: LongitudinalPanelConfigProps) {
+  const methodSliceId = useEmpiricalMethodSliceId()
+  const lockedModelType = lockedLongitudinalModelType(methodSliceId)
   const update = (patch: Partial<LongitudinalPanelOptions>) => {
     if (value) onChange({ ...value, ...patch })
+  }
+  const createPanelForCurrentMethod = () => {
+    const base = createDefaultPanel(subjectCandidates, defaultSubjectId, defaultWaveCount)
+    if (!lockedModelType) return base
+    const minimum = lockedModelType === 'lcm_sr' ? 5 : lockedModelType === 'ri_clpm' ? 3 : 2
+    return {
+      ...base,
+      modelType: lockedModelType,
+      waves: base.waves.length < minimum
+        ? [...base.waves, ...createEmptyWaves(minimum).slice(base.waves.length)]
+        : base.waves,
+      measurementMode: lockedModelType === 'lcm_sr' ? 'latent_items' as const : base.measurementMode,
+      growthShape: lockedModelType === 'lcm_sr' ? base.growthShape : 'linear' as const,
+      powerAnalysis: lockedModelType === 'ri_clpm' ? base.powerAnalysis : null,
+    }
   }
   const updateWave = (
     index: number,
@@ -52,14 +73,12 @@ export function LongitudinalPanelConfig({
           type="checkbox"
           checked={value !== null}
           onChange={(event) => onChange(
-            event.target.checked
-              ? createDefaultPanel(subjectCandidates, defaultSubjectId, defaultWaveCount)
-              : null,
+            event.target.checked ? createPanelForCurrentMethod() : null,
           )}
         />
         <span>
-          <strong>启用交叉滞后面板分析</strong>
-          <small>两时点 CLPM；三时点及以上可用 RI-CLPM 分离个体间与个体内效应。</small>
+          <strong>启用纵向面板分析</strong>
+          <small>传统 CLPM 支持两时点；RI-CLPM 至少三时点；LCM-SR 至少五时点。</small>
         </span>
       </label>
       {value ? (

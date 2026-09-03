@@ -14,6 +14,7 @@ import {
 import { useEmpiricalAnalysisIndexSync } from './analyses/useEmpiricalAnalysisIndexSync'
 import { useEmpiricalAnalysisState } from './empirical/useEmpiricalAnalysisState'
 import { EmpiricalAnalysisProvider } from './empirical/EmpiricalAnalysisContext'
+import { EmpiricalMethodScopeProvider } from './empirical/EmpiricalMethodScopeContext'
 import { EmpiricalAnalysisShellHeader } from './empirical/EmpiricalAnalysisShellHeader'
 import { EmpiricalResultsSection } from './empirical/EmpiricalResultsSection'
 
@@ -81,19 +82,21 @@ export function EmpiricalAnalysis({
   }
 
   return (
-    <EmpiricalAnalysisProvider value={state}>
-      <main className="empirical-center">
-        {analysisId ? (
-          <section className="method-note" aria-label="当前分析">
-            <strong>{analysisTitle ?? '当前分析'}</strong>
-            <span> · 独立分析对象</span>
-            <button type="button" className="text-button" onClick={renameAnalysis}>重命名</button>
-          </section>
-        ) : null}
-        <p className="method-note">当前方法由统一方法库进入。配置按分析对象和上游版本分别保存；上游变化不会自动重算或覆盖旧结果。</p>
-        <div className="procedure-main"><EmpiricalAnalysisShellHeader /><EmpiricalResultsSection /></div>
-        {state.toastText && <div className="toast-notification" role="status"><span>{state.toastText}</span></div>}
-      </main>
-    </EmpiricalAnalysisProvider>
+    <EmpiricalMethodScopeProvider methodSliceId={tabRequest?.method?.sliceId}>
+      <EmpiricalAnalysisProvider value={state}>
+        <main className="empirical-center">
+          {analysisId ? (
+            <section className="method-note" aria-label="当前分析">
+              <strong>{analysisTitle ?? '当前分析'}</strong>
+              <span> · 独立分析对象</span>
+              <button type="button" className="text-button" onClick={renameAnalysis}>重命名</button>
+            </section>
+          ) : null}
+          <p className="method-note">当前方法由统一方法库进入。配置按分析对象和上游版本分别保存；上游变化不会自动重算或覆盖旧结果。</p>
+          <div className="procedure-main"><EmpiricalAnalysisShellHeader /><EmpiricalResultsSection /></div>
+          {state.toastText && <div className="toast-notification" role="status"><span>{state.toastText}</span></div>}
+        </main>
+      </EmpiricalAnalysisProvider>
+    </EmpiricalMethodScopeProvider>
   )
 }

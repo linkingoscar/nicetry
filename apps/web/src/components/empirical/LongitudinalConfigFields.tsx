@@ -1,5 +1,9 @@
 import type { LongitudinalPanelOptions } from '../../types'
 import type { Candidate } from './LongitudinalPanelConfig.types'
+import {
+  lockedLongitudinalModelType,
+  useEmpiricalMethodSliceId,
+} from './EmpiricalMethodScopeContext'
 
 interface LongitudinalConfigFieldsProps {
   value: LongitudinalPanelOptions
@@ -9,6 +13,12 @@ interface LongitudinalConfigFieldsProps {
   update: (patch: Partial<LongitudinalPanelOptions>) => void
 }
 
+const MODEL_LABELS: Record<LongitudinalPanelOptions['modelType'], string> = {
+  clpm: '传统 CLPM',
+  ri_clpm: 'RI-CLPM',
+  lcm_sr: 'LCM-SR',
+}
+
 export function LongitudinalConfigFields({
   value,
   subjectCandidates,
@@ -16,6 +26,9 @@ export function LongitudinalConfigFields({
   onChange,
   update,
 }: LongitudinalConfigFieldsProps) {
+  const methodSliceId = useEmpiricalMethodSliceId()
+  const lockedModelType = lockedLongitudinalModelType(methodSliceId)
+
   return (
     <div className="empirical-config-grid">
       <label>测量模式
@@ -48,38 +61,45 @@ export function LongitudinalConfigFields({
           <option value="latent_items">题项级潜变量</option>
         </select>
       </label>
-      <label>模型
-        <select
-          value={value.modelType}
-          onChange={(event) => {
-            const modelType = event.target.value as LongitudinalPanelOptions['modelType']
-            const minimumWaves = modelType === 'lcm_sr' ? 5 : modelType === 'ri_clpm' ? 3 : 2
-            const waves = [...value.waves]
-            while (waves.length < minimumWaves) {
-              waves.push({
-                label: `T${waves.length + 1}`,
-                timeValue: waves.length,
-                xVariableId: null,
-                yVariableId: null,
-                xItemIds: [],
-                yItemIds: [],
+      {lockedModelType ? (
+        <div className="method-note" role="status">
+          <strong>模型：{MODEL_LABELS[lockedModelType]}</strong>
+          <span>由方法库选择锁定；如需切换模型，请返回“分析方法”选择另一方法。</span>
+        </div>
+      ) : (
+        <label>模型
+          <select
+            value={value.modelType}
+            onChange={(event) => {
+              const modelType = event.target.value as LongitudinalPanelOptions['modelType']
+              const minimumWaves = modelType === 'lcm_sr' ? 5 : modelType === 'ri_clpm' ? 3 : 2
+              const waves = [...value.waves]
+              while (waves.length < minimumWaves) {
+                waves.push({
+                  label: `T${waves.length + 1}`,
+                  timeValue: waves.length,
+                  xVariableId: null,
+                  yVariableId: null,
+                  xItemIds: [],
+                  yItemIds: [],
+                })
+              }
+              onChange({
+                ...value,
+                modelType,
+                waves,
+                measurementMode: modelType === 'lcm_sr' ? 'latent_items' : value.measurementMode,
+                growthShape: modelType === 'lcm_sr' ? value.growthShape : 'linear',
+                powerAnalysis: modelType === 'ri_clpm' ? value.powerAnalysis : null,
               })
-            }
-            onChange({
-              ...value,
-              modelType,
-              waves,
-              measurementMode: modelType === 'lcm_sr' ? 'latent_items' : value.measurementMode,
-              growthShape: modelType === 'lcm_sr' ? value.growthShape : 'linear',
-              powerAnalysis: modelType === 'ri_clpm' ? value.powerAnalysis : null,
-            })
-          }}
-        >
-          <option value="ri_clpm">RI-CLPM（推荐，至少三时点）</option>
-          <option value="clpm">传统 CLPM（至少两时点）</option>
-          <option value="lcm_sr">LCM-SR（至少五时点）</option>
-        </select>
-      </label>
+            }}
+          >
+            <option value="ri_clpm">RI-CLPM（推荐，至少三时点）</option>
+            <option value="clpm">传统 CLPM（至少两时点）</option>
+            <option value="lcm_sr">LCM-SR（至少五时点）</option>
+          </select>
+        </label>
+      )}
       {value.modelType === 'lcm_sr' ? (
         <label>宏观生长轨迹
           <select

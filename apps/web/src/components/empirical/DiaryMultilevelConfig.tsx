@@ -4,10 +4,15 @@ import { DiaryAdvancedModelConfig } from './DiaryAdvancedModelConfig'
 import type { LongitudinalItemGroup } from './LongitudinalPanelConfig'
 import {
   createDiaryMultilevelDefault,
+  diaryAnalysisTypePatch,
   DiaryAnalysisTypeSelect,
   DiaryVariableSelect,
   type DiaryCandidate,
 } from './DiaryMultilevelConfigSections'
+import {
+  lockedDiaryAnalysisType,
+  useEmpiricalMethodSliceId,
+} from './EmpiricalMethodScopeContext'
 
 interface DiaryMultilevelConfigProps {
   value: DiaryMultilevelOptions | null
@@ -19,6 +24,13 @@ interface DiaryMultilevelConfigProps {
   onChange: (value: DiaryMultilevelOptions | null) => void
 }
 
+const ANALYSIS_TYPE_LABELS: Record<DiaryMultilevelOptions['analysisType'], string> = {
+  lmm: '二层线性混合模型',
+  glmm: '二元 / 计数广义多层模型',
+  mediation: '多层中介',
+  bayesian_dsem: 'Bayesian DSEM',
+}
+
 export function DiaryMultilevelConfig({
   value,
   variables,
@@ -28,8 +40,15 @@ export function DiaryMultilevelConfig({
   defaultTimeId,
   onChange,
 }: DiaryMultilevelConfigProps) {
+  const methodSliceId = useEmpiricalMethodSliceId()
+  const lockedAnalysisType = lockedDiaryAnalysisType(methodSliceId)
   const update = (patch: Partial<DiaryMultilevelOptions>) => {
     if (value) onChange({ ...value, ...patch })
+  }
+  const createForCurrentMethod = () => {
+    const base = createDiaryMultilevelDefault(subjectCandidates, defaultSubjectId, defaultTimeId)
+    if (!lockedAnalysisType || base.analysisType === lockedAnalysisType) return base
+    return { ...base, ...diaryAnalysisTypePatch(base, lockedAnalysisType) }
   }
 
   return (
@@ -39,18 +58,23 @@ export function DiaryMultilevelConfig({
           type="checkbox"
           checked={value !== null}
           onChange={(event) => onChange(
-            event.target.checked ? createDiaryMultilevelDefault(subjectCandidates, defaultSubjectId, defaultTimeId) : null,
+            event.target.checked ? createForCurrentMethod() : null,
           )}
         />
         <span>
           <strong>启用日记研究二层模型</strong>
-          <small>重复日/时点嵌套于被试，支持随机斜率、AR(1) 与多层中介。</small>
+          <small>重复日/时点嵌套于被试，支持随机斜率、AR(1)、多层中介与 DSEM。</small>
         </span>
       </label>
       {value ? (
         <>
           <div className="empirical-config-grid">
-            <DiaryAnalysisTypeSelect value={value} onChange={update} />
+            {lockedAnalysisType ? (
+              <div className="method-note" role="status">
+                <strong>分析类型：{ANALYSIS_TYPE_LABELS[lockedAnalysisType]}</strong>
+                <span>由方法库选择锁定；如需切换模型，请返回“分析方法”选择另一方法。</span>
+              </div>
+            ) : <DiaryAnalysisTypeSelect value={value} onChange={update} />}
             <DiaryVariableSelect
               label="被试 ID"
               value={value.subjectVariableId}
