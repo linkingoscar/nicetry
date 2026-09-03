@@ -42,6 +42,9 @@ const COMMON_FORM_METHOD_IDS = new Set([
   'experiment.mixed-design',
   'multilevel.aggregation',
   'multilevel.gaussian-lmm',
+  'power.regression',
+  'power.t-test',
+  'power.factorial-anova',
 ])
 
 const METHOD_COPY_OVERRIDES: Record<string, MethodCopyOverride> = {
