@@ -45,7 +45,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     [dataset, index, measurement],
   )
   const runIds = documents.flatMap((document) => analysisRunsForDocument(index, document.id).map((run) => run.id))
-  const serverJobsByRun = useOutputRunJobs(runIds)
+  const serverJobsByRun = useOutputRunJobs(runIds, dataset.id, measurement?.version ?? null)
   const runCount = runIds.length
 
   return (
