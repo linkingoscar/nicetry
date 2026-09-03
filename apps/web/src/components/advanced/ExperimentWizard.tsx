@@ -11,6 +11,8 @@ export interface ExperimentWizardSpec {
   withinFactors?: Array<{ id: string; name: string; levels: string[]; columns: Record<string, string> }>
   subjectId?: string | null
   covariateIds?: string[]
+  clusterVariableId?: string | null
+  clusterSE?: 'CR0'
   sumOfSquares: 'II' | 'III'
   sphericityCorrection?: 'auto' | 'greenhouse_geisser' | 'huynh_feldt'
   postHocAdjustment: 'holm' | 'tukey' | 'games_howell' | 'benjamini_hochberg'
@@ -36,6 +38,13 @@ export function experimentDesignTypeForSlice(sliceId?: string): ExperimentWizard
   if (sliceId?.includes('.ancova.')) return 'ancova'
   if (sliceId?.includes('.repeated_measures.')) return 'repeated_measures'
   if (sliceId?.includes('.mixed_design.')) return 'mixed_design'
+  if (sliceId?.includes('.glm_cluster.')) return 'factorial_anova'
+  return undefined
+}
+
+export function experimentAnalysisTypeForSlice(sliceId?: string): NonNullable<ExperimentWizardSpec['analysisType']> | undefined {
+  if (sliceId?.includes('.glm_cluster.')) return 'glm_cluster'
+  if (sliceId?.startsWith('experimental_design.')) return 'anova'
   return undefined
 }
 
@@ -54,10 +63,13 @@ export const ExperimentWizard: React.FC<ExperimentWizardProps> = ({ spec, onChan
   const update = (patch: Partial<ExperimentWizardSpec>) => onChange({ ...spec, ...patch })
   const lockedDesignType = experimentDesignTypeForSlice(sliceId)
   const designType = lockedDesignType ?? spec.designType
+  const analysisType = experimentAnalysisTypeForSlice(sliceId) ?? spec.analysisType ?? 'anova'
+  const clusterRobust = analysisType === 'glm_cluster'
   const repeatedDesign = designType === 'repeated_measures' || designType === 'mixed_design'
   const hasBetweenFactors = designType !== 'repeated_measures'
   const numericVariables = variables.filter(variable => variable.type === 'numeric')
   const subjectCandidates = variables.filter(variable => variable.type !== 'datetime')
+  const clusterCandidates = variables.filter(variable => variable.type !== 'datetime')
   const withinFactor = spec.withinFactors?.[0] ?? {
     id: 'time',
     name: '时间',
@@ -71,8 +83,9 @@ export const ExperimentWizard: React.FC<ExperimentWizardProps> = ({ spec, onChan
 
   return (
     <div className="adv-experiment-wizard-panel" style={{ padding: '16px', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
-      <h3>{DESIGN_LABELS[designType]}</h3>
+      <h3>{clusterRobust ? 'Cluster-robust Gaussian GLM' : DESIGN_LABELS[designType]}</h3>
       <p className="muted">当前方法类型由方法库锁定。这里只配置本方法实际需要的变量与推断设置；切换到其他设计请返回方法库选择对应方法。</p>
+      {clusterRobust ? <p className="method-note">当前能力边界使用两层嵌套数据、单一 cluster 与 CR0 聚类稳健标准误；不会自动升级为随机效应模型。</p> : null}
 
       <div className="adv-form-grid adv-form-grid-two" style={{ marginTop: '16px' }}>
         <label className="adv-field-label">
@@ -103,6 +116,28 @@ export const ExperimentWizard: React.FC<ExperimentWizardProps> = ({ spec, onChan
           </label>
         ) : null}
       </div>
+
+      {clusterRobust ? (
+        <div className="adv-form-grid adv-form-grid-two" style={{ marginTop: '16px' }}>
+          <label className="adv-field-label">
+            Cluster ID
+            <select
+              className="adv-select"
+              value={spec.clusterVariableId ?? ''}
+              onChange={event => update({ analysisType: 'glm_cluster', clusterVariableId: event.target.value || null, clusterSE: 'CR0' })}
+            >
+              <option value="">请选择 cluster / 群组 ID</option>
+              {clusterCandidates.map(variable => <option key={variable.id} value={variable.id}>{variable.label || variable.name}</option>)}
+            </select>
+          </label>
+          <label className="adv-field-label">
+            聚类稳健标准误
+            <select className="adv-select" value="CR0" disabled>
+              <option value="CR0">CR0（当前唯一支持）</option>
+            </select>
+          </label>
+        </div>
+      ) : null}
 
       {hasBetweenFactors ? (
         <div style={{ marginTop: '16px' }}>

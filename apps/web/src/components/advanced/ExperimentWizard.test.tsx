@@ -1,7 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { ExperimentWizard, experimentDesignTypeForSlice, type ExperimentWizardSpec } from './ExperimentWizard'
+import {
+  ExperimentWizard,
+  experimentAnalysisTypeForSlice,
+  experimentDesignTypeForSlice,
+  type ExperimentWizardSpec,
+} from './ExperimentWizard'
 
 vi.mock('./DatasetVariablePicker', () => ({
   DatasetVariablePicker: ({ label, onChange }: { label: string; onChange: (ids: string[]) => void }) => (
@@ -15,6 +20,7 @@ const variables = [
   { id: 'time_2', name: 'time_2', label: 'T2', type: 'numeric' },
   { id: 'subject', name: 'subject', label: 'Subject', type: 'categorical' },
   { id: 'group', name: 'group', label: 'Group', type: 'categorical' },
+  { id: 'cluster', name: 'cluster', label: 'Cluster', type: 'categorical' },
 ] as never[]
 
 const baseSpec: ExperimentWizardSpec = {
@@ -34,11 +40,13 @@ const baseSpec: ExperimentWizardSpec = {
 }
 
 describe('ExperimentWizard method-scoped forms', () => {
-  it('maps registered slices to one locked design type', () => {
+  it('maps registered slices to one locked design and analysis type', () => {
     expect(experimentDesignTypeForSlice('experimental_design.factorial_anova.long.single_outcome')).toBe('factorial_anova')
     expect(experimentDesignTypeForSlice('experimental_design.ancova.long.single_outcome')).toBe('ancova')
     expect(experimentDesignTypeForSlice('experimental_design.repeated_measures.single_within')).toBe('repeated_measures')
     expect(experimentDesignTypeForSlice('experimental_design.mixed_design.single_within')).toBe('mixed_design')
+    expect(experimentDesignTypeForSlice('experimental_design.glm_cluster.long.single_outcome')).toBe('factorial_anova')
+    expect(experimentAnalysisTypeForSlice('experimental_design.glm_cluster.long.single_outcome')).toBe('glm_cluster')
   })
 
   it('uses the backend covariateIds field for ANCOVA and exposes only supported adjustments', () => {
@@ -81,5 +89,23 @@ describe('ExperimentWizard method-scoped forms', () => {
     expect(screen.getByLabelText('组内因子名称')).toBeInTheDocument()
     expect(screen.getByLabelText('球形性校正')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /组间处理/ })).not.toBeInTheDocument()
+  })
+
+  it('renders explicit cluster identity and the fixed CR0 boundary for cluster-robust GLM', () => {
+    const onChange = vi.fn()
+    render(
+      <ExperimentWizard
+        spec={{ ...baseSpec, analysisType: 'anova', clusterVariableId: null }}
+        onChange={onChange}
+        variables={variables}
+        sliceId="experimental_design.glm_cluster.long.single_outcome"
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: 'Cluster-robust Gaussian GLM' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Cluster ID')).toBeInTheDocument()
+    expect(screen.getByLabelText('聚类稳健标准误')).toHaveValue('CR0')
+    fireEvent.change(screen.getByLabelText('Cluster ID'), { target: { value: 'cluster' } })
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ analysisType: 'glm_cluster', clusterVariableId: 'cluster', clusterSE: 'CR0' }))
   })
 })
