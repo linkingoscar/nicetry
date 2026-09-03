@@ -6,7 +6,6 @@ import { saveMeasurement } from '../api'
 import type { DatasetVariable } from '../types'
 import { MeasurementWorkspace } from './MeasurementWorkspace'
 
-
 vi.mock('../api', () => ({
   saveMeasurement: vi.fn(() => new Promise(() => undefined)),
 }))
@@ -54,7 +53,7 @@ describe('MeasurementWorkspace', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /题项 1q1/ }))
     fireEvent.click(screen.getByRole('checkbox', { name: /题项 2q2/ }))
     fireEvent.click(screen.getByRole('checkbox', { name: '题项 2反向计分' }))
-    fireEvent.click(screen.getByRole('button', { name: '保存规则并生成测量版本' }))
+    fireEvent.click(screen.getByRole('button', { name: '保存规则并生成量表版本' }))
 
     await waitFor(() => expect(saveMeasurement).toHaveBeenCalledTimes(1))
     expect(saveMeasurement).toHaveBeenCalledWith(
@@ -74,7 +73,7 @@ describe('MeasurementWorkspace', () => {
 
   it('does not submit an incomplete construct', () => {
     renderWorkspace()
-    fireEvent.click(screen.getByRole('button', { name: '保存规则并生成测量版本' }))
+    fireEvent.click(screen.getByRole('button', { name: '保存规则并生成量表版本' }))
 
     expect(screen.getByRole('alert')).toHaveTextContent('至少两个题项')
     expect(saveMeasurement).not.toHaveBeenCalled()
