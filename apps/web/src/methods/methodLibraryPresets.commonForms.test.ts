@@ -10,6 +10,9 @@ const commonIds = [
   'experiment.mixed-design',
   'multilevel.aggregation',
   'multilevel.gaussian-lmm',
+  'power.regression',
+  'power.t-test',
+  'power.factorial-anova',
 ]
 
 describe('common advanced-form discovery', () => {
