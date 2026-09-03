@@ -28,6 +28,13 @@ interface ModelPreset {
   visibilityTier?: MethodVisibilityTier
 }
 
+interface AdvancedVariantOverride {
+  label: string
+  description?: string
+  aliases?: string[]
+  keywords?: string[]
+}
+
 const COMMON_FORM_METHOD_IDS = new Set([
   'experiment.factorial-anova',
   'experiment.ancova',
@@ -36,6 +43,42 @@ const COMMON_FORM_METHOD_IDS = new Set([
   'multilevel.aggregation',
   'multilevel.gaussian-lmm',
 ])
+
+const ADVANCED_VARIANT_OVERRIDES: Record<string, AdvancedVariantOverride> = {
+  'measurement.ordinal-reliability': {
+    label: '高级序数信度（Polychoric α / ω）',
+    description: '使用高级有序题项规格估计序数 α / ω；基础“信度与项目分析”仍是常用默认入口。',
+    aliases: ['advanced reliability', 'polychoric reliability'],
+    keywords: ['高级测量', 'polychoric'],
+  },
+  'measurement.polychoric-efa': {
+    label: '高级 EFA（Polychoric / MAP）',
+    description: '显式配置 polychoric 相关、MAP / 因子保留与高级旋转；基础 EFA 保留为常用入口。',
+    aliases: ['advanced EFA'],
+    keywords: ['高级测量', 'polychoric', 'MAP'],
+  },
+  'measurement.cfa': {
+    label: '高级 CFA（ML / MLR / WLSMV）',
+    description: '显式控制指标、估计器和确认性测量边界；基础 CFA 保留为常用默认入口。',
+    aliases: ['advanced CFA'],
+    keywords: ['高级测量', 'MLR', 'WLSMV'],
+  },
+  'measurement.invariance': {
+    label: '高级多组测量等值性',
+    description: '用于更完整的多组等值规格和高级约束；基础等值性检查保留为常用入口。',
+    aliases: ['advanced measurement invariance'],
+    keywords: ['高级测量', '多组约束'],
+  },
+  'measurement.common-method-bias': {
+    label: '高级共同方法偏差（Marker / ULMC）',
+    description: '显式配置 Marker / ULMC 敏感性规格；基础共同方法诊断保留为常用入口。',
+    aliases: ['advanced CMB'],
+    keywords: ['高级测量', 'Marker', 'ULMC'],
+  },
+  'measurement.esem-bifactor-irt': {
+    label: 'ESEM / Bifactor / IRT / DIF（高级）',
+  },
+}
 
 const PROCEDURE_PRESETS: Record<string, ProcedurePreset[]> = {
   'empirical.overview': [
@@ -212,9 +255,14 @@ export function expandMethodForLibrary(method: MethodDefinition): MethodLibraryD
   }
 
   const commonForm = COMMON_FORM_METHOD_IDS.has(method.id)
+  const advancedVariant = ADVANCED_VARIANT_OVERRIDES[method.id]
   return [{
     ...method,
     libraryId: method.id,
+    label: advancedVariant?.label ?? method.label,
+    description: advancedVariant?.description ?? method.description,
+    aliases: advancedVariant?.aliases ? [...new Set([...method.aliases, ...advancedVariant.aliases])] : method.aliases,
+    keywords: advancedVariant?.keywords ? [...new Set([...method.keywords, ...advancedVariant.keywords])] : method.keywords,
     advanced: commonForm ? false : method.advanced,
     visibilityTier: commonForm ? 'common' : method.visibilityTier,
   }]
