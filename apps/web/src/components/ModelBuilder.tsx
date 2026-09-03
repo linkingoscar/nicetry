@@ -82,6 +82,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
 
   const [methodNotice, setMethodNotice] = useState<string | null>(null)
   const [processQuickOpen, setProcessQuickOpen] = useState(false)
+  const [processQuickApplied, setProcessQuickApplied] = useState(false)
   const [processQuickKind, setProcessQuickKind] = useState<ProcessQuickKind>('mediation')
   useEffect(() => {
     if (!methodRequest || draftState === 'saving') return
@@ -96,6 +97,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
     if (model.estimation.family !== family) {
       if (!window.confirm(`进入“${methodRequest.label}”需切换估计引擎，将转换节点并重建测量定义、估计器与多组设置；自定义题项、高阶因子及部分等值约束会重置。可撤销恢复，不会自动运行。是否继续？`)) {
         setProcessQuickOpen(false)
+        setProcessQuickApplied(false)
         setMethodNotice('已取消目录方法切换，原模型草稿保持不变。')
         return
       }
@@ -104,12 +106,14 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
     if (processRequest && methodRequest.processModelNumber) {
       const kind: ProcessQuickKind = methodRequest.processModelNumber === 1 ? 'moderation' : 'mediation'
       setProcessQuickKind(kind)
+      setProcessQuickApplied(false)
       setProcessQuickOpen(true)
       setMethodNotice(methodRequest.processModelNumber === 1
-        ? '已进入简单调节（PROCESS Model 1）表单。配置 X、W、Y 与推断设置后再复核并手动运行。'
-        : '已进入简单中介（PROCESS Model 4）表单。配置 X、M、Y 与推断设置后再复核并手动运行。')
+        ? '已进入简单调节（PROCESS Model 1）表单。配置 X、W、Y 后即可在同页校验、冻结和运行。'
+        : '已进入简单中介（PROCESS Model 4）表单。配置 X、M、Y 后即可在同页校验、冻结和运行。')
       return
     }
+    setProcessQuickApplied(false)
     setProcessQuickOpen(false)
     setMethodNotice(processRequest
       ? '已进入 PROCESS 完整模型库高级编辑器。可使用全部预设、画布和自定义路径；不会自动运行。'
@@ -121,6 +125,22 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
   const [collapsedFactors, setCollapsedFactors] = useState<string[]>([])
   const [focusedLatentId, setFocusedLatentId] = useState<string | null>(null)
   const editMeasurement = (id: string) => { setEditorSection('variables'); setFocusedLatentId(id) }
+
+  const runControls = (
+    <ModelBuilderSidebar
+      model={model}
+      validation={validation}
+      freezeMutation={freezeMutation}
+      overrideReason={overrideReason}
+      setOverrideReason={setOverrideReason}
+      contextGateBlocked={contextGateBlocked}
+      contextBindingStale={contextBindingStale}
+      analysisRunning={analysisRunning}
+      analysisMutation={analysisMutation}
+      analysisJob={analysisJob}
+      cancelMutation={cancelMutation}
+    />
+  )
 
   return (
     <main className="model-builder">
@@ -152,24 +172,33 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
       {builderError ? <p className="error-message error-banner" role="alert">{builderError}</p> : null}
 
       {processQuickOpen ? (
-        <ProcessQuickSetupForm
-          variables={variables}
-          model={model}
-          initialKind={processQuickKind}
-          disabled={editingLocked}
-          onApply={(setup) => {
-            const applied = applyProcessQuickSetup(setup)
-            if (applied) {
+        <div className={`process-quick-run-grid${processQuickApplied ? ' is-applied' : ''}`}>
+          <ProcessQuickSetupForm
+            variables={variables}
+            model={model}
+            initialKind={processQuickKind}
+            disabled={editingLocked}
+            onApply={(setup) => {
+              const applied = applyProcessQuickSetup(setup)
+              if (applied) {
+                setProcessQuickApplied(true)
+                setMethodNotice('PROCESS 表单设置已写入当前草稿。校验通过后可直接冻结并运行；如需改路径再打开高级编辑器。')
+              }
+              return applied
+            }}
+            onOpenAdvanced={() => {
+              setProcessQuickApplied(false)
               setProcessQuickOpen(false)
-              setMethodNotice('PROCESS 表单配置已应用到当前草稿。请复核路径与估计设置，随后冻结并手动运行。')
-            }
-            return applied
-          }}
-          onOpenAdvanced={() => {
-            setProcessQuickOpen(false)
-            setMethodNotice('已打开高级模型编辑器；当前草稿和既有运行保持不变。')
-          }}
-        />
+              setMethodNotice('已打开高级模型编辑器；当前草稿和既有运行保持不变。')
+            }}
+          />
+          {processQuickApplied ? runControls : (
+            <section className="centered-state process-quick-run-placeholder" aria-live="polite">
+              <h3>先完成表单设置</h3>
+              <p>应用后，这里会显示当前草稿的校验、冻结和运行控制；不会自动提交分析。</p>
+            </section>
+          )}
+        </div>
       ) : (
         <div className={`model-builder-grid${zenMode ? ' is-zen-mode' : ''}${leftCollapsed ? ' is-left-collapsed' : ''}${rightCollapsed ? ' is-right-collapsed' : ''}`}>
           <ModelVariableLibrary variables={variables} model={model} onAssignVariable={assignVariable} onAddCovariate={addCovariate} onPlaceVariable={addVariableToCanvas} disabled={editingLocked} />
@@ -234,19 +263,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
             </fieldset>
           </div>
 
-          <ModelBuilderSidebar
-            model={model}
-            validation={validation}
-            freezeMutation={freezeMutation}
-            overrideReason={overrideReason}
-            setOverrideReason={setOverrideReason}
-            contextGateBlocked={contextGateBlocked}
-            contextBindingStale={contextBindingStale}
-            analysisRunning={analysisRunning}
-            analysisMutation={analysisMutation}
-            analysisJob={analysisJob}
-            cancelMutation={cancelMutation}
-          />
+          {runControls}
         </div>
       )}
 

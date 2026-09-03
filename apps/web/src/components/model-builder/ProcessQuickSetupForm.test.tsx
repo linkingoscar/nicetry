@@ -33,7 +33,7 @@ describe('ProcessQuickSetupForm', () => {
     fireEvent.change(screen.getByLabelText('结果变量 Y'), { target: { value: 'y' } })
     fireEvent.change(screen.getByLabelText('中介变量 M'), { target: { value: 'm' } })
     fireEvent.change(screen.getByLabelText('Bootstrap 次数'), { target: { value: '8000' } })
-    fireEvent.click(screen.getByRole('button', { name: '应用并进入复核' }))
+    fireEvent.click(screen.getByRole('button', { name: '应用表单设置' }))
 
     expect(onApply).toHaveBeenCalledWith({
       kind: 'mediation',
@@ -59,7 +59,7 @@ describe('ProcessQuickSetupForm', () => {
     fireEvent.change(screen.getByLabelText('结果变量 Y'), { target: { value: 'y' } })
     fireEvent.change(screen.getByLabelText('调节变量 W'), { target: { value: 'w' } })
     fireEvent.click(screen.getByLabelText('对 X 与 W 做均值中心化'))
-    fireEvent.click(screen.getByRole('button', { name: '应用并进入复核' }))
+    fireEvent.click(screen.getByRole('button', { name: '应用表单设置' }))
 
     expect(onApply).toHaveBeenCalledWith(expect.objectContaining({
       kind: 'moderation',
@@ -81,7 +81,17 @@ describe('ProcessQuickSetupForm', () => {
     fireEvent.change(screen.getByLabelText('中介变量 M'), { target: { value: 'x' } })
 
     expect(screen.getByText(/必须使用不同变量/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '应用并进入复核' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '应用表单设置' })).toBeDisabled()
     expect(onApply).not.toHaveBeenCalled()
+  })
+
+  it('keeps the advanced editor as an explicit optional path', () => {
+    const onOpenAdvanced = vi.fn()
+    render(
+      <ProcessQuickSetupForm variables={variables} model={model} onApply={vi.fn(() => true)} onOpenAdvanced={onOpenAdvanced} />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '打开高级编辑器' }))
+    expect(onOpenAdvanced).toHaveBeenCalledTimes(1)
   })
 })
