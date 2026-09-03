@@ -27,6 +27,13 @@ interface DataGridViewProps {
 
 export function DataGridView({ dataset }: DataGridViewProps) {
   const previewCount = dataset.preview.length
+  const duplicateCounts = new Map<string, number>()
+  const previewRows = dataset.preview.map((row) => {
+    const signature = JSON.stringify(dataset.variables.map((variable) => cellValue(row, variable)))
+    const occurrence = duplicateCounts.get(signature) ?? 0
+    duplicateCounts.set(signature, occurrence + 1)
+    return { row, key: `${signature}:${occurrence}` }
+  })
 
   return (
     <section className={styles.dataGridSection} aria-labelledby="data-grid-heading">
@@ -59,8 +66,8 @@ export function DataGridView({ dataset }: DataGridViewProps) {
               </tr>
             </thead>
             <tbody>
-              {dataset.preview.map((row, rowIndex) => (
-                <tr key={rowIndex}>
+              {previewRows.map(({ row, key }, rowIndex) => (
+                <tr key={key}>
                   <th scope="row">{rowIndex + 1}</th>
                   {dataset.variables.map((variable) => (
                     <td key={variable.id}>{cellValue(row, variable)}</td>
