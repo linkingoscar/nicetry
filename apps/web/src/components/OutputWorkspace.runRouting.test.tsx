@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DatasetVersion } from '../types'
+import { ensureEmpiricalAnalysisDocument } from './analyses/analysisDocuments'
 import { OutputWorkspace } from './OutputWorkspace'
 
 vi.mock('./analyses/useOutputRunJobs', () => ({
@@ -37,18 +38,18 @@ const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
 
 beforeEach(() => {
   localStorage.clear()
-  localStorage.setItem(legacyKey, JSON.stringify([
-    {
-      id: 'run_selected',
-      procedure: 'descriptives',
-      analysisId: 'analysis_selected',
-      createdAt: '2026-09-03T01:00:00Z',
-    },
-  ]))
 })
 
 describe('OutputWorkspace run routing', () => {
-  it('opens the exact selected current run instead of only the analysis draft', () => {
+  it('opens the exact selected current run and preserves the stored method identity', () => {
+    localStorage.setItem(legacyKey, JSON.stringify([
+      {
+        id: 'run_selected',
+        procedure: 'descriptives',
+        analysisId: 'analysis_selected',
+        createdAt: '2026-09-03T01:00:00Z',
+      },
+    ]))
     const onOpenProcedure = vi.fn()
     render(
       <OutputWorkspace
@@ -62,6 +63,48 @@ describe('OutputWorkspace run routing', () => {
     fireEvent.click(screen.getByRole('button', { name: /run_selected/ }))
     fireEvent.click(screen.getByRole('button', { name: '打开该运行结果 / 设置' }))
 
-    expect(onOpenProcedure).toHaveBeenCalledWith('descriptives', 'analysis_selected', 'run_selected')
+    expect(onOpenProcedure).toHaveBeenCalledWith(
+      'descriptives',
+      'analysis_selected',
+      'run_selected',
+      'empirical.overview.descriptives',
+    )
+  })
+
+  it('keeps a longitudinal method-scoped analysis locked when reopening a selected run', () => {
+    const document = ensureEmpiricalAnalysisDocument(
+      dataset,
+      null,
+      'longitudinal',
+      'longitudinal.ri-clpm',
+    )
+    localStorage.setItem(legacyKey, JSON.stringify([
+      {
+        id: 'run_ri_clpm',
+        procedure: 'longitudinal',
+        analysisId: document.id,
+        createdAt: '2026-09-03T02:00:00Z',
+      },
+    ]))
+
+    const onOpenProcedure = vi.fn()
+    render(
+      <OutputWorkspace
+        dataset={dataset}
+        measurement={null}
+        onOpenProcedure={onOpenProcedure}
+      />,
+    )
+
+    fireEvent.click(screen.getByText('查看运行历史'))
+    fireEvent.click(screen.getByRole('button', { name: /run_ri_clpm/ }))
+    fireEvent.click(screen.getByRole('button', { name: '打开该运行结果 / 设置' }))
+
+    expect(onOpenProcedure).toHaveBeenCalledWith(
+      'longitudinal',
+      document.id,
+      'run_ri_clpm',
+      'longitudinal.ri-clpm',
+    )
   })
 })

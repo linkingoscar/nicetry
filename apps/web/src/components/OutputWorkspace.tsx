@@ -26,7 +26,7 @@ import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
   measurement: MeasurementVersion | null
-  onOpenProcedure: (procedure: EmpiricalProcedure, analysisId?: string, runId?: string) => void
+  onOpenProcedure: (procedure: EmpiricalProcedure, analysisId?: string, runId?: string, methodId?: string) => void
 }
 
 function runStatusLabel(status?: string) {
@@ -119,6 +119,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
       measurement,
       document.procedure,
       `${document.title} 副本`,
+      document.methodId,
     )
     cloneEmpiricalDraftsToAnalysis(
       dataset,
@@ -128,7 +129,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
       document.procedure,
     )
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
-    onOpenProcedure(duplicate.procedure, duplicate.id)
+    onOpenProcedure(duplicate.procedure, duplicate.id, undefined, duplicate.methodId)
   }
 
   return (
@@ -224,8 +225,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
               type="button"
               className="secondary-button"
               onClick={() => selectedFreshness === 'stale'
-                ? onOpenProcedure(selectedDocument.procedure)
-                : onOpenProcedure(selectedDocument.procedure, selectedDocument.id, selectedRun.id)}
+                ? onOpenProcedure(selectedDocument.procedure, undefined, undefined, selectedDocument.methodId)
+                : onOpenProcedure(selectedDocument.procedure, selectedDocument.id, selectedRun.id, selectedDocument.methodId)}
             >
               {selectedFreshness === 'stale' ? '用当前数据新建配置' : '打开该运行结果 / 设置'}
             </button>
@@ -386,8 +387,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                         type="button"
                         className="secondary-button"
                         onClick={() => latestFreshness === 'stale'
-                          ? onOpenProcedure(document.procedure)
-                          : onOpenProcedure(document.procedure, document.id)}
+                          ? onOpenProcedure(document.procedure, undefined, undefined, document.methodId)
+                          : onOpenProcedure(document.procedure, document.id, undefined, document.methodId)}
                       >
                         {latestFreshness === 'stale' ? '用当前数据新建配置' : '编辑设置 / 打开当前结果'}
                       </button>
