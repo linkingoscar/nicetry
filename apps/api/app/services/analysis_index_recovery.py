@@ -323,8 +323,10 @@ class AnalysisIndexRecoveryMixin:
         index["rebuiltFromServerJobs"] = True
         return changed
 
-    def _document_map(self, index: JsonObject) -> dict[str, JsonObject]:
+    @staticmethod
+    def _document_map(index: JsonObject) -> dict[str, JsonObject]:
         raise NotImplementedError
 
-    def _run_map(self, index: JsonObject) -> dict[str, JsonObject]:
+    @staticmethod
+    def _run_map(index: JsonObject) -> dict[str, JsonObject]:
         raise NotImplementedError
