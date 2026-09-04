@@ -4801,7 +4801,8 @@
         "App 在 analyze 状态始终呈现 StudyContextSwitcher，并以 hasDataset 控制展开形态；TypeScript 严格检查、25 条 Playwright 用例发现和 Web 91 files/325 tests 通过。",
         "hosted run 33867817730 已确认旧首屏/四页签定位器不再是失败原因；剩余 21 条集中于方法确认框默认取消、旧量表按钮文案、非唯一标题和真实 axe 对比度，并已按运行日志逐项修正。",
         "hosted run 33872039653 的 API/R 654+20 项、Web 325 项和生产构建通过，Playwright 提升为 18/25；剩余 7 条收敛到暗色主题 token、SEM dialog 监听生命周期、基础 SEM 提示文案和高级向导变量 ID，并已逐项修正，待下一次完整 hosted run 验证。",
-        "hosted run 33875140371 再提升到 23/25；暗色 axe、SEM dialog、方法路由和变量 ID 失败均已清零，最后两条分别是已卸载导入框的旧 CSS 定位器和高级分析终态结果请求竞态。"
+        "hosted run 33875140371 再提升到 23/25；暗色 axe、SEM dialog、方法路由和变量 ID 失败均已清零，最后两条分别是已卸载导入框的旧 CSS 定位器和高级分析终态结果请求竞态。",
+        "hosted run 33877732159 为 24/25；高级分析终态结果与 Excel 当前数据标题已通过，唯一失败收敛到 DataWorkspace CSS Module 的暗色选中子页签，并已增加模块内高对比度覆盖。"
       ]
     },
     {
@@ -4844,7 +4845,7 @@
       ],
       "closureEvidence": [
         "JobProgress 将 succeeded 分支的 setJob 移到 getAdvancedAnalysisResult 成功之后，失败、取消和运行中分支仍各自更新可见状态。",
-        "JobProgress.test.tsx 新增终态结果请求存活回归，定向 4/4 通过；完整 hosted 验证待下一次 PR 同步。"
+        "JobProgress.test.tsx 新增终态结果请求存活回归，定向 4/4 通过；hosted run 33877732159 中 ICC 与聚合诊断最终结果标题已呈现，完整 PR 门禁成功后关闭。"
       ]
     }
   ]

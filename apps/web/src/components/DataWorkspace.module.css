@@ -94,6 +94,10 @@
   border-bottom-color: currentColor;
 }
 
+:global([data-theme="dark"]) .dataSubviewNav .activeSubview {
+  color: #aebfff;
+}
+
 .dataSubviewBody {
   min-width: 0;
   padding-top: var(--space-4);
