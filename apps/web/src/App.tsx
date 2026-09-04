@@ -298,7 +298,7 @@ export function App() {
                   context={resolvedContext}
                   variables={activeDataset.variables}
                   onPrepare={() => setActiveView('data')}
-                  onNavigate={({ view, tab, sliceId, methodId, label, procedure, processModelNumber }) => {
+                  onNavigate={({ view, tab, sliceId, methodId, label, procedure, processModelNumber, processMediatorCount }) => {
                     const method = {
                       sliceId,
                       methodId,
@@ -307,6 +307,7 @@ export function App() {
                       key: Date.now(),
                       procedure,
                       processModelNumber,
+                      processMediatorCount,
                     }
                     if (view === 'model') {
                       setActiveAnalysisId(null)
