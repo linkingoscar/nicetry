@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -21,6 +22,14 @@ const dataset = {
   originalFile: { name: 'demo.csv' },
   dictionary: { version: 1 },
 } as DatasetVersion
+
+function renderOutput() {
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      <OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={vi.fn()} />
+    </QueryClientProvider>,
+  )
+}
 
 beforeEach(() => {
   localStorage.clear()
@@ -60,7 +69,7 @@ describe('OutputWorkspace registered model and advanced runs', () => {
       createdAt: '2026-09-03T11:00:00Z',
     })
 
-    render(<OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={vi.fn()} />)
+    renderOutput()
 
     expect(screen.getByRole('heading', { name: '输出索引' })).toBeInTheDocument()
     expect(screen.getByText('简单中介（PROCESS Model 4）')).toBeInTheDocument()
@@ -93,7 +102,7 @@ describe('OutputWorkspace registered model and advanced runs', () => {
       createdAt: '2026-09-03T11:00:00Z',
     })
 
-    render(<OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={vi.fn()} />)
+    renderOutput()
     fireEvent.change(screen.getByLabelText('搜索输出'), { target: { value: 'LMM' } })
 
     expect(screen.getByText('两层 Gaussian LMM')).toBeInTheDocument()
