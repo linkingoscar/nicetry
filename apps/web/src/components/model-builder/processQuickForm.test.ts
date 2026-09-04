@@ -78,12 +78,9 @@ describe('buildProcessQuickModel', () => {
     expect(serial.edges.some((edge) => edge.from === 'node_m1' && edge.to === 'node_m2')).toBe(true)
   })
 
-  it.each([
-    ['moderated_mediation_first', 'Model 7'],
-    ['moderated_mediation_second', 'Model 14'],
-  ] as const)('builds %s with X/M/W/Y and moderator centering', (kind, modelLabel) => {
+  it('builds Model 7 with X/W centering on the moderated X→M path', () => {
     const model = buildProcessQuickModel({
-      kind,
+      kind: 'moderated_mediation_first',
       xVariableId: 'x',
       mediatorVariableId: 'm',
       moderatorVariableId: 'w',
@@ -93,11 +90,26 @@ describe('buildProcessQuickModel', () => {
       meanCenterPredictors: true,
     }, variables, measurement)
 
-    expect(model.name).toContain(modelLabel)
-    expect(model.nodes.find((node) => node.role === 'm')?.variableId).toBe('m')
-    expect(model.nodes.find((node) => node.role === 'w')?.variableId).toBe('w')
-    expect(model.moderations.length).toBeGreaterThan(0)
-    expect(model.estimation.centering.method).toBe('mean')
+    expect(model.name).toContain('Model 7')
+    expect(model.moderations.some((moderation) => moderation.targetEdgeId === 'edge_x_m')).toBe(true)
+    expect(model.estimation.centering.nodeIds.sort()).toEqual(['node_w', 'node_x'])
+  })
+
+  it('builds Model 14 with M/W centering on the moderated M→Y path', () => {
+    const model = buildProcessQuickModel({
+      kind: 'moderated_mediation_second',
+      xVariableId: 'x',
+      mediatorVariableId: 'm',
+      moderatorVariableId: 'w',
+      yVariableId: 'y',
+      confidenceLevel: 0.99,
+      bootstrapReplicates: 5000,
+      meanCenterPredictors: true,
+    }, variables, measurement)
+
+    expect(model.name).toContain('Model 14')
+    expect(model.moderations.some((moderation) => moderation.targetEdgeId === 'edge_m_y')).toBe(true)
+    expect(model.estimation.centering.nodeIds.sort()).toEqual(['node_m', 'node_w'])
   })
 
   it('builds a Model 1 draft and mean-centers X/W when requested', () => {
@@ -115,7 +127,7 @@ describe('buildProcessQuickModel', () => {
     expect(model.nodes.find((node) => node.role === 'w')?.variableId).toBe('w')
     expect(model.nodes.find((node) => node.role === 'y')?.variableId).toBe('y')
     expect(model.moderations.length).toBeGreaterThan(0)
-    expect(model.estimation.centering.method).toBe('mean')
+    expect(model.estimation.centering.nodeIds.sort()).toEqual(['node_w', 'node_x'])
   })
 
   it('maps method-library model identity to the matching form kind', () => {
