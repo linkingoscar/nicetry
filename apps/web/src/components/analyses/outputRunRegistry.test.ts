@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DatasetVersion } from '../../types'
 import {
@@ -7,12 +7,24 @@ import {
   registeredOutputFreshness,
 } from './outputRunRegistry'
 
+const indexMocks = vi.hoisted(() => ({
+  registerServerAnalysisRun: vi.fn(),
+}))
+
+vi.mock('../../api/analysis-index', () => ({
+  registerServerAnalysisRun: indexMocks.registerServerAnalysisRun,
+}))
+
 const dataset = {
   id: 'dataset_current',
   projectId: 'project_demo',
 } as DatasetVersion
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+  indexMocks.registerServerAnalysisRun.mockResolvedValue({})
+})
 
 describe('outputRunRegistry', () => {
   it('stores model and advanced job references without inventing result state', () => {
@@ -44,6 +56,11 @@ describe('outputRunRegistry', () => {
       expect.objectContaining({ runId: 'run_model_1', source: 'model' }),
     ])
     expect(JSON.stringify(readRegisteredOutputRuns(dataset.projectId))).not.toContain('succeeded')
+    expect(indexMocks.registerServerAnalysisRun).toHaveBeenCalledTimes(2)
+    expect(indexMocks.registerServerAnalysisRun).toHaveBeenCalledWith(
+      dataset.projectId,
+      expect.not.objectContaining({ result: expect.anything() }),
+    )
   })
 
   it('deduplicates a run id and keeps the newest reference', () => {
