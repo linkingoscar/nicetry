@@ -1,3 +1,4 @@
+import { registerServerAnalysisRun } from '../../api/analysis-index'
 import type {
   DatasetVersion,
   EmpiricalAnalysisJob,
@@ -55,7 +56,7 @@ function saveStore(projectId: string, store: AnalysisRunDetailStore) {
       details: store.details.slice(0, MAX_DETAILS),
     }))
   } catch {
-    // The server job and compatibility run index remain the recovery sources.
+    // The server job and server AnalysisIndex remain the recovery sources.
   }
 }
 
@@ -86,6 +87,8 @@ export function syncEmpiricalAnalysisRunDetail(
   const index = loadEmpiricalAnalysisIndex(dataset, measurement)
   const runReference = index.runs.find((run) => run.id === job.id)
   if (!runReference) return false
+  const document = index.documents.find((entry) => entry.id === runReference.analysisId)
+  if (!document) return false
 
   const store = readStore(dataset.projectId)
   const existing = store.details.find((detail) => detail.runId === job.id)
@@ -107,5 +110,21 @@ export function syncEmpiricalAnalysisRunDetail(
 
   store.details = [detail, ...store.details.filter((item) => item.runId !== job.id)]
   saveStore(dataset.projectId, store)
+  void registerServerAnalysisRun(dataset.projectId, {
+    runId: job.id,
+    analysisId: runReference.analysisId,
+    source: 'empirical',
+    methodId: document.methodId,
+    label: document.title,
+    categoryId: document.categoryId,
+    procedure,
+    datasetVersionId: dataset.id,
+    measurementVersionId: measurement?.id ?? null,
+    status: job.status,
+    reportId: job.status === 'succeeded' ? job.reportId : undefined,
+    createdAt: job.createdAt,
+  }).catch(() => {
+    // The server can still reconstruct the persisted job; browser compatibility metadata remains intact.
+  })
   return true
 }
