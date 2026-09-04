@@ -7,8 +7,9 @@ describe('PROCESS method library presets', () => {
   it('exposes common PROCESS forms separately from the full advanced catalog', () => {
     const processMethod = methodDefinitions.find((method) => method.id === 'model.process')
     expect(processMethod).toBeDefined()
+    if (!processMethod) throw new Error('model.process registry entry is missing')
 
-    const entries = expandMethodForLibrary(processMethod!)
+    const entries = expandMethodForLibrary(processMethod)
     expect(entries.map((entry) => ({
       id: entry.id,
       processModelNumber: entry.processModelNumber,
