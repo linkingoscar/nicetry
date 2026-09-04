@@ -6,7 +6,7 @@
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。本提交包含最终测试适配后的 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
+Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。本提交是最终 PRD 收口质量门禁候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
 
 唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
 
@@ -27,12 +27,7 @@ Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；P
 
 ### 3.1 服务端 AnalysisIndex
 
-`apps/api/app/services/analysis_index.py` 保存项目级：
-
-- AnalysisDocument：标题、方法、来源、数据/测量身份、草稿引用、latest/primary run、pinned/archived；
-- AnalysisRun：runId、analysisId、方法、来源、上游版本、状态和可选 result/report/model identity。
-
-索引文件使用既有 atomic JSON IO。它不保存统计表、系数、诊断或图。
+`apps/api/app/services/analysis_index.py` 保存项目级 AnalysisDocument 与 AnalysisRun 的导航身份和上游版本。索引文件使用既有 atomic JSON IO，不保存统计表、系数、诊断或图。
 
 ### 3.2 结果真值不迁移
 
@@ -40,7 +35,7 @@ Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；P
 - PROCESS/SEM → 既有 model job/result；
 - advanced/MI → 既有 advanced job/result。
 
-Output 选择 run 后才读取权威状态/结果。AnalysisIndex 仅解决“项目中有哪些分析/运行”和刷新恢复问题。
+Output 选择 run 后才读取权威状态/结果。AnalysisIndex 只解决“项目中有哪些分析/运行”和刷新恢复问题。
 
 ### 3.3 可重建索引
 
@@ -48,87 +43,30 @@ AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empi
 
 ## 4. Phase 5：常见 PROCESS 表单
 
-统一方法库直接提供：
+统一方法库直接提供 Model 4 简单中介、Model 4 两中介并行中介、Model 6 两中介链式中介、Model 1 简单调节、Model 7 第一阶段调节中介、Model 14 第二阶段调节中介，以及完整 PROCESS 高级目录。进入 common form 后不再出现第二个模型选择器。
 
-1. Model 4 简单中介；
-2. Model 4 两中介并行中介；
-3. Model 6 两中介链式中介；
-4. Model 1 简单调节；
-5. Model 7 第一阶段调节中介；
-6. Model 14 第二阶段调节中介；
-7. 完整 PROCESS 目录（高级）。
-
-进入 common form 后不再出现第二个模型选择器。所有表单只写现有 ModelSpec 并复用 validation/freeze/run/result。Model 14 的中心化对象按真实被调节路径使用 M/W；Model 1/7 使用 X/W。
-
-基础 SEM 继续提供两构念 X→Y form-first 路径，复杂测量、多组、高阶和约束模型回到 SEM Studio。
+所有表单只写现有 ModelSpec 并复用 validation/freeze/run/result。Model 14 的中心化对象按真实被调节路径使用 M/W；Model 1/7 使用 X/W。基础 SEM 继续提供两构念 X→Y form-first 路径，复杂测量、多组、高阶和约束模型回到 SEM Studio。
 
 ## 5. Phase 6：高级方法迁移
 
-高级方法迁移的“统一”是外壳统一，而不是统计实现统一：
-
-- ICC/rwg、两层 Gaussian LMM：common form；
-- panel、diary/ESM：方法卡锁定具体模型身份；
-- factorial ANOVA、ANCOVA、重复测量、混合设计：common form；cluster-robust GLM 保持 advanced；
-- regression/t-test/ANOVA analytic power：common form；Monte Carlo 保持 specialist；
-- MI：专用 ImputationPlan 编辑器，运行引用进入 Output；
-- advanced measurement：按 reliability/EFA/CFA/invariance/ESEM/Bifactor/IRT/DIF/CMB 能力范围锁定专用配置。
-
-没有因 UX 迁移替换 R runner、放宽统计门禁或提高 maturity/publication eligibility。
+ICC/rwg、两层 Gaussian LMM、实验、解析功效等高频方法使用 common form；panel/diary、Monte Carlo、MI 和高级测量保留专用配置器，但共享统一方法库、标题/运行检查和 Output。没有因 UX 迁移替换 R runner、放宽统计门禁或提高 maturity/publication eligibility。
 
 ## 6. Phase 7：视觉与可访问性
 
-### 6.1 视觉收敛
+- `liquid-glass.css` 已删除；routine Data/Analyze/Output 使用 `workbench.css`，专家 PROCESS/SEM 隔离在 `expert-model.css`；
+- 1366/1024/760/420px 响应式，390px 浏览器检查页面级横向溢出；
+- APG Data/Analyze/Output tabs、skip link、focus-visible、reduced motion、higher contrast、Windows forced-colors；
+- `tests/e2e/prd-workbench.spec.ts` 覆盖三工作区键盘、skip-link、computed backdrop-filter、axe 和 390×844 溢出。
 
-- `styles.css` 不再加载全局 glass stylesheet；
-- `liquid-glass.css` 已删除；
-- routine Data/Analyze/Output 使用 `workbench.css`：不透明背景、轻边框、紧凑 header、小圆角、无 backdrop blur/浮动卡片位移；
-- 专家 PROCESS/SEM 的差异化样式隔离在 `expert-model.css`。
-
-### 6.2 响应式
-
-`workbench.css` 明确覆盖 1366、1024、760、420px；390px 浏览器验收检查页面级横向溢出。宽表格保留局部可聚焦滚动，而不是把整页撑宽。
-
-### 6.3 键盘和屏读
-
-- Data/Analyze/Output：APG roving tabIndex + Arrow/Home/End；
-- skip link → 当前活动 tabpanel；
-- 活动 tabpanel 可编程聚焦；
-- links/buttons/forms/tabindex 均有 focus-visible；
-- reduced motion、higher contrast、Windows forced-colors；
-- 异步状态使用已有 live region/status 语义。
-
-### 6.4 自动化可用性验收
-
-`tests/e2e/prd-workbench.spec.ts` 覆盖：
-
-- 三工作区语义与键盘切换；
-- skip-link；
-- routine Header/nav 的 computed backdrop-filter 为 `none`；
-- axe WCAG A/AA critical/serious；
-- 390×844 页面级横向溢出。
-
-这属于机械可用性/无障碍证据，不是用户访谈或真实任务研究。
+这些是机械可用性/无障碍证据，不是用户访谈或真实任务研究。
 
 ## 7. 迁移清理
 
-- 新三工作区为 `App.tsx` 默认且唯一已有数据主路径；
-- 旧顶层 empirical/model/method views 只作为新 Analyze 内部 surface，不再作为一级导航；
-- global `analysisReady` 不再决定能否进入 Analyze；方法自身 requirements 决定运行前提；
-- legacy glass stylesheet 已删除；
-- localStorage 历史索引降级为兼容缓存，服务端 AnalysisIndex 为项目恢复层；
-- 旧统计 runner、旧结果和兼容草稿没有因 UI 迁移被删除。
+新三工作区是已有数据的唯一一级路径；旧 empirical/model/method views 只作为 Analyze 内部 surface；global `analysisReady` 不再决定能否进入 Analyze；legacy glass stylesheet 已删除；localStorage 历史索引降级为兼容缓存；旧统计 runner、旧结果和兼容草稿没有因 UI 迁移被删除。
 
 ## 8. 文档同步
 
-本批同步：
-
-- 根 `README.md`：三工作区、统一方法库、common PROCESS forms、server OutputIndex；
-- `docs/00-项目现状与产品边界.md`：活动产品边界；
-- `docs/01-产品工作流与交互.md`：新的日常任务流和可访问性；
-- `docs/03-系统架构与数据契约.md`：AnalysisIndex 与结果真值边界；
-- 本文件：PRD Phase 0–7 验收矩阵。
-
-仓库没有独立于这些源文件之外的产品官网内容生成链；本次可修改的公开定位面已同步到 README 与活动文档。若未来另有外部站点仓库，应由其自己的发布流程同步，不能在本仓库伪造已更新状态。
+根 `README.md`、`docs/00`、`docs/01`、`docs/03`、`docs/README.md` 和本验收矩阵已同步。仓库没有独立于这些源文件之外的产品官网内容生成链；若未来另有外部站点仓库，应由其自己的发布流程同步，不能在本仓库伪造已更新状态。
 
 ## 9. 最终门禁证据
 
