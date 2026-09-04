@@ -6,7 +6,7 @@
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。当前提交是两轮 hosted release-validation 之后的第三个最终 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
+Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。当前提交是三轮 hosted release-validation 之后的第四个最终 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
 
 唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
 
@@ -88,9 +88,15 @@ ICC/rwg、两层 Gaussian LMM、实验、解析功效等高频方法使用 commo
 - 架构、changelog governance、source-line ceiling 和 inline-style budget 均通过；
 - 唯一失败任务为 `python-quality`：`reportOptionalMemberAccess` 5（baseline 1），`reportOptionalSubscript` 2（baseline 1）。显式 `Any` 已恢复到冻结上限内。
 
-第三候选继续在代码侧消除 Optional 类型不确定性：必填 AnalysisIndex token 使用 `Literal` overload 证明返回值必为 `str`，不再把必填身份扩散成 `str | None`。同时 `check-python-types.py` 在规则超基线时会输出对应 Pyright 文件/行号诊断，以便任何剩余失败可以直接修复；其阈值和通过/失败判定未改变。
+第三候选继续在代码侧消除 Optional 类型不确定性：必填 AnalysisIndex token 使用 `Literal` overload 证明返回值必为 `str`，不再把必填身份扩散成 `str | None`。同时 `check-python-types.py` 在规则超基线时输出对应 Pyright 文件/行号诊断；其阈值和通过/失败判定未改变。
 
-### 9.3 当前最终候选
+### 9.3 第三轮 release-validation
+
+第三轮完整 hosted quality gate 已实际执行。Web/contract、R/统计、架构、changelog、source-line 和 style budget 均继续通过，最终失败列表仍只有 `python-quality`。增强后的诊断把新增问题精确定位到 `analysis_index_recovery.py` 中对 persisted `options` 的重复读取：4 个新增 `reportOptionalMemberAccess` 和 1 个新增 `reportOptionalSubscript`。日志中另有 `test_dataset_import.py` 的 1 个 member access + 1 个 subscript，它们正是仓库冻结 baseline 已允许的原有诊断。
+
+第四候选将 persisted `options` 只读取一次，并在后续访问前明确窄化为非空 `JsonObject`。这覆盖第三轮全部新增 Optional 诊断，不改变 job 重建语义，也不调整 Pyright baseline。
+
+### 9.4 当前最终候选
 
 - Full / hosted quality gate：**由当前非 `[skip ci]` 收口提交重新触发；结果以 PR #3 当前 head 的实际 GitHub Actions 检查为准。**
 - 自动化 PRD workbench E2E：**纳入上述最终质量门禁；不得在运行完成前预写通过。**
