@@ -5,6 +5,14 @@ import type { DatasetVersion } from '../types'
 import { ensureEmpiricalAnalysisDocument } from './analyses/analysisDocuments'
 import { OutputWorkspace } from './OutputWorkspace'
 
+const indexMocks = vi.hoisted(() => ({
+  getServerAnalysisIndex: vi.fn(),
+  registerServerAnalysisRun: vi.fn(),
+  upsertServerAnalysisDocument: vi.fn(),
+  patchServerAnalysisDocument: vi.fn(),
+}))
+
+vi.mock('../api/analysis-index', () => indexMocks)
 vi.mock('./analyses/useOutputRunJobs', () => ({
   useOutputRunJobs: () => new Map(),
 }))
@@ -38,6 +46,15 @@ const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
 
 beforeEach(() => {
   localStorage.clear()
+  vi.clearAllMocks()
+  indexMocks.getServerAnalysisIndex.mockResolvedValue({
+    schemaVersion: '1.0.0',
+    projectId: dataset.projectId,
+    documents: [],
+    runs: [],
+    rebuiltFromServerJobs: true,
+  })
+  indexMocks.upsertServerAnalysisDocument.mockResolvedValue({})
 })
 
 describe('OutputWorkspace run routing', () => {
