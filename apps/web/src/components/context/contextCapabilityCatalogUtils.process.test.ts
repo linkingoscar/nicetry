@@ -9,7 +9,8 @@ describe('PROCESS workbench routing', () => {
   it('carries common PROCESS model identity from the library entry into the model request', () => {
     const processMethod = methodDefinitions.find((method) => method.id === 'model.process')
     expect(processMethod).toBeDefined()
-    const entries = expandMethodForLibrary(processMethod!)
+    if (!processMethod) throw new Error('model.process registry entry is missing')
+    const entries = expandMethodForLibrary(processMethod)
     const capability = {
       sliceId: 'model.process_catalog',
       executionAvailable: true,
