@@ -235,6 +235,13 @@
   --expert-glass-shadow: inset 0 1px 0 rgba(221, 230, 255, .12), 0 14px 30px -22px rgba(0, 0, 0, .8);
   --expert-glass-sheen: linear-gradient(120deg, rgba(180, 198, 248, .08), rgba(46, 56, 85, .02) 55%, rgba(127, 106, 192, .06));
 }
+[data-theme="dark"] .model-builder .template-explorer > summary,
+[data-theme="dark"] .model-builder .template-group-tabs button[aria-pressed="true"],
+[data-theme="dark"] .model-builder .template-group-tabs button[aria-selected="true"],
+[data-theme="dark"] .model-builder .process-assignment-status,
+[data-theme="dark"] .model-builder .variable-token em,
+[data-theme="dark"] .model-builder .process-editor-tabs button[aria-pressed="true"],
+[data-theme="dark"] .model-builder .role-slot-remove { color: #aebfff; }
 [data-theme="dark"] .model-builder .template-buttons button[aria-pressed="true"] { color: #fff; }
 [data-theme="dark"] .model-builder .validation-warning { color: #f5d294; background: #362d20; border-color: #927443; }
 [data-theme="dark"] .model-builder .validation-error { color: #ffc3ce; background: #422734; border-color: #916075; }

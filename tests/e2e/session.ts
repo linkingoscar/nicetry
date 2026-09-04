@@ -58,9 +58,10 @@ export async function configureMethod(
     await expect(methodButton).toBeHidden()
     const completionText = acceptDialog === false
       ? /已取消目录方法切换/
-      : new RegExp(`已进入(?:：|“)?${escapeRegExp(label)}`)
+      : /^已进入/
     await expect.poll(async () => (
-      await anyVisible(page.getByText(completionText))
+      await anyVisible(page.getByRole('status').filter({ hasText: completionText }))
+      || await anyVisible(page.getByText(new RegExp(`已进入(?:：|“)?${escapeRegExp(label)}`)))
       || await anyVisible(page.getByRole('heading', { name: label, exact: true }))
     ), { timeout: 15_000 }).toBe(true)
   } finally {

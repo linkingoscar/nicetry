@@ -95,7 +95,12 @@ test('prepares nested cross-sectional measurement without conflating cluster and
   await expect(page.getByRole('button', { name: '配置组间差异检验', exact: true })).toHaveCount(0)
   await configureMethod(page, 'ICC 与聚合诊断')
   await page.getByLabel('Cluster ID').selectOption('group')
-  await page.getByLabel(/构成团队层构念的题项/).selectOption(['autonomy_1', 'autonomy_2', 'autonomy_3'])
+  const teamItemPicker = page.getByLabel(/构成团队层构念的题项/)
+  const teamItemIds = await teamItemPicker.locator('option').evaluateAll((options) => options
+    .filter((option) => /^autonomy_[123](?:\s|\()/.test(option.textContent?.trim() ?? ''))
+    .map((option) => (option as HTMLOptionElement).value))
+  expect(teamItemIds).toHaveLength(3)
+  await teamItemPicker.selectOption(teamItemIds)
   const acceptedRun = page.waitForResponse((response) => (
     response.request().method() === 'POST'
     && response.url().endsWith('/advanced-analyses')

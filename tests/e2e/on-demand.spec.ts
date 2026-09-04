@@ -70,7 +70,6 @@ test('@real-r @a11y SEM exposes complete measurement models and preserves edits 
   await openAdvancedSemEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '3 · 估计设置' }).click()
-  page.once('dialog', dialog => dialog.accept())
   await page.getByRole('button', { name: 'lavaan (SEM 结构方程)', exact: true }).click()
   const indicators = page.locator('.react-flow__node[data-id^="indicator:"]')
   await expect(indicators).toHaveCount(9)

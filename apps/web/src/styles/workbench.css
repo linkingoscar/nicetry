@@ -186,6 +186,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+[data-theme="dark"] .app-shell .workspace-nav .workspace-tab[aria-selected="true"],
+[data-theme="dark"] .app-shell .workspace-tab[aria-selected="true"] .tab-badge {
+  color: #aebfff;
+  border-bottom-color: #aebfff;
+}
+
+[data-theme="dark"] .app-shell .context-method-status { color: #aebfff; }
+[data-theme="dark"] .app-shell .context-blocked-reason { color: #f6c86c; }
+
 /* Keep the expert PROCESS/SEM editor visually distinct while removing glass from daily work. */
 .app-shell .model-builder .model-toolbar,
 .app-shell .model-builder .variable-library,
