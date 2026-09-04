@@ -57,6 +57,11 @@ export function processQuickUsesModerator(kind: ProcessQuickKind): boolean {
     || kind === 'moderated_mediation_second'
 }
 
+export function processQuickCenteringRoles(kind: ProcessQuickKind): Array<'x' | 'm' | 'w'> {
+  if (!processQuickUsesModerator(kind)) return []
+  return kind === 'moderated_mediation_second' ? ['m', 'w'] : ['x', 'w']
+}
+
 function processQuickMediatorCount(kind: ProcessQuickKind): number {
   if (kind === 'parallel_mediation' || kind === 'serial_mediation') return 2
   if (kind === 'mediation' || kind === 'moderated_mediation_first' || kind === 'moderated_mediation_second') return 1
@@ -115,9 +120,10 @@ export function buildProcessQuickModel(
     model = assignVariableToModel(model, nodeId, variable, variables)
   })
 
-  const centeringNodeIds = processQuickUsesModerator(setup.kind) && setup.meanCenterPredictors
-    ? model.nodes.filter((node) => node.role === 'x' || node.role === 'w').map((node) => node.id)
-    : []
+  const centeringRoles = setup.meanCenterPredictors ? processQuickCenteringRoles(setup.kind) : []
+  const centeringNodeIds = model.nodes
+    .filter((node) => centeringRoles.includes(node.role as 'x' | 'm' | 'w'))
+    .map((node) => node.id)
 
   return {
     ...model,
