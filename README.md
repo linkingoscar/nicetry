@@ -1,19 +1,42 @@
 # 研径 ResearchPath
 
-ResearchPath 是一个 Windows 本地优先、按研究范式组织的实证研究与可视化建模工作台。React 负责交互，FastAPI 负责任务、契约和持久化，R 负责统计估计；原始数据默认留在本机。
+ResearchPath 是一个 Windows 本地优先、点按式、按需执行的实证研究工作台。React 负责交互，FastAPI 负责任务、分析索引和本地持久化，R 负责统计估计；原始数据默认留在本机。
 
 ## 当前产品
 
-导入数据或制定研究计划后，先选择研究范式，界面再生成相应流程：
+已有数据的日常路径固定为三个一级工作区：
 
-1. **横截面问卷**：数据与测量 → 实证分析 → 条件过程/SEM → 方法与功效。
-2. **纵向面板**：数据与测量 → 波次、等值性与纵向模型 → 方法与功效。
-3. **日记 / ESM**：数据与测量 → 时间质检、中心化与多层模型 → 方法与功效。
-4. **实验与准实验**：数据与测量 → 实验设计与功效；功效分析也可在没有活动数据集时先行。
+1. **数据（Data）**：导入后直接查看数据，按需进入变量、量表、质量、结构、合并和派生工具；不要求先完成一条长流水线。
+2. **分析（Analyze）**：从唯一方法库搜索并选择方法，方法自身决定当前数据是否可运行；变量、角色、参数和运行检查都属于当前方法。
+3. **输出（Output）**：按 AnalysisDocument 查看不可变运行、主要结果、旧设置结果和模型/高级分析的服务端运行引用；统计结果仍由原 job/result 服务权威保存。
 
-共享能力包括 CSV/XLSX/SAV 导入、测量版本、引导/专家分析模式、实验设计、功效与精度、多重插补，以及 ESEM/Bifactor/GRM IRT/DIF。PROCESS 画布可搜索、预览并直接应用 55 个当前预编程编号，14 个常用编号另保留为快捷入口；自由画布也可反向识别编号。合法但未命中编号的自定义拓扑可保存和导出设计，暂不开放运行。
+研究规划和功效仍可在没有活动数据集时独立打开，不再作为“分析已有数据”的必经步骤。时间结构、依赖结构和研究设计继续作为方法适用性上下文，而不是顶层导航。
 
-PROCESS 与高级方法都以后端返回的 `executionAvailable=true` 作为运行依据。高级方法当前整体状态为 `experimental`。完整能力边界见 [项目现状与产品边界](docs/00-项目现状与产品边界.md) 和 [能力矩阵](docs/07-能力矩阵与路线图.md)。
+### 方法入口
+
+统一方法库覆盖当前已接线的基础实证、测量、回归、纵向/日记、PROCESS/SEM、实验、多层、功效、多重插补和高级测量能力。`executionAvailable=true` 只表示当前 runner 可执行，不等于独立验证完成或论文主分析资格。
+
+常见 PROCESS 模型可直接表单配置，无需先进入画布：
+
+- 简单中介：Model 4，X/M/Y；
+- 并行中介：Model 4 多中介规格，X/M1/M2/Y；
+- 链式中介：Model 6，X/M1/M2/Y；
+- 简单调节：Model 1，X/W/Y；
+- 第一阶段调节中介：Model 7，X/M/W/Y；
+- 第二阶段调节中介：Model 14，X/M/W/Y。
+
+完整 PROCESS 55 个当前预编程编号和高级 PROCESS/SEM 画布继续可达；常见表单与高级编辑共用现有 ModelSpec、冻结、校验和统计执行路径，不新增第二套估计器。
+
+### 输出与恢复
+
+Output 使用服务端 `AnalysisIndex` 保存 AnalysisDocument、运行引用、方法身份和上游数据/测量版本。它不复制统计结果：
+
+- empirical 结果继续由现有 empirical job/report 服务负责；
+- PROCESS/SEM 继续由 model job/result 服务负责；
+- advanced/MI 继续由 advanced job/result 服务负责；
+- 浏览器 localStorage 只保留兼容缓存和即时草稿状态；即使缓存丢失，Output 也可从持久化 job state 重建运行索引。
+
+完整能力边界见 [项目现状与产品边界](docs/00-项目现状与产品边界.md)、[产品工作流与交互](docs/01-产品工作流与交互.md) 和 [能力矩阵](docs/07-能力矩阵与路线图.md)。
 
 ## 桌面轻应用
 
@@ -31,7 +54,7 @@ PROCESS 与高级方法都以后端返回的 `executionAvailable=true` 作为运
 - 使用独立 Edge 配置目录，不影响日常浏览器资料；
 - 同一时间只允许一个实例；
 - 关闭应用窗口后自动清理本轮本地服务；
-- 日志：`.researchpath/logs/`
+- 日志：`.researchpath/logs/`。
 
 根目录 `启动研径.cmd` 是没有快捷方式时的备用入口。升级前端代码后，重新运行 `scripts/install-app.ps1` 即可刷新生产构建和快捷方式。
 
@@ -42,14 +65,18 @@ PROCESS 与高级方法都以后端返回的 `executionAvailable=true` 作为运
 ```powershell
 ./scripts/dev.ps1
 ./scripts/harness.ps1 -Mode Quick
+./scripts/harness.ps1 -Mode Targeted -BaseRef HEAD
+./scripts/harness.ps1 -Mode Statistical
 ./scripts/harness.ps1 -Mode Full
 ./scripts/harness.ps1 -Mode Release
 ```
 
-开发模式仍使用 Vite `127.0.0.1:5173` 和 FastAPI `127.0.0.1:9999`，会保留终端以显示生命周期；它与面向日常使用的桌面轻应用是两条独立入口。
+开发模式使用 Vite `127.0.0.1:5173` 和 FastAPI `127.0.0.1:9999`，会保留终端以显示生命周期；它与面向日常使用的桌面轻应用是两条独立入口。
 
 - Quick：架构、lint、类型和契约漂移；
-- Full：Python、R `testthat`、Web、E2E、构建和 bundle；
+- Targeted：根据变更文件选择定向 API/R/Web/E2E，未知或高风险路径自动升级；
+- Statistical：统计引擎、数值基线和相关契约专项；
+- Full：Python、R `testthat`、Web、完整 E2E、构建和 bundle；
 - Release：Full、依赖审计、R 性能基准和发布证据。
 
 详细规则见 [工程开发与验证](docs/04-工程开发与验证.md)。
@@ -58,13 +85,13 @@ PROCESS 与高级方法都以后端返回的 `executionAvailable=true` 作为运
 
 | 目录 | 内容 |
 | --- | --- |
-| `apps/web/` | React/Vite 前端 |
-| `apps/api/` | FastAPI API、服务、任务和导出 |
+| `apps/web/` | React/Vite 前端、Data/Analyze/Output 工作台与 AnalysisIndex 客户端 |
+| `apps/api/` | FastAPI API、AnalysisIndex、本地任务、持久化和导出 |
 | `engine/R/` | 模型、实证、高级方法 R 入口与单测 |
-| `specs/` | JSON Schema 与跨语言契约 |
+| `specs/` | JSON Schema 与跨语言统计契约 |
 | `scripts/` | 安装、开发、门禁、备份和维护 |
-| `tests/` | Playwright E2E |
-| `docs/` | 文档导航、10 份主题文档和机器治理文件 |
+| `tests/` | Playwright E2E 与可访问性/响应式验收 |
+| `docs/` | 当前产品、统计、架构、验证和发布文档 |
 | `archive/asset-packs/` | 未启用或部分恢复的开发资产 |
 | `archive/project-history/` | 历史审计、ADR 和旧基线 |
 
@@ -72,10 +99,13 @@ PROCESS 与高级方法都以后端返回的 `executionAvailable=true` 作为运
 
 ## 产品原则
 
-- 原始数据只读，派生数据、测量和模型版本化；
+- 原始数据只读，派生数据、测量、模型和分析对象版本化；
+- 方法只在统一方法库选择一次，方法局部守门，不使用全局 `analysisReady` 代替真实前提；
+- 每次运行显式提交；修改设置不覆盖旧结果；
 - 同一数据、规格、版本和种子应可复现；
 - 统计方法、回退、警告和实际执行路径必须对用户可见；
 - 不自动搜索显著模型，不把横截面关联写成因果；
+- OutputIndex 只保存身份和运行引用，不复制或改写统计真值；
 - 资产包中的文件和历史报告不等于当前可执行能力。
 
 ## 使用与授权
