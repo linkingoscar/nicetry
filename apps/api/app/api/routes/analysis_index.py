@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Literal
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.dependencies import ApiServices, get_services
 from app.services.analysis_index import AnalysisIndexService
+from app.services.repository_io import JsonObject
 
 router = APIRouter(tags=["analysis-index"])
 
@@ -68,7 +69,7 @@ def _service(services: ApiServices) -> AnalysisIndexService:
 def get_analysis_index(
     project_id: str,
     services: ApiServices = Depends(get_services),
-) -> dict[str, Any]:
+) -> JsonObject:
     try:
         return _service(services).get_index(project_id)
     except (LookupError, ValueError) as error:
@@ -84,7 +85,7 @@ def upsert_analysis_document(
     analysis_id: str,
     request: AnalysisDocumentIndexRequest,
     services: ApiServices = Depends(get_services),
-) -> dict[str, Any]:
+) -> JsonObject:
     if request.id != analysis_id or request.project_id != project_id:
         raise HTTPException(status_code=409, detail="AnalysisDocument 路径身份与载荷不一致")
     try:
@@ -105,7 +106,7 @@ def patch_analysis_document(
     analysis_id: str,
     request: AnalysisDocumentPatchRequest,
     services: ApiServices = Depends(get_services),
-) -> dict[str, Any]:
+) -> JsonObject:
     try:
         return _service(services).patch_document(
             project_id,
@@ -123,7 +124,7 @@ def register_analysis_run(
     project_id: str,
     request: AnalysisRunIndexRequest,
     services: ApiServices = Depends(get_services),
-) -> dict[str, Any]:
+) -> JsonObject:
     try:
         return _service(services).register_run(
             project_id,
