@@ -9,7 +9,7 @@ import { ModelContextBindingBanner } from './model-builder/ModelContextBindingBa
 import { ModelEstimationEditor } from './model-builder/ModelEstimationEditor'
 import { ModelBuilderSidebar } from './model-builder/ModelBuilderSidebar'
 import { ProcessQuickSetupForm } from './model-builder/ProcessQuickSetupForm'
-import type { ProcessQuickKind } from './model-builder/processQuickForm'
+import { processQuickKindForRequest, type ProcessQuickKind } from './model-builder/processQuickForm'
 import { SemQuickSetupForm } from './model-builder/SemQuickSetupForm'
 import { RoleEditorSection } from './model-builder/RoleEditorSection'
 import { PathEditorSection } from './model-builder/PathEditorSection'
@@ -110,16 +110,17 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
       }
       switchEstimationFamily(family)
     }
-    if (processRequest && methodRequest.processModelNumber) {
-      const kind: ProcessQuickKind = methodRequest.processModelNumber === 1 ? 'moderation' : 'mediation'
+    const requestedProcessKind = processQuickKindForRequest(
+      methodRequest.processModelNumber,
+      methodRequest.processMediatorCount,
+    )
+    if (processRequest && requestedProcessKind) {
       setSemQuickOpen(false)
       setSemQuickApplied(false)
-      setProcessQuickKind(kind)
+      setProcessQuickKind(requestedProcessKind)
       setProcessQuickApplied(false)
       setProcessQuickOpen(true)
-      setMethodNotice(methodRequest.processModelNumber === 1
-        ? '已进入简单调节（PROCESS Model 1）表单。配置 X、W、Y 后即可在同页校验、冻结和运行。'
-        : '已进入简单中介（PROCESS Model 4）表单。配置 X、M、Y 后即可在同页校验、冻结和运行。')
+      setMethodNotice(`已进入“${methodRequest.label}”表单。配置变量角色后即可在同页校验、冻结和运行。`)
       return
     }
     if (semRequest) {
@@ -193,6 +194,7 @@ export function ModelBuilder({ dataset, measurement, analysisContext, methodRequ
       {processQuickOpen ? (
         <div className={`process-quick-run-grid${processQuickApplied ? ' is-applied' : ''}`}>
           <ProcessQuickSetupForm
+            key={`${processQuickKind}:${methodRequest?.key ?? 'current'}`}
             variables={variables}
             model={model}
             initialKind={processQuickKind}
