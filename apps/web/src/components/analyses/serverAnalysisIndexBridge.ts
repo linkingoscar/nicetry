@@ -63,19 +63,20 @@ export function mergeEmpiricalServerIndex(
   server.documents.forEach((document) => {
     if (document.source !== 'empirical' || !isEmpiricalProcedure(document.procedure)) return
     const existing = documents.get(document.id)
+    const localIsNewer = Boolean(existing && existing.updatedAt >= document.updatedAt)
     documents.set(document.id, {
       id: document.id,
       projectId: document.projectId,
-      title: document.title,
+      title: localIsNewer && existing ? existing.title : document.title,
       methodId: document.methodId,
       categoryId: document.categoryId,
       createdAt: existing?.createdAt ?? document.createdAt,
-      updatedAt: document.updatedAt,
-      pinned: document.pinned,
+      updatedAt: localIsNewer && existing ? existing.updatedAt : document.updatedAt,
+      pinned: localIsNewer && existing ? existing.pinned : document.pinned,
       currentDraftId: document.currentDraftId ?? existing?.currentDraftId ?? `draft_${document.id}`,
-      latestRunId: document.latestRunId,
-      primaryRunId: document.primaryRunId,
-      archived: document.archived,
+      latestRunId: document.latestRunId ?? existing?.latestRunId,
+      primaryRunId: localIsNewer && existing ? existing.primaryRunId : document.primaryRunId,
+      archived: localIsNewer && existing ? existing.archived : document.archived,
       source: 'empirical',
       datasetVersionId: document.datasetVersionId,
       measurementVersionId: document.measurementVersionId,
@@ -128,10 +129,10 @@ export function mergeRegisteredServerRuns(
       datasetVersionId: run.datasetVersionId,
       measurementVersionId: run.measurementVersionId,
       source,
-      label: run.label,
-      methodId: run.methodId,
-      family: run.family ?? existing?.family,
-      modelId: run.modelId ?? existing?.modelId,
+      label: existing?.label ?? run.label,
+      methodId: existing?.methodId ?? run.methodId,
+      family: existing?.family ?? run.family,
+      modelId: existing?.modelId ?? run.modelId,
       createdAt: existing?.createdAt ?? run.createdAt,
     })
   })
