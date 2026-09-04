@@ -108,13 +108,17 @@ const dataset = { id: 'dataset_demo', variables: [] } as unknown as DatasetVersi
 const measurement = { id: 'measurement_demo', constructs: [] } as unknown as MeasurementVersion
 const context = { contextHash: 'context_demo' } as unknown as ResolvedAnalysisContext
 
-function processRequest(processModelNumber?: 1 | 4): MethodRequest {
+function processRequest(
+  processModelNumber?: 1 | 4 | 6 | 7 | 14,
+  processMediatorCount?: number,
+): MethodRequest {
   return {
     sliceId: 'model.process_catalog',
-    label: processModelNumber === 1 ? '简单调节' : processModelNumber === 4 ? '简单中介' : '完整模型库',
+    label: processModelNumber ? `PROCESS Model ${processModelNumber}` : '完整模型库',
     contextHash: 'context_demo',
-    key: 1,
+    key: processModelNumber ?? 99,
     processModelNumber,
+    processMediatorCount,
   }
 }
 
@@ -135,13 +139,31 @@ beforeEach(() => {
 
 describe('ModelBuilder form-first model routing', () => {
   it('keeps Model 4 on the quick form and reveals the shared run controls only after apply', async () => {
-    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={processRequest(4)} />)
+    render(<ModelBuilder dataset={dataset} measurement={measurement} analysisContext={context} methodRequest={processRequest(4, 1)} />)
 
     expect(await screen.findByText('quick-kind:mediation')).toBeInTheDocument()
     expect(screen.queryByText('run-controls')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'apply-process' }))
     expect(mocks.applyProcessQuickSetup).toHaveBeenCalledTimes(1)
     expect(screen.getByText('run-controls')).toBeInTheDocument()
+    expect(screen.queryByText('advanced-toolbar')).not.toBeInTheDocument()
+  })
+
+  it.each([
+    [4, 2, 'parallel_mediation'],
+    [6, 2, 'serial_mediation'],
+    [7, 1, 'moderated_mediation_first'],
+    [14, 1, 'moderated_mediation_second'],
+  ] as const)('routes PROCESS Model %s / mediator count %s to %s', async (modelNumber, mediatorCount, kind) => {
+    render(
+      <ModelBuilder
+        dataset={dataset}
+        measurement={measurement}
+        analysisContext={context}
+        methodRequest={processRequest(modelNumber, mediatorCount)}
+      />,
+    )
+    expect(await screen.findByText(`quick-kind:${kind}`)).toBeInTheDocument()
     expect(screen.queryByText('advanced-toolbar')).not.toBeInTheDocument()
   })
 
