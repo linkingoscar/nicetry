@@ -51,10 +51,7 @@ export function EmpiricalAnalysis({
     analysisId,
     analysisProcedure,
   })
-  const analysisIndex = useMemo(
-    () => loadEmpiricalAnalysisIndex(dataset, measurement),
-    [dataset, measurement, state.runHistory],
-  )
+  const analysisIndex = loadEmpiricalAnalysisIndex(dataset, measurement)
   const analysisDocument = analysisId
     ? analysisIndex.documents.find((entry) => entry.id === analysisId)
     : undefined
