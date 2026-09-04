@@ -5,6 +5,14 @@ import type { DatasetVersion } from '../types'
 import { registerOutputRun } from './analyses/outputRunRegistry'
 import { OutputWorkspace } from './OutputWorkspace'
 
+const indexMocks = vi.hoisted(() => ({
+  getServerAnalysisIndex: vi.fn(),
+  registerServerAnalysisRun: vi.fn(),
+  upsertServerAnalysisDocument: vi.fn(),
+  patchServerAnalysisDocument: vi.fn(),
+}))
+
+vi.mock('../api/analysis-index', () => indexMocks)
 vi.mock('./analyses/useOutputRunJobs', () => ({ useOutputRunJobs: () => new Map() }))
 
 const dataset = {
@@ -14,7 +22,18 @@ const dataset = {
   dictionary: { version: 1 },
 } as DatasetVersion
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  vi.clearAllMocks()
+  indexMocks.getServerAnalysisIndex.mockResolvedValue({
+    schemaVersion: '1.0.0',
+    projectId: dataset.projectId,
+    documents: [],
+    runs: [],
+    rebuiltFromServerJobs: true,
+  })
+  indexMocks.registerServerAnalysisRun.mockResolvedValue({})
+})
 
 describe('OutputWorkspace registered model and advanced runs', () => {
   it('shows project-level model and advanced run references even without empirical documents', () => {
