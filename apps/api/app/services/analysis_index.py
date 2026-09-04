@@ -4,7 +4,7 @@ import hashlib
 import re
 import threading
 from datetime import datetime, timezone
-from typing import Any
+from pathlib import Path
 
 from app.services.dataset_repository import DatasetRepository
 from app.services.repository_io import JsonObject, _read_json_safe, _write_json_atomic
@@ -71,7 +71,7 @@ class AnalysisIndexService:
         self.repository = repository
         self.settings = settings
 
-    def _path(self, project_id: str):
+    def _path(self, project_id: str) -> Path:
         project = _token(project_id, "project id")
         if project != "default":
             raise ValueError("当前本地工作台只支持 default 项目索引")
@@ -194,10 +194,9 @@ class AnalysisIndexService:
             existing = documents.get(str(normalized["id"]))
             if existing:
                 normalized["createdAt"] = existing.get("createdAt", normalized["createdAt"])
-                normalized["latestRunId"] = existing.get("latestRunId")
-                normalized["primaryRunId"] = payload.get(
-                    "primaryRunId", existing.get("primaryRunId")
-                )
+                for key in ("latestRunId", "primaryRunId"):
+                    if key not in normalized and existing.get(key) is not None:
+                        normalized[key] = existing[key]
             documents[str(normalized["id"])] = normalized
             index["documents"] = sorted(
                 documents.values(), key=lambda item: str(item.get("updatedAt", "")), reverse=True
@@ -238,6 +237,14 @@ class AnalysisIndexService:
         with _INDEX_LOCK:
             index = self._read(project_id)
             run = self._normalize_run(project_id, payload)
+            runs = self._run_map(index)
+            existing = runs.get(str(run["id"]))
+            if existing:
+                existing_analysis_id = existing.get("analysisId")
+                if isinstance(existing_analysis_id, str) and _TOKEN.fullmatch(existing_analysis_id):
+                    run["analysisId"] = existing_analysis_id
+                run = {**existing, **run, "createdAt": existing.get("createdAt", run["createdAt"])}
+
             documents = self._document_map(index)
             analysis_id = str(run["analysisId"])
             if analysis_id not in documents:
@@ -256,10 +263,6 @@ class AnalysisIndexService:
                     "pinned": False,
                 }
                 documents[analysis_id] = self._normalize_document(project_id, document_payload)
-            runs = self._run_map(index)
-            existing = runs.get(str(run["id"]))
-            if existing:
-                run = {**existing, **run, "createdAt": existing.get("createdAt", run["createdAt"])}
             runs[str(run["id"])] = run
             document = documents[analysis_id]
             document["latestRunId"] = run["id"]
@@ -303,6 +306,14 @@ class AnalysisIndexService:
             payload["procedure"] = procedure
         return self._normalize_document(project_id, payload)
 
+    @staticmethod
+    def _existing_analysis_id(runs: dict[str, JsonObject], run_id: str) -> str | None:
+        run = runs.get(run_id)
+        analysis_id = run.get("analysisId") if run else None
+        if isinstance(analysis_id, str) and _TOKEN.fullmatch(analysis_id):
+            return analysis_id
+        return None
+
     def _merge_reconstructed_jobs(self, project_id: str, index: JsonObject) -> bool:
         documents = self._document_map(index)
         runs = self._run_map(index)
@@ -321,17 +332,23 @@ class AnalysisIndexService:
             measurement_id = str(measurement_id) if isinstance(measurement_id, str) else None
             options = state.get("options") if isinstance(state.get("options"), dict) else {}
             procedure = str(options.get("procedure")) if options.get("procedure") else None
-            method_id = str(options.get("methodId")) if options.get("methodId") else (
-                f"empirical.{procedure}" if source == "empirical" and procedure else "model.process"
+            existing_run = runs.get(run_id)
+            method_id = (
+                str(existing_run.get("methodId"))
+                if existing_run and isinstance(existing_run.get("methodId"), str)
+                else str(options.get("methodId")) if options.get("methodId") else (
+                    f"empirical.{procedure}" if source == "empirical" and procedure else "model.process"
+                )
             )
             if not _TOKEN.fullmatch(method_id):
                 method_id = "model.process" if source == "model" else "empirical.unknown"
             explicit_analysis_id = options.get("analysisId") if source == "empirical" else None
-            if isinstance(explicit_analysis_id, str) and _TOKEN.fullmatch(explicit_analysis_id):
+            analysis_id = self._existing_analysis_id(runs, run_id)
+            if analysis_id is None and isinstance(explicit_analysis_id, str) and _TOKEN.fullmatch(explicit_analysis_id):
                 analysis_id = explicit_analysis_id
-            elif source == "model":
+            elif analysis_id is None and source == "model":
                 analysis_id = _stable_id("analysis_model", state.get("modelId"), dataset_id)
-            else:
+            elif analysis_id is None:
                 analysis_id = _stable_id(
                     "analysis_empirical", dataset_id, measurement_id, procedure, method_id
                 )
@@ -369,7 +386,7 @@ class AnalysisIndexService:
                 "projectId": project_id,
                 "source": source,
                 "methodId": method_id,
-                "label": documents[analysis_id]["title"],
+                "label": existing_run.get("label") if existing_run else documents[analysis_id]["title"],
                 "datasetVersionId": dataset_id,
                 "measurementVersionId": measurement_id,
                 "createdAt": created_at,
@@ -379,8 +396,9 @@ class AnalysisIndexService:
                 recovered["modelId"] = str(state["modelId"])
             if state.get("reportId"):
                 recovered["reportId"] = str(state["reportId"])
-            if run_id not in runs or runs[run_id] != {**runs[run_id], **recovered}:
-                runs[run_id] = {**runs.get(run_id, {}), **recovered}
+            merged = {**runs.get(run_id, {}), **recovered}
+            if runs.get(run_id) != merged:
+                runs[run_id] = merged
                 changed = True
 
         for state in self.repository.list_advanced_jobs_for_index():
@@ -389,24 +407,32 @@ class AnalysisIndexService:
             if not _TOKEN.fullmatch(run_id) or not _TOKEN.fullmatch(dataset_id):
                 continue
             family = str(state.get("family") or "advanced")
-            metadata = state.get("metadata") if isinstance(state.get("metadata"), dict) else {}
-            method_id = str(metadata.get("methodId") or family)
+            existing_run = runs.get(run_id)
+            method_id = (
+                str(existing_run.get("methodId"))
+                if existing_run and isinstance(existing_run.get("methodId"), str)
+                else family
+            )
             if not _TOKEN.fullmatch(method_id):
                 method_id = family if _TOKEN.fullmatch(family) else "advanced"
             raw_analysis_id = state.get("analysisId")
-            analysis_id = (
-                str(raw_analysis_id)
-                if isinstance(raw_analysis_id, str) and _TOKEN.fullmatch(raw_analysis_id)
-                else _stable_id("analysis_advanced", family, dataset_id, run_id)
+            analysis_id = self._existing_analysis_id(runs, run_id)
+            if analysis_id is None:
+                analysis_id = (
+                    str(raw_analysis_id)
+                    if isinstance(raw_analysis_id, str) and _TOKEN.fullmatch(raw_analysis_id)
+                    else _stable_id("analysis_advanced", family, dataset_id, run_id)
+                )
+            measurement_id = (
+                existing_run.get("measurementVersionId") if existing_run else None
             )
-            measurement_id = metadata.get("measurementVersionId")
             measurement_id = str(measurement_id) if isinstance(measurement_id, str) else None
             created_at = str(state.get("createdAt") or _now())
             if analysis_id not in documents:
                 documents[analysis_id] = self._recovery_document(
                     project_id=project_id,
                     analysis_id=analysis_id,
-                    title=str(metadata.get("label") or family.replace("_", " ")),
+                    title=str(existing_run.get("label")) if existing_run else family.replace("_", " "),
                     method_id=method_id,
                     category_id=family if _TOKEN.fullmatch(family) else "advanced",
                     source="advanced",
@@ -415,21 +441,30 @@ class AnalysisIndexService:
                     created_at=created_at,
                 )
                 changed = True
-            recovered = {
+            recovered: JsonObject = {
                 "id": run_id,
                 "analysisId": analysis_id,
                 "projectId": project_id,
                 "source": "advanced",
                 "methodId": method_id,
-                "label": documents[analysis_id]["title"],
-                "family": family,
+                "label": existing_run.get("label") if existing_run else documents[analysis_id]["title"],
+                "family": existing_run.get("family") if existing_run and existing_run.get("family") else family,
                 "datasetVersionId": dataset_id,
                 "measurementVersionId": measurement_id,
                 "createdAt": created_at,
                 "status": str(state.get("status") or "indexed"),
             }
-            if run_id not in runs or runs[run_id] != {**runs[run_id], **recovered}:
-                runs[run_id] = {**runs.get(run_id, {}), **recovered}
+            merged = {**runs.get(run_id, {}), **recovered}
+            if runs.get(run_id) != merged:
+                runs[run_id] = merged
+                changed = True
+
+        referenced_analysis_ids = {
+            str(run.get("analysisId")) for run in runs.values() if isinstance(run.get("analysisId"), str)
+        }
+        for analysis_id, document in list(documents.items()):
+            if document.get("source") in {"model", "advanced"} and analysis_id not in referenced_analysis_ids:
+                del documents[analysis_id]
                 changed = True
 
         for document in documents.values():
