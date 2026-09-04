@@ -6,9 +6,9 @@
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。最终质量门禁在本文件后续 `最终门禁证据` 节记录；门禁未通过前，不把当前分支称为发布完成。
+Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。本提交是 PRD 收口的完整质量门禁候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
 
-唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的发布验收项。
+唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
 
 ## 2. Phase 0–7 验收矩阵
 
@@ -21,7 +21,7 @@ Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；P
 | 4 Output / AnalysisDocument | 稳定分析对象、不可变运行、stale、复制、server/rebuild index | `AnalysisIndexService`、hidden analysis-index routes、`OutputWorkspace`、server/local bridge | 已实现 |
 | 5 PROCESS/SEM 表单 | 常见 PROCESS + 基础 SEM 表单，复杂模型回高级编辑 | Model 1/4/6/7/14 common forms、parallel Model 4、`SemQuickSetupForm` | 已实现 |
 | 6 高级方法迁移 | 统一发现/标题/运行检查/Output，保留专用配置器 | experiment/multilevel/power/MI/measurement/longitudinal/diary method-scoped adapters | 已实现 |
-| 7 视觉/A11y/发布 | 去大面积 glass、响应式、键盘/屏读、文档、发布证据、迁移清理 | `workbench.css`、`expert-model.css`、删除 `liquid-glass.css`、skip link、forced colors、E2E | 实现完成，最终门禁待记录 |
+| 7 视觉/A11y/发布 | 去大面积 glass、响应式、键盘/屏读、文档、发布证据、迁移清理 | `workbench.css`、`expert-model.css`、删除 `liquid-glass.css`、skip link、forced colors、PRD E2E | 实现完成；本提交触发最终门禁 |
 
 ## 3. Phase 4：最终 Output 架构
 
@@ -44,7 +44,7 @@ Output 选择 run 后才读取权威状态/结果。AnalysisIndex 仅解决“�
 
 ### 3.3 可重建索引
 
-AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empirical/advanced job state。浏览器 localStorage 被清除或 AnalysisIndex 缺失时，服务端仍可恢复 run reference。显式登记与重建会复用同一 run 的既有 analysisId，避免重复 AnalysisDocument。
+AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empirical/advanced job state。浏览器 localStorage 被清除或 AnalysisIndex 缺失时，服务端仍可恢复 run reference。显式登记与重建会复用同一 run 的既有 analysisId，避免重复 AnalysisDocument；模型和高级任务的测量身份从持久化 context lineage 恢复，stale 判定不会因索引重建而放松。
 
 ## 4. Phase 5：常见 PROCESS 表单
 
@@ -92,7 +92,7 @@ AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empi
 
 - Data/Analyze/Output：APG roving tabIndex + Arrow/Home/End；
 - skip link → 当前活动 tabpanel；
-- 活动 tabpanel 可编程聚焦；
+- 活动 tabpanel可编程聚焦；
 - links/buttons/forms/tabindex 均有 focus-visible；
 - reduced motion、higher contrast、Windows forced-colors；
 - 异步状态使用已有 live region/status 语义。
@@ -128,10 +128,10 @@ AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empi
 - `docs/03-系统架构与数据契约.md`：AnalysisIndex 与结果真值边界；
 - 本文件：PRD Phase 0–7 验收矩阵。
 
+仓库没有独立于这些源文件之外的产品官网内容生成链；本次可修改的公开定位面已同步到 README 与活动文档。若未来另有外部站点仓库，应由其自己的发布流程同步，不能在本仓库伪造已更新状态。
+
 ## 9. 最终门禁证据
 
-> 当前在实现提交阶段；这里不得预填“通过”。最终收口提交触发一次完整质量门禁后，把真实 run、API/Web/E2E/R/构建结果追加到本节。
-
-- Full / hosted quality gate：**待最终收口提交**。
-- 自动化 PRD workbench E2E：**待最终门禁执行**。
-- 真实参与者用户测试：**未执行；需要外部参与者，不能由代码仓库自动补造**。
+- Full / hosted quality gate：**由本收口提交触发；结果以 PR #3 对应提交的实际 GitHub Actions 检查为准。**
+- 自动化 PRD workbench E2E：**纳入上述最终质量门禁；不得在运行完成前预写通过。**
+- 真实参与者用户测试：**未执行；需要外部参与者，不能由代码仓库自动补造。**
