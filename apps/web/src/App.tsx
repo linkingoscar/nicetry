@@ -137,6 +137,9 @@ export function App() {
 
   return (
     <div className="app-shell">
+      {studyIntent === 'analyze' ? (
+        <a className="skip-link" href={`#workspace-panel-${activeView}`}>跳到主要工作区</a>
+      ) : null}
       <header className="app-header">
         <div>
           <p className="brand">研径 <span>ResearchPath</span></p>
@@ -209,7 +212,12 @@ export function App() {
       ) : null}
 
       {studyIntent === 'analyze' ? (
-        <div role="tabpanel" id={`workspace-panel-${activeView}`} aria-labelledby={`workspace-tab-${activeView}`}>
+        <div
+          role="tabpanel"
+          id={`workspace-panel-${activeView}`}
+          aria-labelledby={`workspace-tab-${activeView}`}
+          tabIndex={-1}
+        >
           <Suspense fallback={<main className="centered-state" aria-live="polite"><p>正在加载工作区…</p></main>}>
             {activeView === 'data' ? (
               <SectionErrorBoundary resetKey="data-view" title="数据">
