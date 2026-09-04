@@ -76,7 +76,7 @@ describe('ProcessQuickSetupForm', () => {
     }))
   })
 
-  it('exposes W and centering for a method-scoped moderated mediation form', () => {
+  it('exposes X/W centering for first-stage moderated mediation', () => {
     const onApply = vi.fn(() => true)
     render(
       <ProcessQuickSetupForm
@@ -89,6 +89,7 @@ describe('ProcessQuickSetupForm', () => {
     )
 
     expect(screen.getByRole('heading', { name: '第一阶段调节中介 · PROCESS Model 7' })).toBeInTheDocument()
+    expect(screen.getByLabelText('对 X 与 W 做均值中心化')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('自变量 X'), { target: { value: 'x' } })
     fireEvent.change(screen.getByLabelText('结果变量 Y'), { target: { value: 'y' } })
     fireEvent.change(screen.getByLabelText('中介变量 M'), { target: { value: 'm' } })
@@ -101,6 +102,22 @@ describe('ProcessQuickSetupForm', () => {
       moderatorVariableId: 'w',
       meanCenterPredictors: true,
     }))
+  })
+
+  it('labels M/W centering for second-stage moderated mediation', () => {
+    render(
+      <ProcessQuickSetupForm
+        variables={variables}
+        model={model}
+        initialKind="moderated_mediation_second"
+        onApply={vi.fn(() => true)}
+        onOpenAdvanced={vi.fn()}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: '第二阶段调节中介 · PROCESS Model 14' })).toBeInTheDocument()
+    expect(screen.getByLabelText('对 M 与 W 做均值中心化')).toBeInTheDocument()
+    expect(screen.queryByLabelText('对 X 与 W 做均值中心化')).not.toBeInTheDocument()
   })
 
   it('prevents overlapping role assignments', () => {
