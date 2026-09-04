@@ -5,13 +5,16 @@ import {
   expectNoSeriousAccessibilityViolations,
   installPageFailureMonitor,
 } from './quality'
-import { openAuthenticatedPage } from './session'
+import {
+  configureMethod,
+  openAdvancedProcessEditor,
+  openAnalysisLibrary,
+  openAuthenticatedPage,
+  openDataWorkspace,
+} from './session'
 
 async function chooseExistingData(page: Parameters<typeof openAuthenticatedPage>[0]) {
-  await openAuthenticatedPage(page)
-  await expect(page.getByRole('heading', { name: '你现在处于哪个阶段？' })).toBeVisible()
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
-  await expect(page.getByRole('heading', { name: /^导入.+数据$/ })).toBeVisible()
+  await openDataWorkspace(page)
 }
 
 async function importQuestionnaireDemo(page: Parameters<typeof openAuthenticatedPage>[0]) {
@@ -20,6 +23,7 @@ async function importQuestionnaireDemo(page: Parameters<typeof openAuthenticated
   await page.getByRole('radio', { name: /观测相互独立/ }).click()
   await expect(page.getByRole('heading', { name: '导入单次 / 横截面数据' })).toBeVisible()
   await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
   await expect(page.getByText('测量层已完成 · v1')).toBeVisible()
   await expect(page.getByText('尚未创建数据版本')).toHaveCount(0)
 }
@@ -33,14 +37,15 @@ async function profileAndSaveCurrentStructure(page: Parameters<typeof openAuthen
   }
   await page.getByRole('button', { name: '保存结构版本' }).click()
   await expect(page.getByText('当前角色与服务端已保存的结构版本一致，可以继续进入下游工作流。')).toBeVisible()
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
 }
 
 test('@smoke keeps planning, context boundaries, and the entry workflow independently usable', async ({ page }) => {
   const failures = await installPageFailureMonitor(page)
 
   await openAuthenticatedPage(page)
-  await expect(page.getByRole('heading', { name: '你现在处于哪个阶段？' })).toBeVisible()
-  await page.getByRole('button', { name: /规划新研究/ }).click()
+  await expect(page.getByRole('heading', { name: '本地点按式实证分析工作台' })).toBeVisible()
+  await page.getByRole('button', { name: /功效与研究规划/ }).click()
   await expect(page.getByRole('heading', { name: '把研究问题、估计对象和分析边界保存成可审计计划' })).toBeVisible()
   await expect(page.getByRole('heading', { name: '编辑研究设计计划' })).toBeVisible()
   await page.getByLabel('计划标题').fill('E2E 研究计划')
@@ -49,16 +54,17 @@ test('@smoke keeps planning, context boundaries, and the entry workflow independ
   await page.getByRole('button', { name: '保存研究计划草稿' }).click()
   await expect(page.getByText(/草稿 revision/)).toBeVisible()
 
-  await page.getByRole('button', { name: '重新选择路径' }).click()
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
+  await page.getByRole('button', { name: '项目首页' }).click()
+  await page.getByRole('button', { name: /导入数据并开始分析/ }).click()
   await page.getByRole('radio', { name: /单次 \/ 横截面/ }).click()
   await page.getByRole('radio', { name: /存在聚类/ }).click()
   await expect(page.getByText(/普通独立样本回归不会被默认推荐/)).toBeVisible()
-  await expect(page.getByRole('tab', { name: '方法目录', exact: true })).toBeVisible()
-  await expect(page.getByRole('tab', { name: '路径与 SEM', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '数据', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '分析', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '输出', exact: true })).toBeVisible()
   await page.getByRole('radio', { name: /观测相互独立/ }).click()
   await page.getByRole('radio', { name: '随机实验' }).click()
-  await expect(page.getByRole('tab', { name: '方法目录', exact: true })).toBeVisible()
+  await expect(page.getByRole('tab', { name: '分析', exact: true })).toBeVisible()
   await page.getByRole('radio', { name: '观察性' }).click()
   await expectNoSeriousAccessibilityViolations(page)
 
@@ -73,6 +79,7 @@ test('prepares nested cross-sectional measurement without conflating cluster and
   await expect(page.getByRole('button', { name: '进入横截面实证分析' })).toBeVisible()
   await page.getByRole('button', { name: '修改研究结构' }).click()
   await page.getByRole('radio', { name: /存在聚类/ }).click()
+  await page.getByRole('button', { name: '数据结构', exact: true }).click()
   await expect(page.getByText('确认当前数据结构所需的 ID、聚类或时间角色后')).toBeVisible()
   const clusterRole = page.getByRole('combobox', { name: /聚类 \/ Level 2 ID/ })
   await clusterRole.selectOption({ label: 'group (group)' })
@@ -84,28 +91,30 @@ test('prepares nested cross-sectional measurement without conflating cluster and
   await expectNoSeriousAccessibilityViolations(page)
 
   await page.getByRole('button', { name: '进入横截面嵌套分析' }).click()
-  await expect(page.getByRole('heading', { name: '问卷实证分析中心' })).toBeVisible()
-  await expect(page.getByRole('button', { name: '组间差异检验', exact: true })).toHaveCount(0)
-  await page.getByRole('button', { name: 'ICC 与聚合诊断', exact: true }).click()
-  await expect(page.getByLabel('cluster 聚合变量')).not.toHaveValue('')
-  await page.getByRole('checkbox', { name: /工作自主性（/ }).check()
+  await expect(page.getByRole('heading', { name: '分析方法', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '配置组间差异检验', exact: true })).toHaveCount(0)
+  await configureMethod(page, 'ICC 与聚合诊断')
+  await page.getByLabel('Cluster ID').selectOption('group')
+  await page.getByLabel(/构成团队层构念的题项/).selectOption(['autonomy_1', 'autonomy_2', 'autonomy_3'])
   const acceptedRun = page.waitForResponse((response) => (
     response.request().method() === 'POST'
-    && response.url().includes('/empirical-analysis')
+    && response.url().endsWith('/advanced-analyses')
     && response.status() === 202
   ))
-  await page.getByRole('button', { name: '运行ICC 与聚合诊断' }).click()
+  await page.getByRole('button', { name: '检查设置', exact: true }).click()
+  await expect(page.getByText('设置检查通过，可以运行分析')).toBeVisible()
+  await page.getByRole('button', { name: '运行分析', exact: true }).click()
   const runId = (await (await acceptedRun).json() as { id: string }).id
   await expect.poll(async () => page.evaluate(async (id) => {
     const token = window.sessionStorage.getItem('researchpath.sessionToken')
-    const response = await fetch(`/api/v1/analyses/${id}`, {
+    const response = await fetch(`/api/v1/advanced-analyses/${id}`, {
       headers: token ? { 'x-researchpath-token': token } : {},
     })
     const job = await response.json() as { status: string; error?: string | null }
     if (job.status === 'failed') throw new Error(job.error ?? 'nested 实证分析失败')
     return job.status
   }, runId), { timeout: 90_000 }).toBe('succeeded')
-  await expect(page.getByRole('heading', { name: 'ICC 与聚合诊断 · 本次结果' })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('heading', { name: 'ICC 与聚合诊断 — 结果' })).toBeVisible({ timeout: 15_000 })
   await expect(page.getByRole('heading', { name: '描述统计与分布诊断' })).toHaveCount(0)
   await expect(page.getByRole('tab', { name: /相关与矩阵/ })).toHaveCount(0)
 
@@ -121,6 +130,7 @@ test('keeps the panel-specific structure and measurement path independently reac
   await expect(page.getByRole('heading', { name: '导入追踪面板数据' })).toBeVisible()
   await page.getByRole('button', { name: '一键导入追踪面板示例项目' }).click()
   await expect(page.getByText('longitudinal-panel-demo.csv').first()).toBeVisible()
+  await page.getByRole('button', { name: '数据结构', exact: true }).click()
   await expect(page.getByRole('combobox', { name: /个体 \/ 研究对象 ID/ })).not.toHaveValue('')
   await expect(page.getByRole('combobox', { name: /面板数据布局/ })).toHaveValue('wide')
   await expect(page.getByRole('spinbutton', { name: /波次数/ })).toHaveValue('5')
@@ -129,8 +139,9 @@ test('keeps the panel-specific structure and measurement path independently reac
   await expect(page.getByRole('heading', { name: '纵向题项与跨波次测量' })).toBeVisible()
   await expect(page.getByText(/宽格式面板/)).toBeVisible()
   await page.getByRole('button', { name: '进入纵向面板分析' }).click()
-  await expect(page.getByRole('heading', { name: '纵向面板分析中心' })).toBeVisible()
-  await expect(page.getByText(/配置波次、等值性与纵向动态模型/)).toBeVisible()
+  await configureMethod(page, '传统 CLPM')
+  await expect(page.getByRole('heading', { name: '纵向面板模型' })).toBeVisible()
+  await expect(page.getByText(/传统 CLPM 与 RI-CLPM 至少三时点/)).toBeVisible()
   await expectNoSeriousAccessibilityViolations(page)
 
   await failures.expectClean()
@@ -145,6 +156,7 @@ test('keeps the diary-specific person-time preparation path independently reacha
   await expect(page.getByRole('heading', { name: '导入密集追踪数据' })).toBeVisible()
   await page.getByRole('button', { name: '一键导入密集追踪示例项目' }).click()
   await expect(page.getByText('daily-diary-demo.csv').first()).toBeVisible()
+  await page.getByRole('button', { name: '数据结构', exact: true }).click()
   await expect(page.getByRole('combobox', { name: /个体 \/ 研究对象 ID/ })).not.toHaveValue('')
   await expect(page.getByRole('combobox', { name: /波次 \/ 时间变量/ })).not.toHaveValue('')
   await profileAndSaveCurrentStructure(page)
@@ -152,8 +164,9 @@ test('keeps the diary-specific person-time preparation path independently reacha
   await expect(page.getByRole('heading', { name: '日记 / ESM 题项与时点测量' })).toBeVisible()
   await expect(page.getByText(/person × time/)).toBeVisible()
   await page.getByRole('button', { name: '进入日记 / ESM 分析' }).click()
-  await expect(page.getByRole('heading', { name: '日记与 ESM 分析中心' })).toBeVisible()
-  await expect(page.getByText(/中心化与个体内\/个体间效应/)).toBeVisible()
+  await configureMethod(page, '日记 / ESM 数据质量')
+  await expect(page.getByRole('heading', { name: '日记 / ESM 模型' })).toBeVisible()
+  await expect(page.getByText(/重复日\/时点嵌套于被试/)).toBeVisible()
   await expectNoSeriousAccessibilityViolations(page)
 
   await failures.expectClean()
@@ -165,7 +178,7 @@ test('@real-r runs one browser-to-API-to-real-R empirical analysis and renders i
 
   await importQuestionnaireDemo(page)
   await page.getByRole('button', { name: '进入横截面实证分析' }).click()
-  await expect(page.getByRole('heading', { name: '问卷实证分析中心' })).toBeVisible()
+  await configureMethod(page, '描述统计')
   const acceptedRun = page.waitForResponse((response) => (
     response.request().method() === 'POST'
     && response.url().includes('/empirical-analysis')
@@ -202,7 +215,7 @@ test('@real-r runs one browser-to-API-to-real-R empirical analysis and renders i
   await expect(autonomyRow).toBeVisible()
   await expect(autonomyRow).toContainText(/\d/)
   await expect(page.getByRole('heading', { name: '验证性因子分析' })).toHaveCount(0)
-  await page.getByRole('button', { name: '相关分析', exact: true }).click()
+  await configureMethod(page, '相关与偏相关')
   await expect(page.getByRole('heading', { name: '描述统计与分布诊断' })).toHaveCount(0)
   // Each method now owns its draft; correlation must explicitly select both variables.
   await page.getByRole('checkbox', { name: '工作自主性', exact: true }).check()
@@ -211,7 +224,8 @@ test('@real-r runs one browser-to-API-to-real-R empirical analysis and renders i
   await expect(page.getByRole('heading', { name: 'Pearson 相关矩阵' })).toBeVisible({ timeout: 45_000 })
   await expect(page.getByRole('rowheader', { name: '2. 工作投入', exact: true })).toBeVisible()
   await page.reload()
-  await expect(page.getByRole('combobox', { name: /运行记录/ }).getByRole('option')).toHaveCount(3)
+  await configureMethod(page, '描述统计')
+  await expect(page.getByRole('combobox', { name: /运行记录/ }).getByRole('option')).toHaveCount(2)
   await page.getByRole('combobox', { name: /运行记录/ }).selectOption(runId)
   await expect(page.getByRole('heading', { name: '描述统计与分布诊断' })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 844 })
@@ -230,11 +244,10 @@ test('@smoke @a11y keeps model-canvas inference language, accessibility, and mob
   await expect(page.getByRole('button', { name: '修改研究结构' })).toBeVisible()
   await expect(page.getByRole('button', { name: '进入横截面实证分析' })).toBeVisible()
   await page.getByRole('button', { name: '进入横截面实证分析' }).click()
-  await expect(page.getByRole('heading', { name: '问卷实证分析中心' })).toBeVisible()
-  await page.getByRole('button', { name: '相关分析', exact: true }).click()
+  await configureMethod(page, '相关与偏相关')
   await expect(page.getByText('纵向与日记高级流程')).toHaveCount(0)
 
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByRole('heading', { name: '模型画布与预运行检查' })).toBeVisible()
   await expect(page.getByText('55 个编号可识别，执行以检查为准')).toBeVisible()
   await expect(page.getByText('区间不含 0 / p<.05（非理论支持）')).toBeVisible()
@@ -291,41 +304,42 @@ test('@smoke keeps method discovery compact, searchable, keyboard accessible and
   const failures = await installPageFailureMonitor(page)
   await page.setViewportSize({ width: 1280, height: 900 })
   await importQuestionnaireDemo(page)
-  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
+  await openAnalysisLibrary(page)
   await expect(page.getByRole('searchbox', { name: '搜索方法' })).toBeVisible()
-  const firstMethod = page.getByRole('button', { name: '配置横截面描述与缺失诊断' })
+  const firstMethod = page.getByRole('button', { name: '配置描述统计' })
   await expect(firstMethod).toBeInViewport()
   const bounds = await firstMethod.boundingBox()
   expect(bounds!.y + bounds!.height).toBeLessThan(760)
-  await expect(page.getByRole('radio', { name: /单次/ })).toHaveCount(0)
+  await expect(page.getByRole('radio', { name: /单次/ })).not.toBeVisible()
   await expect(page.locator('.context-hash')).not.toBeVisible()
-  await expect(page.getByRole('tab', { name: '统计分析', exact: true })).toContainText('按需运行')
+  await expect(page.getByRole('tab', { name: '分析', exact: true })).toContainText('可配置')
   await page.screenshot({ path: 'output/playwright/usability-desktop.png' })
 
-  await page.getByRole('tab', { name: '方法目录', exact: true }).focus()
+  await page.getByRole('tab', { name: '分析', exact: true }).focus()
   await page.keyboard.press('Home')
-  await expect(page.getByRole('tab', { name: '数据准备', exact: true })).toBeFocused()
+  await expect(page.getByRole('tab', { name: '数据', exact: true })).toBeFocused()
   await page.keyboard.press('End')
-  await expect(page.getByRole('tab', { name: '方法目录', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await expect(page.getByRole('tab', { name: '输出', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await openAnalysisLibrary(page)
 
   await page.getByRole('searchbox', { name: '搜索方法' }).fill('没有这种方法')
   await expect(page.getByText(/没有匹配的方法/)).toBeVisible()
   await page.getByRole('button', { name: '清除筛选' }).click()
-  await page.getByRole('combobox', { name: '方法分类' }).selectOption('empirical')
-  await page.getByRole('searchbox', { name: '搜索方法' }).fill('回归')
+  await page.getByRole('combobox', { name: '研究任务' }).selectOption('regression')
+  await page.getByRole('searchbox', { name: '搜索方法' }).fill('线性 / 分层回归')
   await expect(page.getByRole('article')).toHaveCount(1)
-  await page.getByRole('button', { name: '配置横截面分层回归' }).click()
-  await expect(page.getByRole('tab', { name: '统计分析', exact: true })).toHaveAttribute('aria-selected', 'true')
+  await page.getByRole('button', { name: '配置线性 / 分层回归' }).click()
+  await expect(page.getByRole('tab', { name: '分析', exact: true })).toHaveAttribute('aria-selected', 'true')
   await expect(page.getByRole('button', { name: '运行分层线性回归', exact: true })).toBeVisible()
 
-  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
-  await page.getByRole('combobox', { name: '方法分类' }).selectOption('power_analysis')
+  await openAnalysisLibrary(page)
+  await page.getByRole('combobox', { name: '研究任务' }).selectOption('power')
   await page.getByRole('button', { name: '配置回归解析功效' }).click()
-  await expect(page.getByRole('heading', { name: '回归解析功效', exact: true })).toBeFocused()
+  await expect(page.getByRole('heading', { name: '回归解析功效', exact: true })).toBeVisible()
   await expect(page.getByRole('searchbox', { name: '搜索方法' })).toHaveCount(0)
-  await page.getByRole('button', { name: '返回方法目录', exact: true }).click()
+  await page.getByRole('button', { name: '返回方法库', exact: true }).click()
   await expect(page.getByRole('button', { name: '配置回归解析功效' })).toBeFocused()
-  await expect(page.getByRole('combobox', { name: '方法分类' })).toHaveValue('power_analysis')
+  await expect(page.getByRole('combobox', { name: '研究任务' })).toHaveValue('power')
   await page.getByRole('button', { name: '清除筛选' }).click()
   await page.getByText('版本与诊断详情', { exact: true }).click()
   await expect(page.locator('.context-hash')).toBeVisible()
@@ -337,7 +351,7 @@ test('@smoke keeps method discovery compact, searchable, keyboard accessible and
   await expectNoSeriousAccessibilityViolations(page)
   await page.screenshot({ path: 'output/playwright/usability-dark.png' })
   await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.getByRole('tab', { name: '方法目录', exact: true })).toBeInViewport()
+  await expect(page.getByRole('tab', { name: '分析', exact: true })).toBeInViewport()
   await expectNoHorizontalOverflow(page)
   await expectNoSeriousAccessibilityViolations(page)
   await page.screenshot({ path: 'output/playwright/usability-mobile.png' })

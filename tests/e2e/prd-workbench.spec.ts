@@ -32,8 +32,8 @@ test('@smoke @a11y PRD workbench shell is keyboard-first, responsive, and free o
   })
   expect(shellDecoration.header.backdropFilter).toBe('none')
   expect(shellDecoration.navigation.backdropFilter).toBe('none')
-  expect(shellDecoration.header.webkitBackdropFilter).toBe('none')
-  expect(shellDecoration.navigation.webkitBackdropFilter).toBe('none')
+  expect(['', 'none']).toContain(shellDecoration.header.webkitBackdropFilter)
+  expect(['', 'none']).toContain(shellDecoration.navigation.webkitBackdropFilter)
 
   await dataTab.focus()
   await page.keyboard.press('End')

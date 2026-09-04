@@ -1,10 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { openAuthenticatedPage } from './session'
+import { configureMethod, openAdvancedSemEditor, openAnalysisLibrary, openDataWorkspace } from './session'
 import { expectNoHorizontalOverflow, expectNoSeriousAccessibilityViolations, installPageFailureMonitor } from './quality'
 
-async function startIndependent(page: Parameters<typeof openAuthenticatedPage>[0]) {
-  await openAuthenticatedPage(page)
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
+async function startIndependent(page: Parameters<typeof openDataWorkspace>[0]) {
+  await openDataWorkspace(page)
   await page.getByRole('radio', { name: /单次 \/ 横截面/ }).click()
   await page.getByRole('radio', { name: /观测相互独立/ }).click()
   await page.getByRole('radio', { name: /^观察性/ }).click()
@@ -19,18 +18,19 @@ test('@real-r raw variables run without constructs and drafts survive navigation
   await startIndependent(page)
   await page.getByLabel('选择数据文件').setInputFiles({ name: 'raw-age.csv', mimeType: 'text/csv', buffer: Buffer.from('age\n20\n25\n30\n35\n40\n') })
   await page.getByRole('button', { name: '导入并创建数据版本' }).click()
-  await expect(page.getByRole('heading', { name: '确认变量类型' })).toBeVisible()
-  await page.getByLabel('age的最终类型').selectOption('continuous')
-  await page.getByRole('button', { name: '确认全部变量' }).click()
-  await expect(page.getByText('数据字典已就绪，可直接分析原始变量')).toBeVisible()
-  await page.getByRole('tab', { name: '统计分析', exact: true }).click()
+  await page.getByRole('tab', { name: '变量视图', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '变量类型与识别' })).toBeVisible()
+  await page.getByLabel('age的有效类型').selectOption('continuous')
+  await page.getByRole('button', { name: '保存变量类型' }).click()
+  await expect(page.getByText('已人工确认')).toHaveCount(1)
+  await configureMethod(page, '描述统计')
   await expect(page.getByText('原始变量 · 无测量版本')).toBeVisible()
-  await expect(page.getByRole('button', { name: '验证性因子分析（CFA）', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: '验证性因子分析（CFA）', exact: true })).toHaveCount(0)
   await page.getByRole('checkbox', { name: 'age', exact: true }).check()
-  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
-  await page.getByRole('tab', { name: '统计分析', exact: true }).click()
+  await configureMethod(page, '描述统计')
   await expect(page.getByRole('checkbox', { name: 'age', exact: true })).toBeChecked()
   await page.reload()
+  await configureMethod(page, '描述统计')
   await expect(page.getByRole('checkbox', { name: 'age', exact: true })).toBeChecked()
   let submitted = 0
   let releaseAcceptance: () => void = () => undefined
@@ -47,11 +47,11 @@ test('@real-r raw variables run without constructs and drafts survive navigation
   const accepted = page.waitForResponse(response => response.request().method() === 'POST' && response.url().endsWith('/empirical-analysis'))
   await page.getByRole('button', { name: '运行描述统计' }).click()
   await serverReceived
-  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
+  await openAnalysisLibrary(page)
   releaseAcceptance()
   const job = await (await accepted).json() as { id: string; measurementVersion: number | null }
   expect(job.measurementVersion).toBeNull()
-  await page.getByRole('tab', { name: '统计分析', exact: true }).click()
+  await configureMethod(page, '描述统计')
   await expect(page.getByRole('heading', { name: /描述统计.*本次结果/ })).toBeVisible({ timeout: 60_000 })
   expect(submitted).toBe(1)
   await expectNoHorizontalOverflow(page)
@@ -65,8 +65,9 @@ test('@real-r @a11y SEM exposes complete measurement models and preserves edits 
   await page.setViewportSize({ width: 1440, height: 1000 })
   await startIndependent(page)
   await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
   await expect(page.getByText('测量层已完成 · v1')).toBeVisible()
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await openAdvancedSemEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: '3 · 估计设置' }).click()
   page.once('dialog', dialog => dialog.accept())
@@ -95,6 +96,7 @@ test('@real-r @a11y SEM exposes complete measurement models and preserves edits 
   await expect(page.locator('.react-flow__node[data-id^="higher_factor_"]')).toHaveCount(1)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await page.reload()
+  await openAdvancedSemEditor(page)
   await expect(page.locator('.react-flow__node[data-id^="higher_factor_"]')).toHaveCount(1)
   await expect(indicators).toHaveCount(9)
   await page.getByRole('button', { name: '3 · 估计设置' }).click()

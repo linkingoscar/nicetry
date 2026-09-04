@@ -183,11 +183,11 @@ export function App() {
         </Suspense>
       ) : null}
 
-      {studyIntent === 'analyze' && activeDataset ? (
+      {studyIntent === 'analyze' ? (
         <section className="context-banner">
           <StudyContextSwitcher
             value={effectiveStudyContext}
-            hasDataset
+            hasDataset={Boolean(activeDataset)}
             persistence={studyContextPersistence}
             onChange={handleStudyContextChange}
           />

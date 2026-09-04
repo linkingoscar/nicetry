@@ -12,7 +12,7 @@ test('@production serves the built app and runs one real R mediation', async ({ 
   )
   await page.goto(`${origin}/`)
   await expect(
-    page.getByRole('heading', { name: '你现在处于哪个阶段？' }),
+    page.getByRole('heading', { name: '本地点按式实证分析工作台' }),
   ).toBeVisible()
 
   const demoResponse = await request.get(`${origin}/api/v1/demo`)

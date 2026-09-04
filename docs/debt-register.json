@@ -4777,6 +4777,50 @@
         "OutputEmpiricalRunPreview、OutputWorkspace 与 DataWorkspace 已按需加载；生产构建后 initial JavaScript 为 93.1 KiB gzip，largest async 为 91.5 KiB gzip。",
         "完整 Web Vitest 在代码分割后仍为 91 files、325 tests 全部通过。"
       ]
+    },
+    {
+      "id": "DEBT-209",
+      "category": "prd-e2e-migration",
+      "priority": "P1",
+      "title": "完整 Playwright 旅程仍依赖三工作区重构前的首屏与四页签导航",
+      "status": "implemented_pending_verification",
+      "ownerRole": "test-engineering",
+      "targetMilestone": "PR #3 质量门禁恢复",
+      "evidence": [
+        "GitHub Actions run 33861965908 在 API/R、类型、325 项 Web 测试和生产构建通过后，25 条 Playwright 中 23 条失败、2 条纯契约场景通过。",
+        "失败选择器集中于已删除的‘你现在处于哪个阶段？’、‘分析已有数据’、‘数据准备/统计分析/路径与 SEM/方法目录’；单 worker 累计等待令 E2E 耗时 32.4 分钟。",
+        "新壳在无数据时条件隐藏 StudyContextSwitcher，导致追踪面板与密集追踪示例在导入前不可选择。"
+      ],
+      "acceptance": [
+        "25 条 Playwright 旅程全部使用数据/分析/输出三工作区和统一方法库，不恢复已删除的页面级方法切换器。",
+        "无数据时横截面、追踪面板和密集追踪结构及对应示例均可达；深层实证、PROCESS/SEM 与高级向导仍验证真实后端/R 路径。",
+        "PR #3 新 hosted quality gate 的 Playwright、依赖审计、机器证据生成和上传全部通过后关闭。"
+      ],
+      "closureEvidence": [
+        "tests/e2e/session.ts 新增三工作区导航辅助函数，旧入口和四页签选择器已从 tests/e2e 清零；刷新场景按方法身份重新打开持久化草稿。",
+        "App 在 analyze 状态始终呈现 StudyContextSwitcher，并以 hasDataset 控制展开形态；TypeScript 严格检查、25 条 Playwright 用例发现和 Web 91 files/325 tests 通过。"
+      ]
+    },
+    {
+      "id": "DEBT-210",
+      "category": "ci-trigger-efficiency",
+      "priority": "P2",
+      "title": "PR 分支同时触发 push 与 pull_request 两套完整 Windows/R 门禁",
+      "status": "implemented_pending_verification",
+      "ownerRole": "release-engineering",
+      "targetMilestone": "PR #3 质量门禁恢复",
+      "evidence": [
+        "同一提交 7e0bb6d 同时产生 pull_request run 33861965908 和 push run 33861963000，两套任务均执行锁定依赖、R/API、Web 与浏览器全量门禁。",
+        "ci.yml 原 push 无分支限制，concurrency group 又按 github.ref 区分，无法让 pull_request 与分支 push 互相取消。"
+      ],
+      "acceptance": [
+        "PR 分支同步仅由 pull_request 运行完整门禁；push 继续覆盖 main，workflow_dispatch 与每周 schedule 保留。",
+        "治理测试防止 push 再次扩展为所有分支；下一次 PR 同步只产生一条 hosted run 且完整成功后关闭。"
+      ],
+      "closureEvidence": [
+        "ci.yml 已将 push.branches 限定为 main，并保留 pull_request、workflow_dispatch 与 schedule。",
+        "test_supply_chain_governance.py 新增触发器回归，锁定 main push 与 pull_request 同时存在。"
+      ]
     }
   ]
 }

@@ -1,12 +1,11 @@
 import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
-import { openAuthenticatedPage } from './session'
+import { configureMethod, openDataWorkspace } from './session'
 import { installPageFailureMonitor } from './quality'
 
 async function importAndMeasure(page: Page) {
-  await openAuthenticatedPage(page)
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
+  await openDataWorkspace(page)
   await page.getByRole('radio', { name: /单次 \/ 横截面/ }).click()
   await page.getByRole('radio', { name: /观测相互独立/ }).click()
   await page.getByRole('radio', { name: /^观察性/ }).click()
@@ -22,9 +21,12 @@ async function importAndMeasure(page: Page) {
   }).join(','))
   await page.getByLabel('选择数据文件').setInputFiles({ name: 'research-journey.csv', mimeType: 'text/csv', buffer: Buffer.from([names.join(','), ...rows].join('\n')) })
   await page.getByRole('button', { name: '导入并创建数据版本' }).click()
-  await expect(page.getByRole('heading', { name: '确认变量类型' })).toBeVisible()
-  for (const name of names) await page.getByLabel(`${name}的最终类型`).selectOption('continuous')
-  await page.getByRole('button', { name: '确认全部变量' }).click()
+  await page.getByRole('tab', { name: '变量视图', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '变量类型与识别' })).toBeVisible()
+  for (const name of names) await page.getByLabel(`${name}的有效类型`).selectOption('continuous')
+  await page.getByRole('button', { name: '保存变量类型' }).click()
+  await expect(page.getByText('已人工确认')).toHaveCount(names.length)
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
   await expect(page.getByRole('heading', { name: '构念与量表', exact: true })).toBeVisible()
   for (let i = 0; i < 3; i++) {
     if (i) await page.getByRole('button', { name: '添加构念', exact: true }).click()
@@ -37,8 +39,7 @@ async function importAndMeasure(page: Page) {
   await page.getByRole('button', { name: '保存规则并生成测量版本' }).click()
   const response = await saved
   expect(response.ok(), await response.text()).toBeTruthy()
-  await expect(page.getByText('基于测量版本 v1 选择需要的分析、指定变量后单独运行。')).toBeVisible()
-  await page.getByRole('tab', { name: '统计分析', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '分析方法', exact: true })).toBeVisible()
 }
 
 for (const procedure of ['描述统计', '相关分析', '分层线性回归']) {
@@ -46,7 +47,12 @@ for (const procedure of ['描述统计', '相关分析', '分层线性回归']) 
     test.setTimeout(150_000)
     const failures = await installPageFailureMonitor(page)
     await importAndMeasure(page)
-    await page.getByRole('button', { name: procedure, exact: true }).click()
+    const methodLabel = procedure === '相关分析'
+      ? '相关与偏相关'
+      : procedure === '分层线性回归'
+        ? '线性 / 分层回归'
+        : procedure
+    await configureMethod(page, methodLabel)
     if (procedure === '分层线性回归') {
       await page.getByLabel('因变量（Y）').selectOption({ label: '绩效' })
       await page.getByRole('group', { name: '区块 2：预测变量' }).getByRole('checkbox', { name: '自主性', exact: true }).check()
