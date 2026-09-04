@@ -6,7 +6,7 @@
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。本提交是 PRD 收口的完整质量门禁候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
+Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。本提交包含最终测试适配后的 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
 
 唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
 
@@ -92,7 +92,7 @@ AnalysisIndex 可遍历经过原有 path/identity 校验的 persisted model/empi
 
 - Data/Analyze/Output：APG roving tabIndex + Arrow/Home/End；
 - skip link → 当前活动 tabpanel；
-- 活动 tabpanel可编程聚焦；
+- 活动 tabpanel 可编程聚焦；
 - links/buttons/forms/tabindex 均有 focus-visible；
 - reduced motion、higher contrast、Windows forced-colors；
 - 异步状态使用已有 live region/status 语义。
