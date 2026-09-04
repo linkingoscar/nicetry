@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
-import { getServerAnalysisIndex } from '../api/analysis-index'
+import { getServerAnalysisIndex, patchServerAnalysisDocument } from '../api/analysis-index'
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
-import { OutputEmpiricalRunPreview } from './OutputEmpiricalRunPreview'
 import { OutputRegisteredRunDetail } from './OutputRegisteredRunDetail'
 import { empiricalDraftStatusForOutput } from './analyses/analysisDraftStatus'
 import {
@@ -24,10 +23,18 @@ import {
 } from './analyses/outputRunRegistry'
 import {
   mergeEmpiricalServerIndex,
+  mergeRegisteredServerDocuments,
   mergeRegisteredServerRuns,
+  registeredRunsForDocument,
+  type RegisteredOutputDocument,
 } from './analyses/serverAnalysisIndexBridge'
 import { useOutputRunJobs } from './analyses/useOutputRunJobs'
 import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
+
+const OutputEmpiricalRunPreview = lazy(async () => {
+  const module = await import('./OutputEmpiricalRunPreview')
+  return { default: module.OutputEmpiricalRunPreview }
+})
 
 interface OutputWorkspaceProps {
   dataset: DatasetVersion
@@ -56,6 +63,12 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [selectedRegisteredRunId, setSelectedRegisteredRunId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [registeredDocumentOverrides, setRegisteredDocumentOverrides] = useState<Record<string, {
+    title?: string
+    pinned?: boolean
+    primaryRunId?: string
+  }>>({})
+  const [registeredMetadataStatus, setRegisteredMetadataStatus] = useState<string | null>(null)
   const serverIndexQuery = useQuery({
     queryKey: ['server-analysis-index', dataset.projectId],
     queryFn: () => getServerAnalysisIndex(dataset.projectId),
@@ -70,12 +83,21 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     () => mergeRegisteredServerRuns(localRegisteredRuns, serverIndexQuery.data),
     [localRegisteredRuns, serverIndexQuery.data],
   )
+  const registeredDocuments = useMemo(
+    () => mergeRegisteredServerDocuments(registeredRuns, serverIndexQuery.data).map((document) => ({
+      ...document,
+      ...registeredDocumentOverrides[document.id],
+    })),
+    [registeredDocumentOverrides, registeredRuns, serverIndexQuery.data],
+  )
 
   useEffect(() => {
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
     setRegisteredRuns(readRegisteredOutputRuns(dataset.projectId))
     setSelectedRunId(null)
     setSelectedRegisteredRunId(null)
+    setRegisteredDocumentOverrides({})
+    setRegisteredMetadataStatus(null)
   }, [dataset, measurement])
 
   const runDetails = readAnalysisRunDetails(dataset.projectId)
@@ -95,21 +117,24 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
       .toLocaleLowerCase()
       .includes(normalizedSearch)
   }), [documents, index, normalizedSearch])
-  const filteredRegisteredRuns = useMemo(() => registeredRuns.filter((run) => {
+  const filteredRegisteredDocuments = useMemo(() => registeredDocuments.filter((document) => {
     if (!normalizedSearch) return true
-    return `${run.label} ${run.methodId} ${run.runId} ${run.family ?? ''} ${run.modelId ?? ''}`
+    const runText = registeredRunsForDocument(registeredRuns, document.id)
+      .map((run) => `${run.label} ${run.methodId} ${run.runId} ${run.family ?? ''} ${run.modelId ?? ''}`)
+      .join(' ')
+    return `${document.title} ${document.methodId} ${document.categoryId} ${runText}`
       .toLocaleLowerCase()
       .includes(normalizedSearch)
-  }), [normalizedSearch, registeredRuns])
+  }), [normalizedSearch, registeredDocuments, registeredRuns])
 
   const allRuns = documents.flatMap((document) => analysisRunsForDocument(index, document.id))
-  const currentRunIds = allRuns
-    .filter((run) => analysisRunFreshness(run, dataset, measurement) === 'current')
-    .map((run) => run.id)
-  const serverJobsByRun = useOutputRunJobs(currentRunIds, dataset.id, measurement?.version ?? null)
+  const recoveryRunIds = selectedRunId
+    ? [selectedRunId, ...allRuns.map((run) => run.id)]
+    : allRuns.map((run) => run.id)
+  const serverJobsByRun = useOutputRunJobs(recoveryRunIds)
   const runCount = allRuns.length
-  const totalOutputCount = documents.length + registeredRuns.length
-  const filteredOutputCount = filteredDocuments.length + filteredRegisteredRuns.length
+  const totalOutputCount = documents.length + registeredDocuments.length
+  const filteredOutputCount = filteredDocuments.length + filteredRegisteredDocuments.length
 
   const selectedRun = selectedRunId ? index.runs.find((run) => run.id === selectedRunId) : undefined
   const selectedDocument = selectedRun ? documents.find((document) => document.id === selectedRun.analysisId) : undefined
@@ -119,8 +144,21 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const selectedStatus = selectedServerJob?.status ?? selectedDetail?.runStatus
   const selectedReportId = selectedServerJob?.reportId ?? selectedDetail?.resultId ?? undefined
   const selectedOptions = selectedServerJob?.options ?? selectedDetail?.submittedSpec
+  const selectedPreviewDatasetId = selectedServerJob?.datasetId
+    ?? (selectedFreshness === 'current' ? dataset.id : undefined)
+  const selectedPreviewMeasurementVersion = selectedServerJob
+    ? selectedServerJob.measurementVersion
+    : selectedFreshness === 'current'
+      ? measurement?.version ?? null
+      : undefined
   const selectedRegisteredRun = selectedRegisteredRunId
     ? registeredRuns.find((run) => run.runId === selectedRegisteredRunId)
+    : undefined
+  const selectedRegisteredDocument = selectedRegisteredRun
+    ? registeredDocuments.find((document) => (
+      registeredRunsForDocument(registeredRuns, document.id)
+        .some((run) => run.runId === selectedRegisteredRun.runId)
+    ))
     : undefined
 
   const updateDocument = (analysisId: string, patch: { title?: string; pinned?: boolean }) => {
@@ -148,6 +186,32 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
     onOpenProcedure(duplicate.procedure, duplicate.id, undefined, duplicate.methodId)
   }
+  const updateRegisteredDocument = (
+    document: RegisteredOutputDocument,
+    patch: { title?: string; pinned?: boolean; primaryRunId?: string | null },
+  ) => {
+    const localPatch: { title?: string; pinned?: boolean; primaryRunId?: string } = {}
+    if (patch.title !== undefined) localPatch.title = patch.title
+    if (patch.pinned !== undefined) localPatch.pinned = patch.pinned
+    if ('primaryRunId' in patch) localPatch.primaryRunId = patch.primaryRunId ?? undefined
+    const previous = registeredDocumentOverrides[document.id]
+    setRegisteredDocumentOverrides((current) => ({
+      ...current,
+      [document.id]: { ...current[document.id], ...localPatch },
+    }))
+    setRegisteredMetadataStatus('正在保存分析对象…')
+    void patchServerAnalysisDocument(dataset.projectId, document.id, patch)
+      .then(() => setRegisteredMetadataStatus('分析对象已保存。'))
+      .catch(() => {
+        setRegisteredDocumentOverrides((current) => {
+          const next = { ...current }
+          if (previous) next[document.id] = previous
+          else delete next[document.id]
+          return next
+        })
+        setRegisteredMetadataStatus('保存失败；名称、固定状态或主要结果没有写入服务端。')
+      })
+  }
 
   return (
     <main className="analysis-shell" aria-labelledby="output-workspace-heading">
@@ -169,7 +233,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
               <p className="eyebrow">当前项目</p>
               <h2>输出索引</h2>
             </div>
-            <span className="status-badge">{documents.length} 项实证分析 · {registeredRuns.length} 个模型/高级运行</span>
+            <span className="status-badge">{documents.length} 项实证分析 · {registeredDocuments.length} 项模型/高级分析</span>
           </div>
           <div className="method-catalog-filters">
             <label>
@@ -187,8 +251,28 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         </section>
       ) : null}
 
+      {registeredMetadataStatus ? (
+        <p
+          className={registeredMetadataStatus.startsWith('保存失败') ? 'validation-error' : 'method-note'}
+          role={registeredMetadataStatus.startsWith('保存失败') ? 'alert' : 'status'}
+        >
+          {registeredMetadataStatus}
+        </p>
+      ) : null}
+
       {selectedRegisteredRun ? (
-        <OutputRegisteredRunDetail run={selectedRegisteredRun} onClose={() => setSelectedRegisteredRunId(null)} />
+        <OutputRegisteredRunDetail
+          run={selectedRegisteredRun}
+          onClose={() => setSelectedRegisteredRunId(null)}
+          isPrimary={selectedRegisteredDocument?.primaryRunId === selectedRegisteredRun.runId}
+          onTogglePrimary={selectedRegisteredDocument
+            ? () => updateRegisteredDocument(selectedRegisteredDocument, {
+              primaryRunId: selectedRegisteredDocument.primaryRunId === selectedRegisteredRun.runId
+                ? null
+                : selectedRegisteredRun.runId,
+            })
+            : undefined}
+        />
       ) : null}
 
       {selectedRun && selectedDocument ? (
@@ -221,13 +305,19 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <p className="muted">该运行由服务端索引恢复。若浏览器没有旧草稿快照，仍可查看权威任务/结果，但不会补造不存在的编辑历史。</p>
           )}
 
-          {selectedFreshness === 'current' && selectedStatus === 'succeeded' && selectedReportId && selectedOptions ? (
-            <OutputEmpiricalRunPreview
-              datasetId={dataset.id}
-              measurementVersion={measurement?.version ?? null}
-              reportId={selectedReportId}
-              options={selectedOptions}
-            />
+          {selectedStatus === 'succeeded'
+            && selectedReportId
+            && selectedOptions
+            && selectedPreviewDatasetId
+            && selectedPreviewMeasurementVersion !== undefined ? (
+            <Suspense fallback={<p role="status">正在加载只读结果渲染器…</p>}>
+              <OutputEmpiricalRunPreview
+                datasetId={selectedPreviewDatasetId}
+                measurementVersion={selectedPreviewMeasurementVersion}
+                reportId={selectedReportId}
+                options={selectedOptions}
+              />
+            </Suspense>
           ) : null}
 
           <div className="method-card-actions">
@@ -254,51 +344,88 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         </section>
       ) : null}
 
-      {registeredRuns.length ? (
+      {registeredDocuments.length ? (
         <section className="context-catalog" aria-label="模型与高级运行">
           <div className="section-heading-row">
             <div>
-              <p className="eyebrow">统一运行引用</p>
+              <p className="eyebrow">统一分析对象</p>
               <h2>PROCESS / SEM / 高级分析</h2>
-              <p className="muted">AnalysisIndex 只保存 runId、方法身份和上游版本；点击“查看运行”后才向原 job/result 服务恢复只读结果。</p>
+              <p className="muted">同一模型或高级分析的运行按 AnalysisDocument 归组；名称、固定状态和主要结果保存在服务端，结果仍从原 job/result 服务只读恢复。</p>
             </div>
-            <span className="status-badge">{registeredRuns.length} 个运行</span>
+            <span className="status-badge">{registeredDocuments.length} 项分析 · {registeredRuns.length} 次运行</span>
           </div>
-          {filteredRegisteredRuns.length ? (
+          {filteredRegisteredDocuments.length ? (
             <div className="method-grid">
-              {filteredRegisteredRuns.map((run) => {
-                const freshness = registeredOutputFreshness(run, dataset, measurement)
+              {filteredRegisteredDocuments.map((document) => {
+                const runs = registeredRunsForDocument(registeredRuns, document.id)
+                const latestRun = runs[0]
+                const freshness = latestRun
+                  ? registeredOutputFreshness(latestRun, dataset, measurement)
+                  : document.datasetVersionId === dataset.id ? 'current' : 'stale'
                 return (
-                  <article className="method-card" key={`${run.source}:${run.runId}`}>
+                  <article className="method-card" key={document.id}>
                     <div>
-                      <p className="eyebrow">{registeredSourceLabel(run.source, run.methodId)}</p>
-                      <h3>{run.label}</h3>
-                      <p>{new Date(run.createdAt).toLocaleString()}</p>
+                      <p className="eyebrow">{registeredSourceLabel(document.source, document.methodId)}</p>
+                      <h3>{document.title}</h3>
+                      <p>{runs.length} 次运行{latestRun ? ` · 最近 ${new Date(latestRun.createdAt).toLocaleString()}` : ''}</p>
                       <div className="method-card-status-row">
+                        {document.pinned ? <span className="context-method-status">已固定</span> : null}
+                        {document.primaryRunId ? <span className="context-method-status">已指定主要结果</span> : null}
                         <span className={`context-method-status${freshness === 'stale' ? ' method-status-needs-setup' : ''}`}>
                           {freshness === 'stale' ? '基于旧设置' : '当前数据/量表'}
                         </span>
-                        <span className="context-method-status">服务端运行引用</span>
+                        <span className="context-method-status">AnalysisDocument</span>
                       </div>
-                      <p className="muted">方法 {run.methodId} · run {run.runId.slice(0, 12)}</p>
+                      <p className="muted">方法 {document.methodId} · 分析 {document.id.slice(0, 12)}</p>
                     </div>
+                    {runs.length ? (
+                      <details>
+                        <summary>查看运行历史</summary>
+                        <ol>
+                          {runs.map((run) => (
+                            <li key={run.runId}>
+                              <button
+                                type="button"
+                                className="text-button"
+                                onClick={() => {
+                                  setSelectedRunId(null)
+                                  setSelectedRegisteredRunId(run.runId)
+                                }}
+                              >
+                                <code>{run.runId.slice(0, 12)}</code>
+                                {' · '}{new Date(run.createdAt).toLocaleString()}
+                                {document.primaryRunId === run.runId ? ' · 主要结果' : ''}
+                              </button>
+                            </li>
+                          ))}
+                        </ol>
+                      </details>
+                    ) : null}
                     <div className="method-card-actions">
                       <button
                         type="button"
                         className="secondary-button"
+                        onClick={() => updateRegisteredDocument(document, { pinned: !document.pinned })}
+                      >
+                        {document.pinned ? '取消固定' : '固定分析'}
+                      </button>
+                      <button
+                        type="button"
+                        className="secondary-button"
                         onClick={() => {
-                          setSelectedRunId(null)
-                          setSelectedRegisteredRunId(run.runId)
+                          const nextTitle = window.prompt('分析名称', document.title)
+                          const title = nextTitle?.trim()
+                          if (title) updateRegisteredDocument(document, { title })
                         }}
                       >
-                        查看运行
+                        重命名
                       </button>
                     </div>
                   </article>
                 )
               })}
             </div>
-          ) : <p className="muted">当前搜索没有匹配的 PROCESS、SEM 或高级运行。</p>}
+          ) : <p className="muted">当前搜索没有匹配的 PROCESS、SEM 或高级分析。</p>}
         </section>
       ) : null}
 

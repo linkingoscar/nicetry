@@ -10,11 +10,10 @@ import { OutputEmpiricalRunPreview } from './OutputEmpiricalRunPreview'
 vi.mock('../api/empirical-analysis', () => ({
   getEmpiricalSegment: vi.fn(),
 }))
-vi.mock('./empirical/EmpiricalOverviewTab', () => ({
-  EmpiricalOverviewTab: () => <div>summary-preview</div>,
-}))
-vi.mock('./empirical/EmpiricalCorrelationTab', () => ({
-  EmpiricalCorrelationTab: () => <div>correlation-preview</div>,
+vi.mock('./empirical/EmpiricalProcedureResult', () => ({
+  EmpiricalProcedureResultView: ({ reportOptions }: { reportOptions: EmpiricalAnalysisOptions }) => (
+    <div>procedure-preview:{reportOptions.procedure}</div>
+  ),
 }))
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -52,7 +51,7 @@ describe('OutputEmpiricalRunPreview', () => {
       { wrapper },
     )
 
-    expect(screen.getByText('summary-preview')).toBeInTheDocument()
+    expect(screen.getByText('procedure-preview:descriptives')).toBeInTheDocument()
     await waitFor(() => expect(getEmpiricalSegment).toHaveBeenCalledWith('dataset_demo', null, 'report_1', 'summary'))
     expect(getEmpiricalSegment).toHaveBeenCalledTimes(1)
   })
@@ -63,18 +62,34 @@ describe('OutputEmpiricalRunPreview', () => {
       { wrapper },
     )
 
-    expect(screen.getByText('correlation-preview')).toBeInTheDocument()
+    expect(screen.getByText('procedure-preview:correlation')).toBeInTheDocument()
     await waitFor(() => expect(getEmpiricalSegment).toHaveBeenCalledWith('dataset_demo', 2, 'report_2', 'correlation'))
     expect(getEmpiricalSegment).toHaveBeenCalledTimes(1)
   })
 
-  it('does not fetch a segment for methods not yet migrated into the Output preview', () => {
+  it('loads the regression result segment for regression-family methods', async () => {
     render(
       <OutputEmpiricalRunPreview datasetId="dataset_demo" measurementVersion={null} reportId="report_3" options={options('regression')} />,
       { wrapper },
     )
 
-    expect(screen.getByText(/完整只读结果预览仍在迁移中/)).toBeInTheDocument()
-    expect(getEmpiricalSegment).not.toHaveBeenCalled()
+    expect(screen.getByText('procedure-preview:regression')).toBeInTheDocument()
+    await waitFor(() => expect(getEmpiricalSegment).toHaveBeenCalledWith('dataset_demo', null, 'report_3', 'regression'))
+    expect(getEmpiricalSegment).toHaveBeenCalledTimes(1)
+  })
+
+  it('loads the dependent summary, measurement, and validity segments for validity', async () => {
+    render(
+      <OutputEmpiricalRunPreview datasetId="dataset_old" measurementVersion={4} reportId="report_4" options={options('validity')} />,
+      { wrapper },
+    )
+
+    expect(screen.getByText('procedure-preview:validity')).toBeInTheDocument()
+    await waitFor(() => expect(getEmpiricalSegment).toHaveBeenCalledTimes(3))
+    expect(vi.mocked(getEmpiricalSegment).mock.calls.map((call) => call[3]).sort()).toEqual([
+      'efa_cfa',
+      'summary',
+      'validity',
+    ])
   })
 })

@@ -5,7 +5,15 @@ import type {
   AnalysisDocumentIndexEntry,
   AnalysisRunIndexEntry,
 } from './analysisDocuments'
-import type { RegisteredOutputRun } from './outputRunRegistry'
+import {
+  registeredOutputAnalysisId,
+  type RegisteredOutputRun,
+  type RegisteredOutputSource,
+} from './outputRunRegistry'
+
+export interface RegisteredOutputDocument extends Omit<ServerAnalysisDocument, 'source' | 'procedure'> {
+  source: RegisteredOutputSource
+}
 
 const EMPIRICAL_PROCEDURES = new Set<EmpiricalProcedure>([
   'descriptives',
@@ -137,4 +145,57 @@ export function mergeRegisteredServerRuns(
     })
   })
   return [...runs.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function registeredRunsForDocument(
+  runs: RegisteredOutputRun[],
+  analysisId: string,
+): RegisteredOutputRun[] {
+  return runs
+    .filter((run) => registeredOutputAnalysisId(run) === analysisId)
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+}
+
+export function mergeRegisteredServerDocuments(
+  runs: RegisteredOutputRun[],
+  server?: ServerAnalysisIndex,
+): RegisteredOutputDocument[] {
+  const documents = new Map<string, RegisteredOutputDocument>()
+
+  runs.forEach((run) => {
+    const analysisId = registeredOutputAnalysisId(run)
+    const existing = documents.get(analysisId)
+    const isLatest = !existing || run.createdAt > existing.updatedAt
+    documents.set(analysisId, {
+      id: analysisId,
+      projectId: run.projectId,
+      title: isLatest ? run.label : existing?.title ?? run.label,
+      methodId: isLatest ? run.methodId : existing?.methodId ?? run.methodId,
+      categoryId: isLatest ? run.family ?? (run.source === 'model' ? 'models' : 'advanced') : existing?.categoryId ?? 'advanced',
+      source: isLatest ? run.source : existing?.source ?? run.source,
+      datasetVersionId: isLatest ? run.datasetVersionId : existing?.datasetVersionId ?? run.datasetVersionId,
+      measurementVersionId: isLatest ? run.measurementVersionId : existing?.measurementVersionId ?? run.measurementVersionId,
+      createdAt: existing && existing.createdAt < run.createdAt ? existing.createdAt : run.createdAt,
+      updatedAt: existing && existing.updatedAt > run.createdAt ? existing.updatedAt : run.createdAt,
+      latestRunId: isLatest ? run.runId : existing.latestRunId,
+      primaryRunId: existing?.primaryRunId,
+      pinned: existing?.pinned ?? false,
+      archived: existing?.archived,
+    })
+  })
+
+  server?.documents.forEach((document) => {
+    if (document.source !== 'model' && document.source !== 'advanced') return
+    const existing = documents.get(document.id)
+    documents.set(document.id, {
+      ...document,
+      source: document.source,
+      latestRunId: document.latestRunId ?? existing?.latestRunId,
+      primaryRunId: document.primaryRunId ?? existing?.primaryRunId,
+    })
+  })
+
+  return [...documents.values()]
+    .filter((document) => !document.archived)
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt))
 }

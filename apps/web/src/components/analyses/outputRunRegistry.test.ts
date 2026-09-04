@@ -81,6 +81,24 @@ describe('outputRunRegistry', () => {
     expect(runs[0]).toMatchObject({ label: 'ANCOVA', createdAt: '2026-09-03T12:00:00Z' })
   })
 
+  it('assigns repeated runs of the same model to one stable analysis identity', () => {
+    const base = {
+      projectId: dataset.projectId,
+      datasetVersionId: dataset.id,
+      measurementVersionId: 'measurement_1',
+      source: 'model' as const,
+      label: 'SEM',
+      methodId: 'model.sem',
+      modelId: 'model_same',
+    }
+    registerOutputRun({ ...base, runId: 'run_model_1', createdAt: '2026-09-03T10:00:00Z' })
+    registerOutputRun({ ...base, runId: 'run_model_2', createdAt: '2026-09-03T11:00:00Z' })
+
+    const runs = readRegisteredOutputRuns(dataset.projectId)
+    expect(runs).toHaveLength(2)
+    expect(runs[0].analysisId).toBe(runs[1].analysisId)
+  })
+
   it('marks model runs stale when their dataset or measurement identity changes', () => {
     const current = {
       runId: 'run_1',

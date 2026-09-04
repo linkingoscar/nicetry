@@ -8,8 +8,6 @@ const MAX_RECOVERED_RUNS = 30
 
 export function useOutputRunJobs(
   runIds: string[],
-  datasetId: string,
-  measurementVersion: number | null,
 ): Map<string, EmpiricalAnalysisJob> {
   const uniqueRunIds = [...new Set(runIds)].slice(0, MAX_RECOVERED_RUNS)
   const queries = useQueries({
@@ -29,9 +27,8 @@ export function useOutputRunJobs(
   const jobs = new Map<string, EmpiricalAnalysisJob>()
   queries.forEach((query, index) => {
     const job = query.data
-    if (job?.datasetId === datasetId && job.measurementVersion === measurementVersion) {
-      jobs.set(uniqueRunIds[index], job)
-    }
+    const runId = uniqueRunIds[index]
+    if (job?.id === runId) jobs.set(runId, job)
   })
   return jobs
 }

@@ -18,7 +18,7 @@ vi.mock('./model-builder/useModelBuilderState', () => ({
     indicatorCandidates: [],
     template: 'model_4',
     customMode: false,
-    model: { estimation: { family: 'ols' }, latents: [], nodes: [] } as ModelSpec,
+    model: { estimation: { family: 'ols' }, latents: [], nodes: [] } as unknown as ModelSpec,
     validation: null,
     draftState: 'saved',
     builderError: null,
@@ -133,6 +133,7 @@ function semRequest(): MethodRequest {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
   mocks.applyProcessQuickSetup.mockReturnValue(true)
   mocks.applySemQuickSetup.mockReturnValue(true)
 })

@@ -8,6 +8,8 @@ ROOT = Path(__file__).resolve().parents[3]
 
 def test_pages_workflow_actions_are_sha_pinned_and_scoped() -> None:
     pages = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    assert re.search(r"branches:\s*\n\s*- main", pages)
+    assert not re.search(r"branches:\s*\n\s*- master", pages)
     assert not re.search(r"uses:\s+[^\s]+@v\d+", pages)
     assert "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10" in pages
     assert "persist-credentials: false" in pages

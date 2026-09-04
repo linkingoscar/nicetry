@@ -2,8 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 
 import { getEmpiricalSegment } from '../api/empirical-analysis'
 import type { EmpiricalAnalysisOptions } from '../types'
-import { EmpiricalCorrelationTab } from './empirical/EmpiricalCorrelationTab'
-import { EmpiricalOverviewTab } from './empirical/EmpiricalOverviewTab'
+import { EmpiricalProcedureResultView } from './empirical/EmpiricalProcedureResult'
 
 interface OutputEmpiricalRunPreviewProps {
   datasetId: string
@@ -12,7 +11,24 @@ interface OutputEmpiricalRunPreviewProps {
   options: EmpiricalAnalysisOptions
 }
 
-const SUMMARY_PROCEDURES = new Set(['descriptives', 'frequencies', 'missing'])
+const SUMMARY_PROCEDURES = new Set([
+  'descriptives',
+  'frequencies',
+  'missing',
+  'reliability',
+  'common_method',
+  'efa',
+  'cfa',
+  'validity',
+])
+const MEASUREMENT_PROCEDURES = new Set(['efa', 'cfa', 'validity'])
+const REGRESSION_PROCEDURES = new Set([
+  'groups',
+  'aggregation',
+  'regression',
+  'relative_importance',
+  'response_surface',
+])
 
 export function OutputEmpiricalRunPreview({
   datasetId,
@@ -21,53 +37,67 @@ export function OutputEmpiricalRunPreview({
   options,
 }: OutputEmpiricalRunPreviewProps) {
   const procedure = options.procedure
-  const showSummary = Boolean(procedure && SUMMARY_PROCEDURES.has(procedure))
-  const showCorrelation = procedure === 'correlation'
+  const needsSummary = procedure ? SUMMARY_PROCEDURES.has(procedure) : false
+  const needsCorrelation = procedure === 'correlation'
+  const needsMeasurement = procedure ? MEASUREMENT_PROCEDURES.has(procedure) : false
+  const needsValidity = procedure === 'validity' || procedure === 'invariance'
+  const needsRegression = procedure ? REGRESSION_PROCEDURES.has(procedure) : false
 
   const summaryQuery = useQuery({
     queryKey: ['output-empirical-segment', datasetId, measurementVersion, reportId, 'summary'],
     queryFn: () => getEmpiricalSegment(datasetId, measurementVersion, reportId, 'summary'),
-    enabled: showSummary,
+    enabled: needsSummary,
     staleTime: Infinity,
   })
   const correlationQuery = useQuery({
     queryKey: ['output-empirical-segment', datasetId, measurementVersion, reportId, 'correlation'],
     queryFn: () => getEmpiricalSegment(datasetId, measurementVersion, reportId, 'correlation'),
-    enabled: showCorrelation,
+    enabled: needsCorrelation,
+    staleTime: Infinity,
+  })
+  const measurementQuery = useQuery({
+    queryKey: ['output-empirical-segment', datasetId, measurementVersion, reportId, 'efa_cfa'],
+    queryFn: () => getEmpiricalSegment(datasetId, measurementVersion, reportId, 'efa_cfa'),
+    enabled: needsMeasurement,
+    staleTime: Infinity,
+  })
+  const validityQuery = useQuery({
+    queryKey: ['output-empirical-segment', datasetId, measurementVersion, reportId, 'validity'],
+    queryFn: () => getEmpiricalSegment(datasetId, measurementVersion, reportId, 'validity'),
+    enabled: needsValidity,
+    staleTime: Infinity,
+  })
+  const regressionQuery = useQuery({
+    queryKey: ['output-empirical-segment', datasetId, measurementVersion, reportId, 'regression'],
+    queryFn: () => getEmpiricalSegment(datasetId, measurementVersion, reportId, 'regression'),
+    enabled: needsRegression,
     staleTime: Infinity,
   })
 
-  if (showSummary) {
-    return (
-      <section className="output-run-preview" aria-label="只读结果预览">
-        <div className="section-heading-row">
-          <div>
-            <p className="eyebrow">只读结果</p>
-            <h3>本次运行结果预览</h3>
-          </div>
-        </div>
-        <EmpiricalOverviewTab query={summaryQuery} procedure={procedure} showToast={() => undefined} />
-      </section>
-    )
-  }
-
-  if (showCorrelation) {
-    return (
-      <section className="output-run-preview" aria-label="只读结果预览">
-        <div className="section-heading-row">
-          <div>
-            <p className="eyebrow">只读结果</p>
-            <h3>本次运行结果预览</h3>
-          </div>
-        </div>
-        <EmpiricalCorrelationTab query={correlationQuery} reportOptions={options} />
-      </section>
-    )
-  }
+  if (!procedure) return <p className="muted">该运行没有记录方法身份，无法选择只读结果分区。</p>
 
   return (
-    <p className="muted">
-      该方法的完整只读结果预览仍在迁移中；可通过“打开该运行结果 / 设置”进入现有结果渲染器查看。
-    </p>
+    <section className="output-run-preview" aria-label="只读结果预览">
+      <div className="section-heading-row">
+        <div>
+          <p className="eyebrow">只读结果</p>
+          <h3>本次运行结果</h3>
+        </div>
+      </div>
+      <EmpiricalProcedureResultView
+        reportId={reportId}
+        reportOptions={options}
+        datasetId={datasetId}
+        measurementVersion={measurementVersion}
+        queries={{
+          summary: summaryQuery,
+          correlation: correlationQuery,
+          efaCfa: measurementQuery,
+          validity: validityQuery,
+          regression: regressionQuery,
+        }}
+        showToast={() => undefined}
+      />
+    </section>
   )
 }

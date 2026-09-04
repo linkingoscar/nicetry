@@ -2,7 +2,7 @@
   "$schema": "./debt-register.schema.json",
   "schemaVersion": "1.0.0",
   "project": "ResearchPath",
-  "asOf": "2026-09-02",
+  "asOf": "2026-09-04",
   "statusVocabulary": [
     "open",
     "in_progress",
@@ -4632,6 +4632,150 @@
         "tests/e2e/quality.ts 仅对白名单静态资源 GET（/src/、/@vite/、/node_modules/、/assets/）的 net::ERR_ABORTED 归类为导航取消；API、表单提交和其他请求仍进入失败断言。",
         "修正后的本地真实 R on-demand 场景通过（1 passed，41.3s），同一场景未再把静态模块取消计入 failedRequests。",
         "公开仓库 hosted quality gate run 33609899155（https://github.com/linkingoscar/nicetry/actions/runs/33609899155）完整 success，24 个 Playwright 场景全部通过，并完成依赖审计、机器证据生成与上传。"
+      ]
+    },
+    {
+      "id": "DEBT-202",
+      "category": "web-regression-tests",
+      "priority": "P1",
+      "title": "统一方法入口重构后 Web 回归仍依赖已删除的页内方法切换",
+      "status": "implemented_pending_verification",
+      "ownerRole": "frontend-engineering",
+      "targetMilestone": "PR #3 质量门禁恢复",
+      "evidence": [
+        "GitHub Actions run 33856710481 与 33856705407 的 Web Vitest 均为 91 files、87 passed/4 failed，合计 14 个测试失败；失败集中在 EmpiricalAnalysis 旧页内方法按钮、SEM confirm mock、Output runHistory mock 与可选字段断言。",
+        "本地逐项复现确认 EmpiricalAnalysis 在无 analysisId 但显式 analysisProcedure 时仍读取上次 selected 草稿，可能把 EFA/描述统计配置带入 CFA/相关分析。"
+      ],
+      "acceptance": [
+        "测试按统一方法库路由直接挂载方法，不恢复已删除的页内切换器；SEM 与 Output mock 提供真实组件需要的前置状态。",
+        "显式 analysisProcedure 必须只恢复同一方法草稿；完整 Web Vitest 与 TypeScript 检查通过。",
+        "PR #3 新 hosted quality gate 完整通过后关闭。"
+      ],
+      "closureEvidence": [
+        "EmpiricalAnalysis 回归改为方法作用域挂载；useEmpiricalAnalysisState 通过 readEmpiricalDraft(draftKey, analysisProcedure) 精确恢复草稿；原 14 个失败已本地变为 32/32 通过。",
+        "完整 Web Vitest 本地为 91 files、325 tests 全部通过；本地可运行的 TypeScript 5 严格检查零错误。"
+      ]
+    },
+    {
+      "id": "DEBT-203",
+      "category": "output-history-recovery",
+      "priority": "P1",
+      "title": "Output 无法在浏览器缓存缺失时恢复旧数据版本实证结果",
+      "status": "implemented_pending_verification",
+      "ownerRole": "frontend-engineering",
+      "targetMilestone": "PRD Phase 4 输出工作区",
+      "evidence": [
+        "useOutputRunJobs 只接受当前 datasetId/measurementVersion，OutputWorkspace 也只请求 current runId；服务端 AnalysisIndex 恢复出的 stale run 因此拿不到权威 job/options。",
+        "OutputEmpiricalRunPreview 仅渲染描述/频数/缺失与相关，其他实证方法显示‘仍在迁移中’，与历史结果只读可打开的目标不一致。"
+      ],
+      "acceptance": [
+        "按索引 runId 恢复任务并校验返回 job.id，不以当前数据版本过滤历史任务。",
+        "读取历史结果时使用 job 自身 datasetId/measurementVersion，不把当前上游身份代入旧报告 URL。",
+        "全部实证 procedure 复用现有结果组件并只请求所需 segment；PR #3 hosted quality gate 完整通过后关闭。"
+      ],
+      "closureEvidence": [
+        "Output 现在优先恢复选中 run 并使用 job 自身上游身份；新增旧 dataset/measurement 的 Output 路由回归。",
+        "EmpiricalProcedureResult 拆出可复用只读视图，Output 覆盖描述、相关、信效度、组间/聚合、回归/高级、纵向与日记全部 procedure；相关局部测试 43/43 通过。"
+      ]
+    },
+    {
+      "id": "DEBT-204",
+      "category": "analysis-document-parity",
+      "priority": "P1",
+      "title": "PROCESS、SEM 与高级分析仍以扁平运行卡片展示而非 AnalysisDocument",
+      "status": "implemented_pending_verification",
+      "ownerRole": "frontend-engineering",
+      "targetMilestone": "PRD Phase 4 输出工作区",
+      "evidence": [
+        "OutputWorkspace 对实证分析提供重命名、固定、主要结果与运行历史，但 model/advanced 只按每个 RegisteredOutputRun 渲染一张卡，重复运行不能归组。",
+        "服务端 AnalysisIndex 已返回 model/advanced document 与 analysisId，前端 mergeRegisteredServerRuns 未消费 document 元数据。"
+      ],
+      "acceptance": [
+        "同一 analysisId/modelId 的多次 model/advanced 运行归入一个 AnalysisDocument，并保留逐次只读结果恢复。",
+        "支持服务端持久化重命名、固定和主要结果；写入失败必须回滚乐观状态并向用户提示。",
+        "PR #3 hosted quality gate 完整通过后关闭。"
+      ],
+      "closureEvidence": [
+        "新增 registered document 合并与运行归组；本地旧 run 自动补稳定 analysisId，同一 modelId 重复运行保持同一身份。",
+        "Output 对 model/advanced 展示分析对象、运行历史、固定、重命名和主要结果；PATCH 失败会回滚并显示 alert；相关局部测试 12/12 通过。"
+      ]
+    },
+    {
+      "id": "DEBT-205",
+      "category": "draft-durability",
+      "priority": "P1",
+      "title": "实证 AnalysisDocument 的可编辑草稿正文仍只保存在浏览器",
+      "status": "open",
+      "ownerRole": "full-stack-engineering",
+      "targetMilestone": "PRD Phase 4 草稿持久化",
+      "evidence": [
+        "服务端 AnalysisDocument 只保存 currentDraftId；EmpiricalConfigValue、activeRunId 与 lastRunConfig 仍由 empiricalDrafts.ts 写入 localStorage。",
+        "浏览器缓存被清除或换设备后可从服务端恢复不可变运行和结果，但不能恢复尚未提交的实证配置正文。"
+      ],
+      "acceptance": [
+        "新增服务端 AnalysisDraft payload/revision 契约并按 project/analysis 授权读写，currentDraftId 指向可恢复正文。",
+        "前端保存状态区分保存中、已保存、失败与版本冲突；离线兼容缓存不得覆盖更新的服务端修订。",
+        "覆盖换浏览器恢复、并发修订冲突、存储失败和从旧 localStorage 安全迁移。"
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "DEBT-206",
+      "category": "prd-e2e-coverage",
+      "priority": "P2",
+      "title": "三工作区 E2E 尚未覆盖密集页面与 1024/760/420 关键宽度",
+      "status": "open",
+      "ownerRole": "test-engineering",
+      "targetMilestone": "PRD Phase 7 验收",
+      "evidence": [
+        "tests/e2e/prd-workbench.spec.ts 只覆盖应用壳、键盘 tab、无全局 glass 与 390px 横向溢出；未进入数据表、方法目录、配置工作台和 Output 历史结果等密集路由。",
+        "现有其他 E2E 多使用 1440/390，未形成 PRD 指定 1024/760/420 三档的系统性工作区回归。"
+      ],
+      "acceptance": [
+        "为数据、分析目录、实证配置、PROCESS/SEM 配置与 Output 历史结果建立可重复种子工作区场景。",
+        "每类密集页面至少验证 1024、760、420 的无横向溢出、主要操作可达、焦点顺序与严重无障碍问题。",
+        "场景进入 hosted Full/Release 门禁且保存失败诊断证据。"
+      ],
+      "closureEvidence": []
+    },
+    {
+      "id": "DEBT-207",
+      "category": "pages-deployment",
+      "priority": "P2",
+      "title": "GitHub Pages 自动部署监听已不存在的 master 默认分支",
+      "status": "implemented_pending_verification",
+      "ownerRole": "release-engineering",
+      "targetMilestone": "下一次 Pages 内容变更",
+      "evidence": [
+        "git remote show origin 确认 HEAD branch 为 main；.github/workflows/pages.yml 的 push.branches 仍为 master，因此 main 上 pages/** 更新不会自动部署。"
+      ],
+      "acceptance": [
+        "Pages workflow 的 push 分支与远端默认 main 一致，并由供应链治理测试阻止回退到 master。",
+        "合并后一次 pages 路径变更或 workflow_dispatch 成功完成 build/deploy 后关闭。"
+      ],
+      "closureEvidence": [
+        "pages.yml 已改为监听 main；test_supply_chain_governance.py 新增 main/master 分支断言。"
+      ]
+    },
+    {
+      "id": "DEBT-208",
+      "category": "web-bundle-performance",
+      "priority": "P1",
+      "title": "Output 完整结果渲染若静态进入首屏会突破 JavaScript 预算",
+      "status": "implemented_pending_verification",
+      "ownerRole": "frontend-engineering",
+      "targetMilestone": "PR #3 质量门禁恢复",
+      "evidence": [
+        "完整实证只读结果接入后，bundle budget 报告 initial JavaScript 174.0 KiB gzip，超过 100 KiB；仅延迟结果组件后仍为 140.7 KiB。",
+        "App 原先静态导入 OutputWorkspace 与 DataWorkspace，使非首屏工作区及其依赖进入初始 chunk。"
+      ],
+      "acceptance": [
+        "低频结果渲染与非首屏工作区使用可审查的 React lazy/Suspense 边界，不提高或绕过现有 100 KiB/150 KiB 预算。",
+        "生产构建、bundle-budget 自测和实际产物预算通过；PR #3 hosted quality gate 完整通过后关闭。"
+      ],
+      "closureEvidence": [
+        "OutputEmpiricalRunPreview、OutputWorkspace 与 DataWorkspace 已按需加载；生产构建后 initial JavaScript 为 93.1 KiB gzip，largest async 为 91.5 KiB gzip。",
+        "完整 Web Vitest 在代码分割后仍为 91 files、325 tests 全部通过。"
       ]
     }
   ]

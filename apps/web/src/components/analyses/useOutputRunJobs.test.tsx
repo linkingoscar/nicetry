@@ -36,7 +36,7 @@ describe('useOutputRunJobs', () => {
     vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue(recoveredJob())
 
     const { result } = renderHook(
-      () => useOutputRunJobs(['run_1', 'run_1'], 'dataset_demo', null),
+      () => useOutputRunJobs(['run_1', 'run_1']),
       { wrapper },
     )
 
@@ -47,11 +47,25 @@ describe('useOutputRunJobs', () => {
     expect(getEmpiricalAnalysisJob).toHaveBeenCalledTimes(1)
   })
 
-  it('does not bind a server job that belongs to another dataset', async () => {
+  it('recovers an indexed historical run from its own dataset version', async () => {
     vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue(recoveredJob('dataset_other'))
 
     const { result } = renderHook(
-      () => useOutputRunJobs(['run_1'], 'dataset_demo', null),
+      () => useOutputRunJobs(['run_1']),
+      { wrapper },
+    )
+
+    await waitFor(() => expect(result.current.get('run_1')?.datasetId).toBe('dataset_other'))
+  })
+
+  it('does not bind a response with a mismatched run identity', async () => {
+    vi.mocked(getEmpiricalAnalysisJob).mockResolvedValue({
+      ...recoveredJob(),
+      id: 'run_other',
+    })
+
+    const { result } = renderHook(
+      () => useOutputRunJobs(['run_1']),
       { wrapper },
     )
 
@@ -67,7 +81,7 @@ describe('useOutputRunJobs', () => {
     })
 
     const { unmount } = renderHook(
-      () => useOutputRunJobs(['run_1'], 'dataset_demo', null),
+      () => useOutputRunJobs(['run_1']),
       { wrapper },
     )
 

@@ -35,7 +35,7 @@ function stableHash(value: string): string {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
-function serverAnalysisId(entry: RegisteredOutputRun): string {
+export function registeredOutputAnalysisId(entry: RegisteredOutputRun): string {
   if (entry.analysisId && ID_PATTERN.test(entry.analysisId)) return entry.analysisId
   if (entry.modelId && ID_PATTERN.test(entry.modelId)) {
     return `analysis_${stableHash(`${entry.source}:${entry.modelId}:${entry.datasetVersionId}`)}`
@@ -70,6 +70,7 @@ export function readRegisteredOutputRuns(projectId: string): RegisteredOutputRun
     if (!Array.isArray(value)) return []
     return value
       .filter((entry): entry is RegisteredOutputRun => isEntry(entry, projectId))
+      .map((entry) => ({ ...entry, analysisId: registeredOutputAnalysisId(entry) }))
       .slice(0, MAX_RUNS)
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
   } catch {
@@ -80,7 +81,7 @@ export function readRegisteredOutputRuns(projectId: string): RegisteredOutputRun
 export function registerOutputRun(entry: RegisteredOutputRun): RegisteredOutputRun[] {
   const normalized: RegisteredOutputRun = {
     ...entry,
-    analysisId: serverAnalysisId(entry),
+    analysisId: registeredOutputAnalysisId(entry),
     label: entry.label.trim().slice(0, 200) || entry.methodId,
   }
   if (!isEntry(normalized, normalized.projectId)) return readRegisteredOutputRuns(entry.projectId)
@@ -94,7 +95,7 @@ export function registerOutputRun(entry: RegisteredOutputRun): RegisteredOutputR
   }
   void registerServerAnalysisRun(normalized.projectId, {
     runId: normalized.runId,
-    analysisId: normalized.analysisId ?? serverAnalysisId(normalized),
+    analysisId: normalized.analysisId ?? registeredOutputAnalysisId(normalized),
     source: normalized.source,
     methodId: normalized.methodId,
     label: normalized.label,

@@ -9,6 +9,8 @@ import { ResultPanel } from './ResultPanel'
 interface OutputRegisteredRunDetailProps {
   run: RegisteredOutputRun
   onClose: () => void
+  isPrimary?: boolean
+  onTogglePrimary?: () => void
 }
 
 const TERMINAL = new Set(['succeeded', 'failed', 'cancelled'])
@@ -23,7 +25,12 @@ function statusLabel(status?: string) {
   return '正在读取服务端状态'
 }
 
-export function OutputRegisteredRunDetail({ run, onClose }: OutputRegisteredRunDetailProps) {
+export function OutputRegisteredRunDetail({
+  run,
+  onClose,
+  isPrimary = false,
+  onTogglePrimary,
+}: OutputRegisteredRunDetailProps) {
   const modelStatus = useQuery({
     queryKey: ['output-model-run-status', run.runId],
     queryFn: () => getAnalysisJob(run.runId),
@@ -78,7 +85,16 @@ export function OutputRegisteredRunDetail({ run, onClose }: OutputRegisteredRunD
         <span className="context-method-status">运行 {run.runId.slice(0, 12)}</span>
         <span className="context-method-status">{run.source === 'model' ? 'PROCESS / SEM' : '结构化高级分析'}</span>
         {status ? <span className="context-method-status">服务端已确认</span> : null}
+        {isPrimary ? <span className="context-method-status">主要结果</span> : null}
       </div>
+
+      {onTogglePrimary ? (
+        <div className="method-card-actions">
+          <button type="button" className="secondary-button" onClick={onTogglePrimary}>
+            {isPrimary ? '取消主要结果' : '设为主要结果'}
+          </button>
+        </div>
+      ) : null}
 
       {statusError ? (
         <p className="validation-error" role="alert">无法读取该运行：{statusError.message}</p>

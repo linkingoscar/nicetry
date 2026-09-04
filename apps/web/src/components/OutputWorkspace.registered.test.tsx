@@ -12,9 +12,22 @@ const indexMocks = vi.hoisted(() => ({
   upsertServerAnalysisDocument: vi.fn(),
   patchServerAnalysisDocument: vi.fn(),
 }))
+const outputMocks = vi.hoisted(() => ({
+  registeredDetail: vi.fn(),
+}))
 
 vi.mock('../api/analysis-index', () => indexMocks)
 vi.mock('./analyses/useOutputRunJobs', () => ({ useOutputRunJobs: () => new Map() }))
+vi.mock('./OutputRegisteredRunDetail', () => ({
+  OutputRegisteredRunDetail: (props: {
+    run: { runId: string }
+    isPrimary: boolean
+    onTogglePrimary?: () => void
+  }) => {
+    outputMocks.registeredDetail(props)
+    return <button type="button" onClick={props.onTogglePrimary}>toggle-primary:{props.run.runId}</button>
+  },
+}))
 
 const dataset = {
   id: 'dataset_current',
@@ -42,6 +55,7 @@ beforeEach(() => {
     rebuiltFromServerJobs: true,
   })
   indexMocks.registerServerAnalysisRun.mockResolvedValue({})
+  indexMocks.patchServerAnalysisDocument.mockResolvedValue({})
 })
 
 describe('OutputWorkspace registered model and advanced runs', () => {
@@ -108,5 +122,81 @@ describe('OutputWorkspace registered model and advanced runs', () => {
     expect(screen.getByText('两层 Gaussian LMM')).toBeInTheDocument()
     expect(screen.queryByText('结构方程模型（SEM）')).not.toBeInTheDocument()
     expect(screen.getByText('显示 1 / 2 项输出')).toBeInTheDocument()
+  })
+
+  it('groups repeated model runs and persists document metadata and a primary run', () => {
+    const firstIndex = registerOutputRun({
+      runId: 'run_process_1',
+      projectId: dataset.projectId,
+      datasetVersionId: dataset.id,
+      measurementVersionId: null,
+      source: 'model',
+      label: '简单中介（PROCESS Model 4）',
+      methodId: 'model.process',
+      modelId: 'model_same',
+      createdAt: '2026-09-03T10:00:00Z',
+    })
+    registerOutputRun({
+      runId: 'run_process_2',
+      projectId: dataset.projectId,
+      datasetVersionId: dataset.id,
+      measurementVersionId: null,
+      source: 'model',
+      label: '简单中介（PROCESS Model 4）',
+      methodId: 'model.process',
+      modelId: 'model_same',
+      createdAt: '2026-09-03T11:00:00Z',
+    })
+    const analysisId = firstIndex[0].analysisId
+    vi.spyOn(window, 'prompt').mockReturnValue('核心中介模型')
+
+    renderOutput()
+
+    expect(screen.getByText(/项模型\/高级分析/)).toHaveTextContent('1 项模型/高级分析')
+    expect(screen.getAllByText(/2 次运行/)).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: '固定分析' }))
+    expect(indexMocks.patchServerAnalysisDocument).toHaveBeenCalledWith(
+      dataset.projectId,
+      analysisId,
+      { pinned: true },
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: '重命名' }))
+    expect(indexMocks.patchServerAnalysisDocument).toHaveBeenCalledWith(
+      dataset.projectId,
+      analysisId,
+      { title: '核心中介模型' },
+    )
+
+    fireEvent.click(screen.getByText('查看运行历史'))
+    fireEvent.click(screen.getAllByRole('button', { name: /run_process_/ })[0])
+    fireEvent.click(screen.getByRole('button', { name: /toggle-primary/ }))
+    expect(indexMocks.patchServerAnalysisDocument).toHaveBeenCalledWith(
+      dataset.projectId,
+      analysisId,
+      expect.objectContaining({ primaryRunId: expect.stringMatching(/^run_process_/) }),
+    )
+  })
+
+  it('rolls back optimistic registered-document metadata when the server rejects it', async () => {
+    registerOutputRun({
+      runId: 'run_sem_failed_patch',
+      projectId: dataset.projectId,
+      datasetVersionId: dataset.id,
+      measurementVersionId: null,
+      source: 'model',
+      label: '结构方程模型（SEM）',
+      methodId: 'model.sem',
+      modelId: 'model_failed_patch',
+      createdAt: '2026-09-03T10:00:00Z',
+    })
+    indexMocks.patchServerAnalysisDocument.mockRejectedValue(new Error('offline'))
+
+    renderOutput()
+    fireEvent.click(screen.getByRole('button', { name: '固定分析' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('保存失败')
+    expect(screen.getByRole('button', { name: '固定分析' })).toBeInTheDocument()
+    expect(screen.queryByText('已固定')).not.toBeInTheDocument()
   })
 })

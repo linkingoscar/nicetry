@@ -31,12 +31,24 @@ const config = {
   predictorVariableIds: [],
   controlVariableIds: [],
   responseSurfacePredictorIds: [],
+  groupVariableId: null,
+  aggregationVariableId: null,
+  outcomeVariableId: null,
+  correlationMethod: 'pearson',
   correlationPAdjust: 'BH',
   groupOmnibusPAdjust: 'holm',
   multiplicityPAdjust: 'BH',
   factorCount: 1,
   confidenceLevel: 0.95,
-} as EmpiricalConfigValue
+  multiplicityFamilyId: 'cross_sectional_inference',
+  rotation: 'varimax',
+  factorCountMethod: 'kaiser',
+  parallelIterations: 1000,
+  randomSeed: 20260714,
+  sampleVersionId: null,
+  longitudinalPanel: null,
+  diaryMultilevel: null,
+} satisfies EmpiricalConfigValue
 
 beforeEach(() => localStorage.clear())
 

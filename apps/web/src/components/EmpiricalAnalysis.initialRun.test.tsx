@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('./empirical/useEmpiricalAnalysisState', () => ({
   useEmpiricalAnalysisState: () => ({
     analysisJob: undefined,
+    runHistory: [],
     onSelectRun: mocks.onSelectRun,
     showToast: mocks.showToast,
     toastText: null,

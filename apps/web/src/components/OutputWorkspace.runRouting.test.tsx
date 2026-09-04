@@ -2,7 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { DatasetVersion } from '../types'
+import type { DatasetVersion, EmpiricalAnalysisJob } from '../types'
+import type { EmpiricalProcedure } from '../types/empirical-types'
 import { ensureEmpiricalAnalysisDocument } from './analyses/analysisDocuments'
 import { OutputWorkspace } from './OutputWorkspace'
 
@@ -12,10 +13,20 @@ const indexMocks = vi.hoisted(() => ({
   upsertServerAnalysisDocument: vi.fn(),
   patchServerAnalysisDocument: vi.fn(),
 }))
+const outputMocks = vi.hoisted(() => ({
+  useOutputRunJobs: vi.fn(),
+  preview: vi.fn(),
+}))
 
 vi.mock('../api/analysis-index', () => indexMocks)
 vi.mock('./analyses/useOutputRunJobs', () => ({
-  useOutputRunJobs: () => new Map(),
+  useOutputRunJobs: outputMocks.useOutputRunJobs,
+}))
+vi.mock('./OutputEmpiricalRunPreview', () => ({
+  OutputEmpiricalRunPreview: (props: unknown) => {
+    outputMocks.preview(props)
+    return <div>historical-empirical-preview</div>
+  },
 }))
 
 const dataset: DatasetVersion = {
@@ -45,7 +56,12 @@ const dataset: DatasetVersion = {
 
 const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
 
-function renderOutput(onOpenProcedure: ReturnType<typeof vi.fn>) {
+function renderOutput(onOpenProcedure: (
+  procedure: EmpiricalProcedure,
+  analysisId?: string,
+  runId?: string,
+  methodId?: string,
+) => void) {
   return render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={onOpenProcedure} />
@@ -56,6 +72,7 @@ function renderOutput(onOpenProcedure: ReturnType<typeof vi.fn>) {
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
+  outputMocks.useOutputRunJobs.mockReturnValue(new Map())
   indexMocks.getServerAnalysisIndex.mockResolvedValue({
     schemaVersion: '1.0.0',
     projectId: dataset.projectId,
@@ -120,5 +137,67 @@ describe('OutputWorkspace run routing', () => {
       'run_ri_clpm',
       'longitudinal.ri-clpm',
     )
+  })
+
+  it('restores and previews a historical run with the run own dataset and measurement versions', async () => {
+    const historicalJob = {
+      id: 'run_historical',
+      jobKind: 'empirical',
+      datasetId: 'dataset_old',
+      measurementVersion: 3,
+      measurementVersionId: 'measurement_old',
+      reportId: 'report_historical',
+      status: 'succeeded',
+      options: {
+        procedure: 'descriptives',
+        analysisVariableIds: ['age'],
+      },
+    } as EmpiricalAnalysisJob
+    outputMocks.useOutputRunJobs.mockReturnValue(new Map([['run_historical', historicalJob]]))
+    indexMocks.getServerAnalysisIndex.mockResolvedValue({
+      schemaVersion: '1.0.0',
+      projectId: dataset.projectId,
+      rebuiltFromServerJobs: true,
+      documents: [{
+        id: 'analysis_historical',
+        projectId: dataset.projectId,
+        title: '历史描述统计',
+        methodId: 'empirical.overview.descriptives',
+        categoryId: 'descriptives-relations',
+        source: 'empirical',
+        datasetVersionId: 'dataset_old',
+        measurementVersionId: 'measurement_old',
+        procedure: 'descriptives',
+        createdAt: '2026-09-02T01:00:00Z',
+        updatedAt: '2026-09-02T01:00:00Z',
+        latestRunId: 'run_historical',
+        pinned: false,
+      }],
+      runs: [{
+        id: 'run_historical',
+        analysisId: 'analysis_historical',
+        projectId: dataset.projectId,
+        source: 'empirical',
+        methodId: 'empirical.overview.descriptives',
+        label: '历史描述统计',
+        datasetVersionId: 'dataset_old',
+        measurementVersionId: 'measurement_old',
+        status: 'succeeded',
+        reportId: 'report_historical',
+        createdAt: '2026-09-02T01:02:00Z',
+      }],
+    })
+
+    renderOutput(vi.fn())
+
+    expect(await screen.findByText('历史描述统计')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('查看运行历史'))
+    fireEvent.click(screen.getByRole('button', { name: /run_historic/ }))
+    expect(await screen.findByText('historical-empirical-preview')).toBeInTheDocument()
+    expect(outputMocks.preview).toHaveBeenLastCalledWith(expect.objectContaining({
+      datasetId: 'dataset_old',
+      measurementVersion: 3,
+      reportId: 'report_historical',
+    }))
   })
 })

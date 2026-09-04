@@ -4,8 +4,6 @@ import type { MethodRequest } from './components/context/workbenchNavigation'
 
 import { AppHydratingScreen } from './AppHydratingScreen'
 import { AppWorkspaceTabs } from './AppWorkspaceTabs'
-import { DataWorkspace } from './components/DataWorkspace'
-import { OutputWorkspace } from './components/OutputWorkspace'
 import {
   createEmpiricalAnalysisDocument,
   ensureEmpiricalAnalysisDocument,
@@ -25,8 +23,10 @@ import { useWorkspaceState } from './hooks/useWorkspaceState'
 
 const EmpiricalAnalysis = lazy(() => import('./components/EmpiricalAnalysis').then((module) => ({ default: module.EmpiricalAnalysis })))
 const ModelBuilder = lazy(() => import('./components/ModelBuilder').then((module) => ({ default: module.ModelBuilder })))
+const DataWorkspace = lazy(() => import('./components/DataWorkspace').then((module) => ({ default: module.DataWorkspace })))
 const ContextCapabilityCatalog = lazy(() => import('./components/context/ContextCapabilityCatalog').then((module) => ({ default: module.ContextCapabilityCatalog })))
 const PlanningWorkspace = lazy(() => import('./components/PlanningWorkspace').then((module) => ({ default: module.PlanningWorkspace })))
+const OutputWorkspace = lazy(() => import('./components/OutputWorkspace').then((module) => ({ default: module.OutputWorkspace })))
 
 type AnalysisSurface = 'library' | 'empirical' | 'model'
 

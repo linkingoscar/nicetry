@@ -90,7 +90,8 @@ describe('analysis document compatibility index', () => {
     const index = loadEmpiricalAnalysisIndex(dataset, null)
 
     expect(index.documents).toContainEqual(document)
-    expect(document).toMatchObject({ procedure: 'descriptives', latestRunId: undefined })
+    expect(document).toMatchObject({ procedure: 'descriptives' })
+    expect(document.latestRunId).toBeUndefined()
     expect(index.runs).toHaveLength(0)
   })
 

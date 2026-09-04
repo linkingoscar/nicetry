@@ -82,7 +82,7 @@ export function useEmpiricalAnalysisState({
     if (analysisId && analysisProcedure) {
       return migrateEmpiricalDraftToAnalysis(dataset, measurement, analysisContext, analysisId, analysisProcedure)
     }
-    return readEmpiricalDraft(draftKey)
+    return readEmpiricalDraft(draftKey, analysisProcedure)
   })
   const appliedTabRequest = useRef(initialDraft?.tabRequestKey)
   const [config, setConfig] = useState<EmpiricalConfigValue>(() => {

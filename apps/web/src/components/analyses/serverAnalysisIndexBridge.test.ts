@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
 import type { ServerAnalysisIndex } from '../../api/analysis-index'
-import { mergeEmpiricalServerIndex, mergeRegisteredServerRuns } from './serverAnalysisIndexBridge'
+import {
+  mergeEmpiricalServerIndex,
+  mergeRegisteredServerDocuments,
+  mergeRegisteredServerRuns,
+  registeredRunsForDocument,
+} from './serverAnalysisIndexBridge'
 
 const serverIndex: ServerAnalysisIndex = {
   schemaVersion: '1.0.0',
@@ -88,6 +93,55 @@ describe('serverAnalysisIndexBridge', () => {
       }),
     ])
     expect(JSON.stringify(merged)).not.toContain('result')
+  })
+
+  it('groups model runs under their AnalysisDocument and keeps server metadata', () => {
+    const runs = mergeRegisteredServerRuns([{
+      runId: 'run_server_model_older',
+      analysisId: 'analysis_server_model',
+      projectId: 'default',
+      source: 'model',
+      methodId: 'model.sem',
+      label: '结构方程模型（SEM）',
+      modelId: 'model_demo',
+      datasetVersionId: 'dataset_demo',
+      measurementVersionId: 'measurement_1',
+      createdAt: '2026-09-04T00:03:00Z',
+    }], serverIndex)
+    const indexWithModelDocument = {
+      ...serverIndex,
+      documents: [...serverIndex.documents, {
+        id: 'analysis_server_model',
+        projectId: 'default',
+        title: '核心结构模型',
+        methodId: 'model.sem',
+        categoryId: 'models',
+        source: 'model' as const,
+        datasetVersionId: 'dataset_demo',
+        measurementVersionId: 'measurement_1',
+        createdAt: '2026-09-04T00:00:00Z',
+        updatedAt: '2026-09-04T02:00:00Z',
+        latestRunId: 'run_server_model',
+        primaryRunId: 'run_server_model_older',
+        pinned: true,
+      }],
+    }
+
+    const documents = mergeRegisteredServerDocuments(runs, indexWithModelDocument)
+
+    expect(documents).toEqual([
+      expect.objectContaining({
+        id: 'analysis_server_model',
+        title: '核心结构模型',
+        pinned: true,
+        primaryRunId: 'run_server_model_older',
+        latestRunId: 'run_server_model',
+      }),
+    ])
+    expect(registeredRunsForDocument(runs, 'analysis_server_model').map((run) => run.runId)).toEqual([
+      'run_server_model',
+      'run_server_model_older',
+    ])
   })
 
   it('does not overwrite newer local title and pin metadata with an older server response', () => {
