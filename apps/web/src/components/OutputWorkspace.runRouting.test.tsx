@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -44,6 +45,14 @@ const dataset: DatasetVersion = {
 
 const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
 
+function renderOutput(onOpenProcedure: ReturnType<typeof vi.fn>) {
+  return render(
+    <QueryClientProvider client={new QueryClient()}>
+      <OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={onOpenProcedure} />
+    </QueryClientProvider>,
+  )
+}
+
 beforeEach(() => {
   localStorage.clear()
   vi.clearAllMocks()
@@ -68,13 +77,7 @@ describe('OutputWorkspace run routing', () => {
       },
     ]))
     const onOpenProcedure = vi.fn()
-    render(
-      <OutputWorkspace
-        dataset={dataset}
-        measurement={null}
-        onOpenProcedure={onOpenProcedure}
-      />,
-    )
+    renderOutput(onOpenProcedure)
 
     fireEvent.click(screen.getByText('查看运行历史'))
     fireEvent.click(screen.getByRole('button', { name: /run_selected/ }))
@@ -105,13 +108,7 @@ describe('OutputWorkspace run routing', () => {
     ]))
 
     const onOpenProcedure = vi.fn()
-    render(
-      <OutputWorkspace
-        dataset={dataset}
-        measurement={null}
-        onOpenProcedure={onOpenProcedure}
-      />,
-    )
+    renderOutput(onOpenProcedure)
 
     fireEvent.click(screen.getByText('查看运行历史'))
     fireEvent.click(screen.getByRole('button', { name: /run_ri_clpm/ }))
