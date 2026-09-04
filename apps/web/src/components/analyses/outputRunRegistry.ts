@@ -1,3 +1,4 @@
+import { registerServerAnalysisRun } from '../../api/analysis-index'
 import type { DatasetVersion, MeasurementVersion } from '../../types'
 
 export type RegisteredOutputSource = 'model' | 'advanced'
@@ -5,6 +6,7 @@ export type RegisteredOutputFreshness = 'current' | 'stale'
 
 export interface RegisteredOutputRun {
   runId: string
+  analysisId?: string
   projectId: string
   datasetVersionId: string
   measurementVersionId: string | null
@@ -24,12 +26,30 @@ function storageKey(projectId: string) {
   return `${KEY_PREFIX}:${projectId}`
 }
 
+function stableHash(value: string): string {
+  let hash = 2166136261
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0')
+}
+
+function serverAnalysisId(entry: RegisteredOutputRun): string {
+  if (entry.analysisId && ID_PATTERN.test(entry.analysisId)) return entry.analysisId
+  if (entry.modelId && ID_PATTERN.test(entry.modelId)) {
+    return `analysis_${stableHash(`${entry.source}:${entry.modelId}:${entry.datasetVersionId}`)}`
+  }
+  return `analysis_${stableHash(`${entry.source}:${entry.runId}`)}`
+}
+
 function isEntry(value: unknown, projectId: string): value is RegisteredOutputRun {
   if (!value || typeof value !== 'object') return false
   const entry = value as Partial<RegisteredOutputRun>
   return entry.projectId === projectId
     && typeof entry.runId === 'string'
     && ID_PATTERN.test(entry.runId)
+    && (entry.analysisId === undefined || (typeof entry.analysisId === 'string' && ID_PATTERN.test(entry.analysisId)))
     && typeof entry.datasetVersionId === 'string'
     && entry.datasetVersionId.length > 0
     && (entry.measurementVersionId === null || typeof entry.measurementVersionId === 'string')
@@ -60,6 +80,7 @@ export function readRegisteredOutputRuns(projectId: string): RegisteredOutputRun
 export function registerOutputRun(entry: RegisteredOutputRun): RegisteredOutputRun[] {
   const normalized: RegisteredOutputRun = {
     ...entry,
+    analysisId: serverAnalysisId(entry),
     label: entry.label.trim().slice(0, 200) || entry.methodId,
   }
   if (!isEntry(normalized, normalized.projectId)) return readRegisteredOutputRuns(entry.projectId)
@@ -69,8 +90,22 @@ export function registerOutputRun(entry: RegisteredOutputRun): RegisteredOutputR
   try {
     localStorage.setItem(storageKey(normalized.projectId), JSON.stringify(next))
   } catch {
-    // The server job remains authoritative even when browser indexing is unavailable.
+    // The server job and server AnalysisIndex remain authoritative when browser persistence is unavailable.
   }
+  void registerServerAnalysisRun(normalized.projectId, {
+    runId: normalized.runId,
+    analysisId: normalized.analysisId ?? serverAnalysisId(normalized),
+    source: normalized.source,
+    methodId: normalized.methodId,
+    label: normalized.label,
+    family: normalized.family,
+    modelId: normalized.modelId,
+    datasetVersionId: normalized.datasetVersionId,
+    measurementVersionId: normalized.measurementVersionId,
+    createdAt: normalized.createdAt,
+  }).catch(() => {
+    // GET /analysis-index can still reconstruct the reference from persisted server job state.
+  })
   return next
 }
 
