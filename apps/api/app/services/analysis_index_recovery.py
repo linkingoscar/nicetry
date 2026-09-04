@@ -88,7 +88,8 @@ class AnalysisIndexRecoveryMixin:
             source = "empirical" if state.get("jobKind") == "empirical" else "model"
             created_at = str(state.get("createdAt") or _now())
             measurement_id = _measurement_id(state)
-            options = state.get("options") if isinstance(state.get("options"), dict) else {}
+            raw_options = state.get("options")
+            options: JsonObject = raw_options if isinstance(raw_options, dict) else {}
             procedure = str(options.get("procedure")) if options.get("procedure") else None
             existing_run = self._existing_run(runs, run_id)
             existing_method = existing_run.get("methodId")
