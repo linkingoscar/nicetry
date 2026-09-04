@@ -4,6 +4,7 @@ import re
 import threading
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Literal, overload
 
 from app.services.analysis_index_recovery import AnalysisIndexRecoveryMixin
 from app.services.dataset_repository import DatasetRepository
@@ -19,6 +20,24 @@ _MAX_RUNS = 6000
 
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+@overload
+def _token(
+    value: object,
+    label: str,
+    *,
+    required: Literal[True] = True,
+) -> str: ...
+
+
+@overload
+def _token(
+    value: object,
+    label: str,
+    *,
+    required: Literal[False],
+) -> str | None: ...
 
 
 def _token(value: object, label: str, *, required: bool = True) -> str | None:
@@ -224,7 +243,7 @@ class AnalysisIndexService(AnalysisIndexRecoveryMixin):
         with _INDEX_LOCK:
             index = self._read(project_id)
             documents = self._document_map(index)
-            document = documents.get(str(_token(analysis_id, "analysis id")))
+            document = documents.get(_token(analysis_id, "analysis id"))
             if document is None:
                 raise LookupError(f"AnalysisDocument 不存在: {analysis_id}")
             if "title" in patch:
@@ -239,7 +258,7 @@ class AnalysisIndexService(AnalysisIndexRecoveryMixin):
                     document.pop("primaryRunId", None)
                 else:
                     run_id = _token(run_id, "primary run id")
-                    run = self._run_map(index).get(str(run_id))
+                    run = self._run_map(index).get(run_id)
                     if run is None or run.get("analysisId") != analysis_id:
                         raise ValueError("主要结果必须属于当前 AnalysisDocument")
                     document["primaryRunId"] = run_id
