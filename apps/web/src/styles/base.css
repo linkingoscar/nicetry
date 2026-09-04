@@ -32,10 +32,30 @@ button, input, select, textarea {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
 }
+
+.skip-link {
+  position: fixed;
+  z-index: 10000;
+  top: 8px;
+  left: 8px;
+  padding: 9px 12px;
+  color: var(--text-main);
+  background: var(--bg-surface);
+  border: 2px solid var(--brand-primary);
+  border-radius: 6px;
+  box-shadow: var(--shadow-sm);
+  transform: translateY(-160%);
+}
+.skip-link:focus { transform: translateY(0); }
 
 h1 { margin: 0; font-size: 25px; line-height: 1.25; }
 h2 { margin: 0; font-size: 20px; line-height: 1.35; }
@@ -59,5 +79,34 @@ h2 { margin: 0; font-size: 20px; line-height: 1.35; }
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --border-card: currentColor;
+    --border-subtle: color-mix(in srgb, currentColor 55%, transparent);
+  }
+  .status-chip,
+  .status-badge,
+  .context-method-status {
+    border: 1px solid currentColor;
+  }
+}
+
+@media (forced-colors: active) {
+  button,
+  input,
+  select,
+  textarea,
+  .method-card,
+  .context-method-card,
+  .context-catalog,
+  .context-method-catalog {
+    border: 1px solid CanvasText;
+    forced-color-adjust: auto;
+  }
+  .workspace-tab[aria-selected="true"] {
+    border-bottom: 3px solid Highlight;
   }
 }
