@@ -1,3 +1,4 @@
+import { patchServerAnalysisDocument, upsertServerAnalysisDocument } from '../../api/analysis-index'
 import type { DatasetVersion, MeasurementVersion } from '../../types'
 import type { EmpiricalProcedure } from '../../types/empirical-types'
 import { methodDefinitions } from '../../methods/methodDefinitions'
@@ -121,6 +122,29 @@ function methodIdentity(procedure: EmpiricalProcedure, requestedMethodId?: strin
   }
 }
 
+function mirrorDocument(document: AnalysisDocumentIndexEntry): void {
+  void upsertServerAnalysisDocument({
+    id: document.id,
+    projectId: document.projectId,
+    title: document.title,
+    methodId: document.methodId,
+    categoryId: document.categoryId,
+    source: 'empirical',
+    datasetVersionId: document.datasetVersionId,
+    measurementVersionId: document.measurementVersionId,
+    procedure: document.procedure,
+    createdAt: document.createdAt,
+    updatedAt: document.updatedAt,
+    currentDraftId: document.currentDraftId,
+    latestRunId: document.latestRunId,
+    primaryRunId: document.primaryRunId,
+    pinned: document.pinned,
+    archived: document.archived,
+  }).catch(() => {
+    // Local compatibility cache remains usable; Output later retries via the server index.
+  })
+}
+
 function isStoredIndex(value: unknown): value is AnalysisDocumentIndex {
   if (!value || typeof value !== 'object') return false
   const index = value as Partial<AnalysisDocumentIndex>
@@ -151,7 +175,7 @@ function saveIndex(projectId: string, index: AnalysisDocumentIndex) {
       runs: index.runs.slice(0, MAX_RUNS),
     }))
   } catch {
-    // Existing server jobs and legacy run history remain the recovery source.
+    // Server AnalysisIndex and existing job history remain the recovery source.
   }
 }
 
@@ -246,7 +270,10 @@ export function ensureEmpiricalAnalysisDocument(
   const method = methodIdentity(procedure, requestedMethodId)
   const existingByMethod = index.documents.find((document) =>
     documentMatches(document, dataset, measurement, procedure, method.methodId))
-  if (existingByMethod) return existingByMethod
+  if (existingByMethod) {
+    mirrorDocument(existingByMethod)
+    return existingByMethod
+  }
 
   const document = ensureDocument(
     index,
@@ -258,6 +285,7 @@ export function ensureEmpiricalAnalysisDocument(
     method.methodId,
   )
   saveIndex(dataset.projectId, index)
+  mirrorDocument(document)
   return document
 }
 
@@ -282,6 +310,7 @@ export function createEmpiricalAnalysisDocument(
   const requestedTitle = title?.trim()
   if (requestedTitle) document.title = requestedTitle
   saveIndex(dataset.projectId, index)
+  mirrorDocument(document)
   return document
 }
 
@@ -378,6 +407,9 @@ export function updateAnalysisDocumentMetadata(
   if (changed) {
     document.updatedAt = new Date().toISOString()
     saveIndex(projectId, index)
+    void patchServerAnalysisDocument(projectId, analysisId, patch).catch(() => {
+      mirrorDocument(document)
+    })
   }
   return index
 }
@@ -397,6 +429,9 @@ export function setAnalysisPrimaryRun(
   document.primaryRunId = nextPrimaryRunId
   document.updatedAt = new Date().toISOString()
   saveIndex(projectId, index)
+  void patchServerAnalysisDocument(projectId, analysisId, { primaryRunId: runId }).catch(() => {
+    mirrorDocument(document)
+  })
   return index
 }
 
