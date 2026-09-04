@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
+import { getServerAnalysisIndex } from '../api/analysis-index'
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
 import { OutputEmpiricalRunPreview } from './OutputEmpiricalRunPreview'
@@ -20,6 +22,10 @@ import {
   readRegisteredOutputRuns,
   registeredOutputFreshness,
 } from './analyses/outputRunRegistry'
+import {
+  mergeEmpiricalServerIndex,
+  mergeRegisteredServerRuns,
+} from './analyses/serverAnalysisIndexBridge'
 import { useOutputRunJobs } from './analyses/useOutputRunJobs'
 import { cloneEmpiricalDraftsToAnalysis } from './empirical/empiricalDrafts'
 
@@ -45,11 +51,25 @@ function registeredSourceLabel(source: 'model' | 'advanced', methodId: string) {
 }
 
 export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: OutputWorkspaceProps) {
-  const [index, setIndex] = useState(() => loadEmpiricalAnalysisIndex(dataset, measurement))
-  const [registeredRuns, setRegisteredRuns] = useState(() => readRegisteredOutputRuns(dataset.projectId))
+  const [localIndex, setIndex] = useState(() => loadEmpiricalAnalysisIndex(dataset, measurement))
+  const [localRegisteredRuns, setRegisteredRuns] = useState(() => readRegisteredOutputRuns(dataset.projectId))
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [selectedRegisteredRunId, setSelectedRegisteredRunId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const serverIndexQuery = useQuery({
+    queryKey: ['server-analysis-index', dataset.projectId],
+    queryFn: () => getServerAnalysisIndex(dataset.projectId),
+    staleTime: 5_000,
+    retry: false,
+  })
+  const index = useMemo(
+    () => mergeEmpiricalServerIndex(localIndex, serverIndexQuery.data),
+    [localIndex, serverIndexQuery.data],
+  )
+  const registeredRuns = useMemo(
+    () => mergeRegisteredServerRuns(localRegisteredRuns, serverIndexQuery.data),
+    [localRegisteredRuns, serverIndexQuery.data],
+  )
 
   useEffect(() => {
     setIndex(loadEmpiricalAnalysisIndex(dataset, measurement))
@@ -138,8 +158,11 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         <div>
           <p className="eyebrow">分析对象与运行</p>
           <h1 id="output-workspace-heading">输出</h1>
-          <p>统一查看当前项目的实证、PROCESS/SEM 与结构化高级分析。旧数据或量表版本的结果继续可见，并明确标记为“基于旧设置”。</p>
+          <p>统一查看当前项目的实证、PROCESS/SEM 与结构化高级分析。服务端保存分析对象与运行身份，浏览器缓存仅用于兼容和即时恢复。</p>
         </div>
+        <span className="status-badge">
+          {serverIndexQuery.data ? '服务端索引已恢复' : serverIndexQuery.isError ? '兼容缓存模式' : '正在恢复服务端索引'}
+        </span>
       </header>
 
       {totalOutputCount ? (
@@ -195,10 +218,10 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <div>
               <p>结果 ID：{selectedDetail.resultId ?? '当前运行尚未产生结果 ID'}</p>
               <p>警告：{selectedDetail.warningCodes.length ? selectedDetail.warningCodes.join('、') : '无已记录警告'}</p>
-              <p className="muted">这份运行详情来自提交后的冻结规格与任务状态；只有当前数据上下文的运行会主动向服务端恢复状态。</p>
+              <p className="muted">冻结规格和任务状态继续来自权威 job/result 服务；OutputIndex 只保存分析身份、运行引用和上游版本。</p>
             </div>
           ) : (
-            <p className="muted">该记录目前只有旧本地运行索引。服务端未能确认冻结规格或结果身份，因此这里不会补造运行详情。</p>
+            <p className="muted">该运行由服务端索引恢复。若浏览器没有旧草稿快照，仍可查看权威任务/结果，但不会补造不存在的编辑历史。</p>
           )}
 
           {selectedFreshness === 'current' && selectedStatus === 'succeeded' && selectedReportId && selectedOptions ? (
@@ -240,7 +263,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <div>
               <p className="eyebrow">统一运行引用</p>
               <h2>PROCESS / SEM / 高级分析</h2>
-              <p className="muted">本地只保存 runId 与来源身份；点击“查看运行”后才向服务端恢复任务状态和只读结果。</p>
+              <p className="muted">AnalysisIndex 只保存 runId、方法身份和上游版本；点击“查看运行”后才向原 job/result 服务恢复只读结果。</p>
             </div>
             <span className="status-badge">{registeredRuns.length} 个运行</span>
           </div>
@@ -258,7 +281,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                         <span className={`context-method-status${freshness === 'stale' ? ' method-status-needs-setup' : ''}`}>
                           {freshness === 'stale' ? '基于旧设置' : '当前数据/量表'}
                         </span>
-                        <span className="context-method-status">运行引用</span>
+                        <span className="context-method-status">服务端运行引用</span>
                       </div>
                       <p className="muted">方法 {run.methodId} · run {run.runId.slice(0, 12)}</p>
                     </div>
@@ -323,7 +346,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                       {latestDetail ? (
                         <p className="muted">运行 {latestDetail.runId.slice(0, 12)} · 草稿修订 {latestDetail.draftRevision} · {latestDetail.qualityStatus === 'warning' ? '含警告' : '无已记录警告'}</p>
                       ) : latestRun ? (
-                        <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 仅有旧本地索引引用</p>
+                        <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 由服务端 AnalysisIndex 恢复</p>
                       ) : null}
                     </div>
 
@@ -401,10 +424,15 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         </section>
       ) : null}
 
-      {!totalOutputCount ? (
+      {!totalOutputCount && serverIndexQuery.isLoading ? (
+        <section className="centered-state" aria-live="polite">
+          <h2>正在恢复项目输出</h2>
+          <p>正在从服务端 AnalysisIndex 和已有任务记录重建分析历史。</p>
+        </section>
+      ) : !totalOutputCount ? (
         <section className="centered-state">
           <h2>还没有运行任何分析</h2>
-          <p>从“分析”选择一个方法并显式运行后，这里会记录分析对象或服务端运行引用。</p>
+          <p>从“分析”选择一个方法并显式运行后，这里会记录 AnalysisDocument 与不可变运行引用。</p>
         </section>
       ) : null}
     </main>
