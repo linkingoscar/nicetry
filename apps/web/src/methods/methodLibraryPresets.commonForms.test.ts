@@ -20,7 +20,8 @@ describe('common advanced-form discovery', () => {
     commonIds.forEach((id) => {
       const definition = methodDefinitions.find((method) => method.id === id)
       expect(definition, id).toBeDefined()
-      expect(expandMethodForLibrary(definition!)[0]).toMatchObject({
+      if (!definition) throw new Error(`method registry entry is missing: ${id}`)
+      expect(expandMethodForLibrary(definition)[0]).toMatchObject({
         id,
         visibilityTier: 'common',
         advanced: false,
@@ -31,7 +32,8 @@ describe('common advanced-form discovery', () => {
   it('does not globally demote unrelated advanced methods', () => {
     const definition = methodDefinitions.find((method) => method.id === 'measurement.esem-bifactor-irt')
     expect(definition).toBeDefined()
-    expect(expandMethodForLibrary(definition!)[0]).toMatchObject({
+    if (!definition) throw new Error('measurement.esem-bifactor-irt registry entry is missing')
+    expect(expandMethodForLibrary(definition)[0]).toMatchObject({
       visibilityTier: 'advanced',
       advanced: true,
     })
