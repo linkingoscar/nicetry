@@ -75,7 +75,7 @@ export function buildSemMeasurementGraph(model: ModelSpec, base: ModelFlowNode[]
       edges.push({
         id, source: latent.id, target: targetId, type: 'statistical', deletable: false,
         data: { label: '载荷', measurement: true, evidence: evidence[id] ?? { status: 'idle' } },
-        markerEnd: { type: MarkerType.ArrowClosed, color: '#717480', width: 15, height: 15 },
+        markerEnd: { type: MarkerType.ArrowClosed, color: '#566579', width: 15, height: 15 },
       })
     })
   })

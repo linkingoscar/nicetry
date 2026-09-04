@@ -1,4 +1,16 @@
-import { expect, type Dialog, type Page } from '@playwright/test'
+import { expect, type Dialog, type Locator, type Page } from '@playwright/test'
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+async function anyVisible(locator: Locator): Promise<boolean> {
+  const count = await locator.count()
+  for (let index = 0; index < count; index += 1) {
+    if (await locator.nth(index).isVisible()) return true
+  }
+  return false
+}
 
 /**
  * Each E2E page receives the same session token after one capability exchange.
@@ -36,10 +48,24 @@ export async function configureMethod(
   acceptDialog?: boolean,
 ): Promise<void> {
   await openAnalysisLibrary(page)
-  if (acceptDialog !== undefined) {
-    page.once('dialog', dialog => acceptDialog ? dialog.accept() : dialog.dismiss())
+  const methodButton = page.getByRole('button', { name: `配置${label}`, exact: true })
+  const handleMethodDialog = (dialog: Dialog) => {
+    void (acceptDialog === false ? dialog.dismiss() : dialog.accept())
   }
-  await page.getByRole('button', { name: `配置${label}`, exact: true }).click()
+  page.on('dialog', handleMethodDialog)
+  try {
+    await methodButton.click()
+    await expect(methodButton).toBeHidden()
+    const completionText = acceptDialog === false
+      ? /已取消目录方法切换/
+      : new RegExp(`已进入(?:：|“)?${escapeRegExp(label)}`)
+    await expect.poll(async () => (
+      await anyVisible(page.getByText(completionText))
+      || await anyVisible(page.getByRole('heading', { name: label, exact: true }))
+    ), { timeout: 15_000 }).toBe(true)
+  } finally {
+    page.off('dialog', handleMethodDialog)
+  }
 }
 
 export async function openAdvancedProcessEditor(

@@ -4798,7 +4798,8 @@
       ],
       "closureEvidence": [
         "tests/e2e/session.ts 新增三工作区导航辅助函数，旧入口和四页签选择器已从 tests/e2e 清零；刷新场景按方法身份重新打开持久化草稿。",
-        "App 在 analyze 状态始终呈现 StudyContextSwitcher，并以 hasDataset 控制展开形态；TypeScript 严格检查、25 条 Playwright 用例发现和 Web 91 files/325 tests 通过。"
+        "App 在 analyze 状态始终呈现 StudyContextSwitcher，并以 hasDataset 控制展开形态；TypeScript 严格检查、25 条 Playwright 用例发现和 Web 91 files/325 tests 通过。",
+        "hosted run 33867817730 已确认旧首屏/四页签定位器不再是失败原因；剩余 21 条集中于方法确认框默认取消、旧量表按钮文案、非唯一标题和真实 axe 对比度，并已按运行日志逐项修正。"
       ]
     },
     {
@@ -4819,7 +4820,8 @@
       ],
       "closureEvidence": [
         "ci.yml 已将 push.branches 限定为 main，并保留 pull_request、workflow_dispatch 与 schedule。",
-        "test_supply_chain_governance.py 新增触发器回归，锁定 main push 与 pull_request 同时存在。"
+        "test_supply_chain_governance.py 新增触发器回归，锁定 main push 与 pull_request 同时存在。",
+        "提交 c26e7cca224f3c1f0617e5727305982ec0114c19 的 PR 同步只产生 pull_request run 33867817730，未再生成重复 push run；待同一单运行完整成功后关闭。"
       ]
     }
   ]

@@ -36,7 +36,7 @@ async function importAndMeasure(page: Page) {
     for (const name of names.slice(i * 3, i * 3 + 3)) await card.getByRole('checkbox', { name: `${name} ${name}`, exact: true }).check()
   }
   const saved = page.waitForResponse(response => response.request().method() === 'PUT' && /\/measurement$/.test(response.url()))
-  await page.getByRole('button', { name: '保存规则并生成测量版本' }).click()
+  await page.getByRole('button', { name: '保存规则并生成量表版本' }).click()
   const response = await saved
   expect(response.ok(), await response.text()).toBeTruthy()
   await expect(page.getByRole('heading', { name: '分析方法', exact: true })).toBeVisible()

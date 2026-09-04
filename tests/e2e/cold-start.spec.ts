@@ -45,7 +45,7 @@ for (const source of ['demo', 'upload'] as const) {
       }
       await page.getByRole('tab', { name: '分析', exact: true }).click()
       await page.getByRole('button', { name: '配置频数分析', exact: true }).click()
-      await expect(page.getByRole('heading', { name: '频数分析', exact: true })).toBeVisible()
+      await expect(page.locator('.analysis-shell-header h1')).toHaveText('频数分析')
       await page.reload()
       await expect(page.getByText('研究结构已保存', { exact: true })).toBeVisible()
       await expect(page.getByRole('button', { name: '配置频数分析', exact: true })).toBeVisible()

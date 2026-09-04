@@ -156,7 +156,7 @@
 .empirical-results { display: grid; gap: 16px; }
 .empirical-results-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
 .empirical-results-toolbar a { text-decoration: none; }
-.empirical-results-toolbar code { color: #717480; font-size: 10px; }
+.empirical-results-toolbar code { color: var(--text-muted); font-size: 10px; }
 
 .empirical-result-tabs { position: sticky; top: 0; z-index: 12; display: flex; gap: 6px; overflow-x: auto; padding: 8px; background: rgba(250, 250, 252, .96); border: 1px solid #d5d7de; border-radius: 12px; box-shadow: 0 8px 20px rgba(30, 38, 65, .07); scrollbar-width: none; }
 .empirical-result-tabs::-webkit-scrollbar { display: none; }

@@ -80,7 +80,7 @@ test('prepares nested cross-sectional measurement without conflating cluster and
   await page.getByRole('button', { name: '修改研究结构' }).click()
   await page.getByRole('radio', { name: /存在聚类/ }).click()
   await page.getByRole('button', { name: '数据结构', exact: true }).click()
-  await expect(page.getByText('确认当前数据结构所需的 ID、聚类或时间角色后')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '确认观测单位、索引与处理变量', exact: true })).toBeVisible()
   const clusterRole = page.getByRole('combobox', { name: /聚类 \/ Level 2 ID/ })
   await clusterRole.selectOption({ label: 'group (group)' })
   await profileAndSaveCurrentStructure(page)
@@ -140,7 +140,7 @@ test('keeps the panel-specific structure and measurement path independently reac
   await expect(page.getByText(/宽格式面板/)).toBeVisible()
   await page.getByRole('button', { name: '进入纵向面板分析' }).click()
   await configureMethod(page, '传统 CLPM')
-  await expect(page.getByRole('heading', { name: '纵向面板模型' })).toBeVisible()
+  await expect(page.locator('.analysis-shell-header h1')).toHaveText('纵向面板模型')
   await expect(page.getByText(/传统 CLPM 与 RI-CLPM 至少三时点/)).toBeVisible()
   await expectNoSeriousAccessibilityViolations(page)
 
@@ -165,7 +165,7 @@ test('keeps the diary-specific person-time preparation path independently reacha
   await expect(page.getByText(/person × time/)).toBeVisible()
   await page.getByRole('button', { name: '进入日记 / ESM 分析' }).click()
   await configureMethod(page, '日记 / ESM 数据质量')
-  await expect(page.getByRole('heading', { name: '日记 / ESM 模型' })).toBeVisible()
+  await expect(page.locator('.analysis-shell-header h1')).toHaveText('日记 / ESM 模型')
   await expect(page.getByText(/重复日\/时点嵌套于被试/)).toBeVisible()
   await expectNoSeriousAccessibilityViolations(page)
 

@@ -301,7 +301,7 @@ body.dark-theme .role-badge-covariate, [data-theme="dark"] .role-badge-covariate
 /* Visual CI Forest Plot Bar */
 .visual-ci-bar { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; background: #f8f8fa; border: 1px solid #d5d7de; border-radius: 6px; font-family: var(--font-mono); font-size: 11px; }
 .visual-ci-bar.significant { border-color: #869eef; background: #f0f3fd; color: #162865; }
-.visual-ci-bar.crosses-zero { border-color: #cbd5e1; color: #64748b; }
+.visual-ci-bar.crosses-zero { border-color: #cbd5e1; color: var(--text-muted); }
 
 /* Significance star badges (***, **, *) */
 .sig-badge { display: inline-flex; align-items: center; margin-left: 4px; padding: 1px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 10px; font-weight: 700; line-height: 1.2; }
