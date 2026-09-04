@@ -73,14 +73,40 @@ def build_baseline() -> dict[str, Any]:
     }
 
 
+def _diagnostic_summary(diagnostic: dict[str, Any]) -> str:
+    path = diagnostic.get("file", "<unknown>")
+    rule = diagnostic.get("rule", "unclassified")
+    message = str(diagnostic.get("message", "")).replace("\n", " ").strip()
+    start = diagnostic.get("range", {}).get("start", {})
+    line = int(start.get("line", 0)) + 1
+    character = int(start.get("character", 0)) + 1
+    try:
+        path = Path(str(path)).resolve().relative_to(ROOT).as_posix()
+    except (OSError, ValueError):
+        path = str(path)
+    return f"  - {path}:{line}:{character} [{rule}] {message}"
+
+
 def verify(baseline: dict[str, Any]) -> list[str]:
     failures: list[str] = []
-    current_rules, _ = run_pyright()
+    current_rules, report = run_pyright()
     expected_rules = baseline["pyrightErrorMaximumByRule"]
+    failed_rules: set[str] = set()
     for rule, count in current_rules.items():
         maximum = int(expected_rules.get(rule, 0))
         if count > maximum:
+            failed_rules.add(rule)
             failures.append(f"Pyright {rule}: {count} errors exceeds baseline {maximum}")
+
+    if failed_rules:
+        diagnostics = [
+            diagnostic
+            for diagnostic in report.get("generalDiagnostics", [])
+            if diagnostic.get("severity") == "error"
+            and diagnostic.get("rule") in failed_rules
+        ]
+        failures.append("Pyright diagnostics for rules above baseline:")
+        failures.extend(_diagnostic_summary(diagnostic) for diagnostic in diagnostics)
 
     any_total, _ = count_explicit_any_usages()
     any_maximum = int(baseline["explicitAnyUsageMaximum"])
