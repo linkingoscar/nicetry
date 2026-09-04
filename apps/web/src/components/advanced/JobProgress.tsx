@@ -55,22 +55,25 @@ export function JobProgress({ jobId, initialJob, capability, onComplete, onCance
         if (!mounted) return
 
         retryCountRef.current = 0
-        setJob(currentJob)
 
         if (currentJob.status === 'succeeded') {
           try {
             const res = await getAdvancedAnalysisResult(jobId, controller.signal)
             if (!mounted) return
+            setJob(currentJob)
             onComplete(currentJob, res)
           } catch (err: unknown) {
             const e = err as { message?: string }
             setError(`获取结果失败：${e.message || '未知错误'}`)
           }
         } else if (currentJob.status === 'failed') {
+          setJob(currentJob)
           setError(currentJob.error || '分析运行失败')
         } else if (currentJob.status === 'cancelled') {
+          setJob(currentJob)
           onCancel()
         } else {
+          setJob(currentJob)
           // Still running or queued, poll again
           pollingRef.current = window.setTimeout(fetchStatus, 1500)
         }

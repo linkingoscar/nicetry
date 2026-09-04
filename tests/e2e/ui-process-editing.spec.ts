@@ -43,7 +43,7 @@ test('@a11y EFA headers and workbook import remain legible, and clearing unloads
   let dataset = await (await imported).json() as { id: string }
   const sheet = page.getByRole('combobox', { name: /检测到当前工作簿/ })
   await expect(sheet).toBeVisible()
-  await expect(page.locator('.dropzone-text')).toContainText('two-sheets.xlsx')
+  await expect(page.getByText('当前数据 · two-sheets.xlsx', { exact: true })).toBeVisible()
   await sheet.selectOption('sheet2')
   const switched = page.waitForResponse(r => r.request().method() === 'POST' && r.url().includes('/datasets/import') && r.ok())
   await page.getByRole('button', { name: '切换并重新导入', exact: true }).click()
