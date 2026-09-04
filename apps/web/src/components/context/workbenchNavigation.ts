@@ -8,7 +8,8 @@ export interface WorkbenchTarget {
   methodId?: string
   label: string
   procedure?: EmpiricalProcedure
-  processModelNumber?: 1 | 4
+  processModelNumber?: 1 | 4 | 6 | 7 | 14
+  processMediatorCount?: number
 }
 
 export interface MethodRequest {
@@ -18,7 +19,8 @@ export interface MethodRequest {
   contextHash: string
   key: number
   procedure?: EmpiricalProcedure
-  processModelNumber?: 1 | 4
+  processModelNumber?: 1 | 4 | 6 | 7 | 14
+  processMediatorCount?: number
 }
 
 export interface EmpiricalTabRequest {
