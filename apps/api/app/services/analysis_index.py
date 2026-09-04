@@ -49,23 +49,30 @@ def _stable_id(prefix: str, *parts: object) -> str:
     return f"{prefix}_{digest}"
 
 
+def _measurement_id(state: JsonObject) -> str | None:
+    direct = state.get("measurementVersionId")
+    if isinstance(direct, str) and _TOKEN.fullmatch(direct):
+        return direct
+    for key in ("metadata", "contextLineage"):
+        container = state.get(key)
+        if not isinstance(container, dict):
+            continue
+        direct = container.get("measurementVersionId")
+        if isinstance(direct, str) and _TOKEN.fullmatch(direct):
+            return direct
+        measurement = container.get("measurement")
+        nested = measurement.get("id") if isinstance(measurement, dict) else None
+        if isinstance(nested, str) and _TOKEN.fullmatch(nested):
+            return nested
+    return None
+
+
 def _empty(project_id: str) -> JsonObject:
-    return {
-        "schemaVersion": "1.0.0",
-        "projectId": project_id,
-        "documents": [],
-        "runs": [],
-        "rebuiltFromServerJobs": False,
-    }
+    return {"schemaVersion": "1.0.0", "projectId": project_id, "documents": [], "runs": [], "rebuiltFromServerJobs": False}
 
 
 class AnalysisIndexService:
-    """Server-owned metadata index for analysis documents and immutable runs.
-
-    Statistical results remain authoritative in the existing job/result repositories.
-    This service stores only navigation identity and upstream-version metadata, and can
-    rebuild missing run references from validated persisted job state.
-    """
+    """Server-owned navigation metadata; statistical job/result stores remain authoritative."""
 
     def __init__(self, repository: DatasetRepository, settings: Settings) -> None:
         self.repository = repository
@@ -82,22 +89,15 @@ class AnalysisIndexService:
         if not path.exists():
             return _empty(project_id)
         value = _read_json_safe(path)
-        if (
-            value.get("schemaVersion") != "1.0.0"
-            or value.get("projectId") != project_id
-            or not isinstance(value.get("documents"), list)
-            or not isinstance(value.get("runs"), list)
-        ):
+        if value.get("schemaVersion") != "1.0.0" or value.get("projectId") != project_id or not isinstance(value.get("documents"), list) or not isinstance(value.get("runs"), list):
             raise LookupError("AnalysisIndex 文件损坏或身份不匹配")
         return value
 
     def _write(self, project_id: str, index: JsonObject) -> None:
-        documents = index.get("documents")
-        runs = index.get("runs")
+        documents, runs = index.get("documents"), index.get("runs")
         if not isinstance(documents, list) or not isinstance(runs, list):
             raise ValueError("AnalysisIndex 结构无效")
-        index["documents"] = documents[:_MAX_DOCUMENTS]
-        index["runs"] = runs[:_MAX_RUNS]
+        index["documents"], index["runs"] = documents[:_MAX_DOCUMENTS], runs[:_MAX_RUNS]
         _write_json_atomic(self._path(project_id), index)
 
     @staticmethod
@@ -105,30 +105,20 @@ class AnalysisIndexService:
         documents = index.get("documents")
         if not isinstance(documents, list):
             return {}
-        return {
-            str(item["id"]): item
-            for item in documents
-            if isinstance(item, dict) and isinstance(item.get("id"), str)
-        }
+        return {str(item["id"]): item for item in documents if isinstance(item, dict) and isinstance(item.get("id"), str)}
 
     @staticmethod
     def _run_map(index: JsonObject) -> dict[str, JsonObject]:
         runs = index.get("runs")
         if not isinstance(runs, list):
             return {}
-        return {
-            str(item["id"]): item
-            for item in runs
-            if isinstance(item, dict) and isinstance(item.get("id"), str)
-        }
+        return {str(item["id"]): item for item in runs if isinstance(item, dict) and isinstance(item.get("id"), str)}
 
     def _normalize_document(self, project_id: str, payload: JsonObject) -> JsonObject:
         source = _source(payload.get("source"))
         analysis_id = _token(payload.get("id"), "analysis id")
         dataset_id = _token(payload.get("datasetVersionId"), "dataset version id")
-        measurement_id = _token(
-            payload.get("measurementVersionId"), "measurement version id", required=False
-        )
+        measurement_id = _token(payload.get("measurementVersionId"), "measurement version id", required=False)
         method_id = _token(payload.get("methodId"), "method id")
         category_id = _token(payload.get("categoryId") or source, "category id")
         procedure = payload.get("procedure")
@@ -137,18 +127,10 @@ class AnalysisIndexService:
         created_at = payload.get("createdAt") if isinstance(payload.get("createdAt"), str) else _now()
         updated_at = payload.get("updatedAt") if isinstance(payload.get("updatedAt"), str) else created_at
         document: JsonObject = {
-            "id": analysis_id,
-            "projectId": project_id,
-            "title": _text(payload.get("title") or method_id, "analysis title"),
-            "methodId": method_id,
-            "categoryId": category_id,
-            "source": source,
-            "datasetVersionId": dataset_id,
-            "measurementVersionId": measurement_id,
-            "createdAt": created_at,
-            "updatedAt": updated_at,
-            "pinned": bool(payload.get("pinned", False)),
-            "archived": bool(payload.get("archived", False)),
+            "id": analysis_id, "projectId": project_id, "title": _text(payload.get("title") or method_id, "analysis title"),
+            "methodId": method_id, "categoryId": category_id, "source": source, "datasetVersionId": dataset_id,
+            "measurementVersionId": measurement_id, "createdAt": created_at, "updatedAt": updated_at,
+            "pinned": bool(payload.get("pinned", False)), "archived": bool(payload.get("archived", False)),
         }
         if procedure is not None:
             document["procedure"] = procedure
@@ -163,22 +145,13 @@ class AnalysisIndexService:
         run_id = _token(payload.get("id") or payload.get("runId"), "run id")
         analysis_id = _token(payload.get("analysisId"), "analysis id")
         dataset_id = _token(payload.get("datasetVersionId"), "dataset version id")
-        measurement_id = _token(
-            payload.get("measurementVersionId"), "measurement version id", required=False
-        )
+        measurement_id = _token(payload.get("measurementVersionId"), "measurement version id", required=False)
         method_id = _token(payload.get("methodId"), "method id")
         created_at = payload.get("createdAt") if isinstance(payload.get("createdAt"), str) else _now()
         run: JsonObject = {
-            "id": run_id,
-            "analysisId": analysis_id,
-            "projectId": project_id,
-            "source": source,
-            "methodId": method_id,
-            "label": _text(payload.get("label") or method_id, "run label"),
-            "datasetVersionId": dataset_id,
-            "measurementVersionId": measurement_id,
-            "createdAt": created_at,
-            "status": str(payload.get("status") or "indexed"),
+            "id": run_id, "analysisId": analysis_id, "projectId": project_id, "source": source, "methodId": method_id,
+            "label": _text(payload.get("label") or method_id, "run label"), "datasetVersionId": dataset_id,
+            "measurementVersionId": measurement_id, "createdAt": created_at, "status": str(payload.get("status") or "indexed"),
         }
         for key in ("family", "modelId", "resultId", "reportId"):
             value = payload.get(key)
@@ -198,9 +171,7 @@ class AnalysisIndexService:
                     if key not in normalized and existing.get(key) is not None:
                         normalized[key] = existing[key]
             documents[str(normalized["id"])] = normalized
-            index["documents"] = sorted(
-                documents.values(), key=lambda item: str(item.get("updatedAt", "")), reverse=True
-            )
+            index["documents"] = sorted(documents.values(), key=lambda item: str(item.get("updatedAt", "")), reverse=True)
             self._write(project_id, index)
             return normalized
 
@@ -223,8 +194,7 @@ class AnalysisIndexService:
                     document.pop("primaryRunId", None)
                 else:
                     run_id = _token(run_id, "primary run id")
-                    runs = self._run_map(index)
-                    run = runs.get(str(run_id))
+                    run = self._run_map(index).get(str(run_id))
                     if run is None or run.get("analysisId") != analysis_id:
                         raise ValueError("主要结果必须属于当前 AnalysisDocument")
                     document["primaryRunId"] = run_id
@@ -244,63 +214,30 @@ class AnalysisIndexService:
                 if isinstance(existing_analysis_id, str) and _TOKEN.fullmatch(existing_analysis_id):
                     run["analysisId"] = existing_analysis_id
                 run = {**existing, **run, "createdAt": existing.get("createdAt", run["createdAt"])}
-
             documents = self._document_map(index)
             analysis_id = str(run["analysisId"])
             if analysis_id not in documents:
-                document_payload: JsonObject = {
-                    "id": analysis_id,
-                    "projectId": project_id,
-                    "title": run["label"],
-                    "methodId": run["methodId"],
-                    "categoryId": payload.get("categoryId") or run["source"],
-                    "source": run["source"],
-                    "datasetVersionId": run["datasetVersionId"],
-                    "measurementVersionId": run.get("measurementVersionId"),
-                    "procedure": payload.get("procedure"),
-                    "createdAt": run["createdAt"],
-                    "updatedAt": run["createdAt"],
-                    "pinned": False,
-                }
-                documents[analysis_id] = self._normalize_document(project_id, document_payload)
+                documents[analysis_id] = self._normalize_document(project_id, {
+                    "id": analysis_id, "projectId": project_id, "title": run["label"], "methodId": run["methodId"],
+                    "categoryId": payload.get("categoryId") or run["source"], "source": run["source"],
+                    "datasetVersionId": run["datasetVersionId"], "measurementVersionId": run.get("measurementVersionId"),
+                    "procedure": payload.get("procedure"), "createdAt": run["createdAt"], "updatedAt": run["createdAt"], "pinned": False,
+                })
             runs[str(run["id"])] = run
             document = documents[analysis_id]
             document["latestRunId"] = run["id"]
             if str(run["createdAt"]) > str(document.get("updatedAt", "")):
                 document["updatedAt"] = run["createdAt"]
             index["documents"] = list(documents.values())
-            index["runs"] = sorted(
-                runs.values(), key=lambda item: str(item.get("createdAt", "")), reverse=True
-            )
+            index["runs"] = sorted(runs.values(), key=lambda item: str(item.get("createdAt", "")), reverse=True)
             self._write(project_id, index)
             return run
 
-    def _recovery_document(
-        self,
-        *,
-        project_id: str,
-        analysis_id: str,
-        title: str,
-        method_id: str,
-        category_id: str,
-        source: str,
-        dataset_id: str,
-        measurement_id: str | None,
-        created_at: str,
-        procedure: str | None = None,
-    ) -> JsonObject:
+    def _recovery_document(self, project_id: str, analysis_id: str, title: str, method_id: str, category_id: str, source: str, dataset_id: str, measurement_id: str | None, created_at: str, procedure: str | None = None) -> JsonObject:
         payload: JsonObject = {
-            "id": analysis_id,
-            "projectId": project_id,
-            "title": title,
-            "methodId": method_id,
-            "categoryId": category_id,
-            "source": source,
-            "datasetVersionId": dataset_id,
-            "measurementVersionId": measurement_id,
-            "createdAt": created_at,
-            "updatedAt": created_at,
-            "pinned": False,
+            "id": analysis_id, "projectId": project_id, "title": title, "methodId": method_id, "categoryId": category_id,
+            "source": source, "datasetVersionId": dataset_id, "measurementVersionId": measurement_id,
+            "createdAt": created_at, "updatedAt": created_at, "pinned": False,
         }
         if procedure:
             payload["procedure"] = procedure
@@ -310,55 +247,33 @@ class AnalysisIndexService:
     def _existing_analysis_id(runs: dict[str, JsonObject], run_id: str) -> str | None:
         run = runs.get(run_id)
         analysis_id = run.get("analysisId") if run else None
-        if isinstance(analysis_id, str) and _TOKEN.fullmatch(analysis_id):
-            return analysis_id
-        return None
+        return analysis_id if isinstance(analysis_id, str) and _TOKEN.fullmatch(analysis_id) else None
 
     def _merge_reconstructed_jobs(self, project_id: str, index: JsonObject) -> bool:
-        documents = self._document_map(index)
-        runs = self._run_map(index)
-        changed = False
-
+        documents, runs, changed = self._document_map(index), self._run_map(index), False
         for state in self.repository.list_analysis_jobs_for_index():
-            run_id = str(state.get("id", ""))
-            if not _TOKEN.fullmatch(run_id):
+            run_id, dataset_id = str(state.get("id", "")), str(state.get("datasetId", ""))
+            if not _TOKEN.fullmatch(run_id) or not _TOKEN.fullmatch(dataset_id):
                 continue
             source = "empirical" if state.get("jobKind") == "empirical" else "model"
-            dataset_id = str(state.get("datasetId", ""))
-            if not _TOKEN.fullmatch(dataset_id):
-                continue
-            created_at = str(state.get("createdAt") or _now())
-            measurement_id = state.get("measurementVersionId")
-            measurement_id = str(measurement_id) if isinstance(measurement_id, str) else None
+            created_at, measurement_id = str(state.get("createdAt") or _now()), _measurement_id(state)
             options = state.get("options") if isinstance(state.get("options"), dict) else {}
             procedure = str(options.get("procedure")) if options.get("procedure") else None
             existing_run = runs.get(run_id)
-            method_id = (
-                str(existing_run.get("methodId"))
-                if existing_run and isinstance(existing_run.get("methodId"), str)
-                else str(options.get("methodId")) if options.get("methodId") else (
-                    f"empirical.{procedure}" if source == "empirical" and procedure else "model.process"
-                )
-            )
+            method_id = str(existing_run.get("methodId")) if existing_run and isinstance(existing_run.get("methodId"), str) else str(options.get("methodId")) if options.get("methodId") else f"empirical.{procedure}" if source == "empirical" and procedure else "model.process"
             if not _TOKEN.fullmatch(method_id):
                 method_id = "model.process" if source == "model" else "empirical.unknown"
             explicit_analysis_id = options.get("analysisId") if source == "empirical" else None
             analysis_id = self._existing_analysis_id(runs, run_id)
             if analysis_id is None and isinstance(explicit_analysis_id, str) and _TOKEN.fullmatch(explicit_analysis_id):
                 analysis_id = explicit_analysis_id
-            elif analysis_id is None and source == "model":
-                analysis_id = _stable_id("analysis_model", state.get("modelId"), dataset_id)
             elif analysis_id is None:
-                analysis_id = _stable_id(
-                    "analysis_empirical", dataset_id, measurement_id, procedure, method_id
-                )
+                analysis_id = _stable_id("analysis_model", state.get("modelId"), dataset_id) if source == "model" else _stable_id("analysis_empirical", dataset_id, measurement_id, procedure, method_id)
             if analysis_id not in documents:
                 title = procedure or ("模型分析" if source == "model" else "历史实证分析")
                 if source == "model":
                     try:
-                        frozen = self.repository.get_model_version(
-                            str(state.get("modelId")), int(state.get("modelVersion", 0))
-                        )
+                        frozen = self.repository.get_model_version(str(state.get("modelId")), int(state.get("modelVersion", 0)))
                         spec = frozen.get("modelSpec") if isinstance(frozen, dict) else None
                         if isinstance(spec, dict):
                             title = str(spec.get("name") or title)
@@ -367,30 +282,12 @@ class AnalysisIndexService:
                                 method_id = "model.sem"
                     except (LookupError, ValueError, TypeError):
                         pass
-                documents[analysis_id] = self._recovery_document(
-                    project_id=project_id,
-                    analysis_id=analysis_id,
-                    title=title,
-                    method_id=method_id,
-                    category_id=source,
-                    source=source,
-                    dataset_id=dataset_id,
-                    measurement_id=measurement_id,
-                    created_at=created_at,
-                    procedure=procedure,
-                )
+                documents[analysis_id] = self._recovery_document(project_id, analysis_id, title, method_id, source, source, dataset_id, measurement_id, created_at, procedure)
                 changed = True
             recovered: JsonObject = {
-                "id": run_id,
-                "analysisId": analysis_id,
-                "projectId": project_id,
-                "source": source,
-                "methodId": method_id,
-                "label": existing_run.get("label") if existing_run else documents[analysis_id]["title"],
-                "datasetVersionId": dataset_id,
-                "measurementVersionId": measurement_id,
-                "createdAt": created_at,
-                "status": str(state.get("status") or "indexed"),
+                "id": run_id, "analysisId": analysis_id, "projectId": project_id, "source": source, "methodId": method_id,
+                "label": existing_run.get("label") if existing_run else documents[analysis_id]["title"], "datasetVersionId": dataset_id,
+                "measurementVersionId": measurement_id, "createdAt": created_at, "status": str(state.get("status") or "indexed"),
             }
             if state.get("modelId"):
                 recovered["modelId"] = str(state["modelId"])
@@ -398,93 +295,53 @@ class AnalysisIndexService:
                 recovered["reportId"] = str(state["reportId"])
             merged = {**runs.get(run_id, {}), **recovered}
             if runs.get(run_id) != merged:
-                runs[run_id] = merged
-                changed = True
+                runs[run_id], changed = merged, True
 
         for state in self.repository.list_advanced_jobs_for_index():
-            run_id = str(state.get("id", ""))
-            dataset_id = str(state.get("datasetVersionId") or "")
+            run_id, dataset_id = str(state.get("id", "")), str(state.get("datasetVersionId") or "")
             if not _TOKEN.fullmatch(run_id) or not _TOKEN.fullmatch(dataset_id):
                 continue
-            family = str(state.get("family") or "advanced")
-            existing_run = runs.get(run_id)
-            method_id = (
-                str(existing_run.get("methodId"))
-                if existing_run and isinstance(existing_run.get("methodId"), str)
-                else family
-            )
+            family, existing_run = str(state.get("family") or "advanced"), runs.get(run_id)
+            method_id = str(existing_run.get("methodId")) if existing_run and isinstance(existing_run.get("methodId"), str) else family
             if not _TOKEN.fullmatch(method_id):
                 method_id = family if _TOKEN.fullmatch(family) else "advanced"
-            raw_analysis_id = state.get("analysisId")
-            analysis_id = self._existing_analysis_id(runs, run_id)
+            raw_analysis_id, analysis_id = state.get("analysisId"), self._existing_analysis_id(runs, run_id)
             if analysis_id is None:
-                analysis_id = (
-                    str(raw_analysis_id)
-                    if isinstance(raw_analysis_id, str) and _TOKEN.fullmatch(raw_analysis_id)
-                    else _stable_id("analysis_advanced", family, dataset_id, run_id)
-                )
-            measurement_id = (
-                existing_run.get("measurementVersionId") if existing_run else None
-            )
-            measurement_id = str(measurement_id) if isinstance(measurement_id, str) else None
+                analysis_id = str(raw_analysis_id) if isinstance(raw_analysis_id, str) and _TOKEN.fullmatch(raw_analysis_id) else _stable_id("analysis_advanced", family, dataset_id, run_id)
+            existing_measurement = existing_run.get("measurementVersionId") if existing_run else None
+            measurement_id = str(existing_measurement) if isinstance(existing_measurement, str) else _measurement_id(state)
             created_at = str(state.get("createdAt") or _now())
             if analysis_id not in documents:
-                documents[analysis_id] = self._recovery_document(
-                    project_id=project_id,
-                    analysis_id=analysis_id,
-                    title=str(existing_run.get("label")) if existing_run else family.replace("_", " "),
-                    method_id=method_id,
-                    category_id=family if _TOKEN.fullmatch(family) else "advanced",
-                    source="advanced",
-                    dataset_id=dataset_id,
-                    measurement_id=measurement_id,
-                    created_at=created_at,
-                )
+                title = str(existing_run.get("label")) if existing_run else family.replace("_", " ")
+                documents[analysis_id] = self._recovery_document(project_id, analysis_id, title, method_id, family if _TOKEN.fullmatch(family) else "advanced", "advanced", dataset_id, measurement_id, created_at)
                 changed = True
-            recovered: JsonObject = {
-                "id": run_id,
-                "analysisId": analysis_id,
-                "projectId": project_id,
-                "source": "advanced",
-                "methodId": method_id,
+            recovered = {
+                "id": run_id, "analysisId": analysis_id, "projectId": project_id, "source": "advanced", "methodId": method_id,
                 "label": existing_run.get("label") if existing_run else documents[analysis_id]["title"],
                 "family": existing_run.get("family") if existing_run and existing_run.get("family") else family,
-                "datasetVersionId": dataset_id,
-                "measurementVersionId": measurement_id,
-                "createdAt": created_at,
+                "datasetVersionId": dataset_id, "measurementVersionId": measurement_id, "createdAt": created_at,
                 "status": str(state.get("status") or "indexed"),
             }
             merged = {**runs.get(run_id, {}), **recovered}
             if runs.get(run_id) != merged:
-                runs[run_id] = merged
-                changed = True
+                runs[run_id], changed = merged, True
 
-        referenced_analysis_ids = {
-            str(run.get("analysisId")) for run in runs.values() if isinstance(run.get("analysisId"), str)
-        }
+        referenced = {str(run.get("analysisId")) for run in runs.values() if isinstance(run.get("analysisId"), str)}
         for analysis_id, document in list(documents.items()):
-            if document.get("source") in {"model", "advanced"} and analysis_id not in referenced_analysis_ids:
+            if document.get("source") in {"model", "advanced"} and analysis_id not in referenced:
                 del documents[analysis_id]
                 changed = True
-
         for document in documents.values():
-            document_runs = [run for run in runs.values() if run.get("analysisId") == document.get("id")]
-            document_runs.sort(key=lambda item: str(item.get("createdAt", "")), reverse=True)
+            document_runs = sorted((run for run in runs.values() if run.get("analysisId") == document.get("id")), key=lambda item: str(item.get("createdAt", "")), reverse=True)
             latest = document_runs[0] if document_runs else None
             if latest and document.get("latestRunId") != latest.get("id"):
-                document["latestRunId"] = latest["id"]
-                changed = True
+                document["latestRunId"], changed = latest["id"], True
             primary = document.get("primaryRunId")
             if primary and not any(run.get("id") == primary for run in document_runs):
                 document.pop("primaryRunId", None)
                 changed = True
-
-        index["documents"] = sorted(
-            documents.values(), key=lambda item: str(item.get("updatedAt", "")), reverse=True
-        )
-        index["runs"] = sorted(
-            runs.values(), key=lambda item: str(item.get("createdAt", "")), reverse=True
-        )
+        index["documents"] = sorted(documents.values(), key=lambda item: str(item.get("updatedAt", "")), reverse=True)
+        index["runs"] = sorted(runs.values(), key=lambda item: str(item.get("createdAt", "")), reverse=True)
         index["rebuiltFromServerJobs"] = True
         return changed
 
