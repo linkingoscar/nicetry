@@ -6,7 +6,7 @@
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。当前提交是修复首轮 release-validation 静态门禁问题后的第二个最终 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
+Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。当前提交是两轮 hosted release-validation 之后的第三个最终 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
 
 唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
 
@@ -77,9 +77,20 @@ ICC/rwg、两层 Gaussian LMM、实验、解析功效等高频方法使用 commo
 - `python-quality`：新增 AnalysisIndex 代码使 `reportOptionalMemberAccess` 从冻结最大值 1 增至 6，并使显式 `Any` 用量从 206 增至 210；
 - `web-and-contracts`：Biome 报出 2 个冗余 Hook dependency 和 4 个测试中的 forbidden non-null assertion。
 
-这些问题已在后续 `[skip ci]` 修复提交中处理：API route 返回类型改为 `JsonObject`，recovery 逻辑使用明确非空对象窄化并拆分到独立 service，Web Hook dependency 与测试断言按现有 lint 规则修正。**没有修改 Pyright baseline、Biome 规则、统计 contract 或数值基线来让门禁变绿。**
+后续 `[skip ci]` 修复将 API route 返回类型改为 `JsonObject`，recovery 逻辑使用明确非空对象窄化并拆分到独立 service，Web Hook dependency 与测试断言按现有 lint 规则修正。**没有修改 Pyright baseline、Biome 规则、统计 contract 或数值基线来让门禁变绿。**
 
-### 9.2 当前最终候选
+### 9.2 第二轮 release-validation
+
+第二轮完整 hosted quality gate 已实际执行并进一步收敛失败面：
+
+- `web-and-contracts` 已通过：Biome、PROCESS 55 browser preset parity 和 generated contracts 均成功；
+- R lock、R numeric baseline 与 R statistical test lane 继续通过；
+- 架构、changelog governance、source-line ceiling 和 inline-style budget 均通过；
+- 唯一失败任务为 `python-quality`：`reportOptionalMemberAccess` 5（baseline 1），`reportOptionalSubscript` 2（baseline 1）。显式 `Any` 已恢复到冻结上限内。
+
+第三候选继续在代码侧消除 Optional 类型不确定性：必填 AnalysisIndex token 使用 `Literal` overload 证明返回值必为 `str`，不再把必填身份扩散成 `str | None`。同时 `check-python-types.py` 在规则超基线时会输出对应 Pyright 文件/行号诊断，以便任何剩余失败可以直接修复；其阈值和通过/失败判定未改变。
+
+### 9.3 当前最终候选
 
 - Full / hosted quality gate：**由当前非 `[skip ci]` 收口提交重新触发；结果以 PR #3 当前 head 的实际 GitHub Actions 检查为准。**
 - 自动化 PRD workbench E2E：**纳入上述最终质量门禁；不得在运行完成前预写通过。**
