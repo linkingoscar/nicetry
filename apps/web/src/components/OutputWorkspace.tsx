@@ -78,10 +78,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     setSelectedRegisteredRunId(null)
   }, [dataset, measurement])
 
-  const runDetails = useMemo(
-    () => readAnalysisRunDetails(dataset.projectId),
-    [dataset.projectId, index],
-  )
+  const runDetails = readAnalysisRunDetails(dataset.projectId)
   const detailsByRun = useMemo(
     () => new Map(runDetails.map((detail) => [detail.runId, detail])),
     [runDetails],
