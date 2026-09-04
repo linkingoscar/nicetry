@@ -92,7 +92,7 @@ export function internalWorkbenchTarget(
   const definition = definitionOverride ?? methodForCapability(capability.sliceId)
   if (!definition || definition.adapter === 'advanced-wizard') return null
 
-  const method: Pick<WorkbenchTarget, 'sliceId' | 'methodId' | 'label' | 'procedure' | 'processModelNumber'> = {
+  const method: Pick<WorkbenchTarget, 'sliceId' | 'methodId' | 'label' | 'procedure' | 'processModelNumber' | 'processMediatorCount'> = {
     sliceId: capability.sliceId,
     methodId: isMethodLibraryDefinition(definition) ? definition.libraryId : definition.id,
     label: definition.label,
@@ -100,6 +100,7 @@ export function internalWorkbenchTarget(
   if (isMethodLibraryDefinition(definition)) {
     if (definition.procedure) method.procedure = definition.procedure
     if (definition.processModelNumber) method.processModelNumber = definition.processModelNumber
+    if (definition.processMediatorCount) method.processMediatorCount = definition.processMediatorCount
   }
   method.procedure ??= defaultProcedureForAdapter(definition.adapter)
 
