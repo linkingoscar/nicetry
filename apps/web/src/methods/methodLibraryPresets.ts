@@ -5,7 +5,8 @@ import { methodDefinitions, type MethodDefinition, type MethodVisibilityTier } f
 export interface MethodLibraryDefinition extends MethodDefinition {
   libraryId: string
   procedure?: EmpiricalProcedure
-  processModelNumber?: 1 | 4
+  processModelNumber?: 1 | 4 | 6 | 7 | 14
+  processMediatorCount?: number
 }
 
 interface ProcedurePreset {
@@ -23,7 +24,8 @@ interface ModelPreset {
   aliases: string[]
   description: string
   keywords: string[]
-  processModelNumber?: 1 | 4
+  processModelNumber?: 1 | 4 | 6 | 7 | 14
+  processMediatorCount?: number
   advanced?: boolean
   visibilityTier?: MethodVisibilityTier
 }
@@ -197,6 +199,29 @@ const MODEL_PRESETS: Record<string, ModelPreset[]> = {
       description: '用 X、M、Y 表单配置简单中介模型，再进入现有模型草稿复核与运行。',
       keywords: ['中介', 'Model 4', 'bootstrap', '间接效应'],
       processModelNumber: 4,
+      processMediatorCount: 1,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'parallel-mediation',
+      label: '并行中介（PROCESS Model 4）',
+      aliases: ['parallel mediation', 'multiple mediation', '并行多重中介'],
+      description: '用 X、M1、M2、Y 表单配置两个并行中介；继续使用现有 PROCESS Model 4 多中介规格和运行链路。',
+      keywords: ['并行中介', '多重中介', 'Model 4', 'bootstrap'],
+      processModelNumber: 4,
+      processMediatorCount: 2,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'serial-mediation',
+      label: '链式中介（PROCESS Model 6）',
+      aliases: ['serial mediation', 'Model 6', '链式中介', 'serial multiple mediation'],
+      description: '用 X、M1、M2、Y 表单配置两步链式中介，再进入现有 Model 6 草稿校验与运行。',
+      keywords: ['链式中介', 'Model 6', 'M1', 'M2', 'bootstrap'],
+      processModelNumber: 6,
+      processMediatorCount: 2,
       advanced: false,
       visibilityTier: 'common',
     },
@@ -207,6 +232,28 @@ const MODEL_PRESETS: Record<string, ModelPreset[]> = {
       description: '用 X、W、Y 表单配置简单调节模型，并可显式设置中心化和 bootstrap。',
       keywords: ['调节', 'Model 1', '交互项', '中心化'],
       processModelNumber: 1,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'first-stage-moderated-mediation',
+      label: '第一阶段调节中介（PROCESS Model 7）',
+      aliases: ['first stage moderated mediation', 'Model 7', '第一阶段调节中介'],
+      description: '用 X、M、W、Y 表单配置 W 调节 X→M 路径的常见调节中介模型。',
+      keywords: ['调节中介', 'Model 7', '第一阶段', 'conditional indirect effect'],
+      processModelNumber: 7,
+      processMediatorCount: 1,
+      advanced: false,
+      visibilityTier: 'common',
+    },
+    {
+      id: 'second-stage-moderated-mediation',
+      label: '第二阶段调节中介（PROCESS Model 14）',
+      aliases: ['second stage moderated mediation', 'Model 14', '第二阶段调节中介'],
+      description: '用 X、M、W、Y 表单配置 W 调节 M→Y 路径的常见调节中介模型。',
+      keywords: ['调节中介', 'Model 14', '第二阶段', 'conditional indirect effect'],
+      processModelNumber: 14,
+      processMediatorCount: 1,
       advanced: false,
       visibilityTier: 'common',
     },
@@ -252,6 +299,7 @@ export function expandMethodForLibrary(method: MethodDefinition): MethodLibraryD
       description: preset.description,
       keywords: [...new Set([...method.keywords, ...preset.keywords])],
       processModelNumber: preset.processModelNumber,
+      processMediatorCount: preset.processMediatorCount,
       advanced: preset.advanced ?? method.advanced,
       visibilityTier: preset.visibilityTier ?? method.visibilityTier,
     }))
