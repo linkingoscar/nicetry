@@ -25,7 +25,7 @@ const dataset = {
 
 function renderOutput() {
   return render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={vi.fn()} />
     </QueryClientProvider>,
   )
