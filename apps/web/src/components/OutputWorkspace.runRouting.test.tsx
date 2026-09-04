@@ -47,7 +47,7 @@ const legacyKey = 'researchpath.empirical.runs.v1:dataset_demo:null'
 
 function renderOutput(onOpenProcedure: ReturnType<typeof vi.fn>) {
   return render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <OutputWorkspace dataset={dataset} measurement={null} onOpenProcedure={onOpenProcedure} />
     </QueryClientProvider>,
   )
