@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { ModelSpec, ModelVariable } from '../../types'
 import {
   PROCESS_QUICK_KIND_LABELS,
+  processQuickCenteringRoles,
   processQuickUsesModerator,
   type ProcessQuickKind,
   type ProcessQuickSetup,
@@ -70,6 +71,8 @@ export function ProcessQuickSetupForm({
   const kind = initialKind
   const requiredMediatorCount = mediatorCount(kind)
   const usesModerator = processQuickUsesModerator(kind)
+  const centeringRoles = processQuickCenteringRoles(kind)
+  const centeringLabel = centeringRoles.includes('m') ? '对 M 与 W 做均值中心化' : '对 X 与 W 做均值中心化'
   const [xVariableId, setXVariableId] = useState(() => currentVariable(model, 'x'))
   const [yVariableId, setYVariableId] = useState(() => currentVariable(model, 'y'))
   const [mediatorVariableId, setMediatorVariableId] = useState(() => currentMediator(model, 0))
@@ -165,7 +168,7 @@ export function ProcessQuickSetupForm({
               checked={meanCenterPredictors}
               onChange={(event) => setMeanCenterPredictors(event.target.checked)}
             />
-            对 X 与 W 做均值中心化
+            {centeringLabel}
           </label>
         ) : null}
       </fieldset>
