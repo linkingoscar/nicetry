@@ -14,6 +14,9 @@ const apiPort = environmentPort('RESEARCHPATH_E2E_API_PORT', 19_999)
 const webPort = environmentPort('RESEARCHPATH_E2E_WEB_PORT', 15_173)
 const apiOrigin = `http://127.0.0.1:${apiPort}`
 const webOrigin = `http://127.0.0.1:${webPort}`
+const pythonExecutable = process.platform === 'win32'
+  ? '..\\..\\.venv\\Scripts\\python.exe'
+  : '../../.venv/bin/python'
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -38,7 +41,7 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: `..\\..\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port ${apiPort}`,
+      command: `${pythonExecutable} -m uvicorn app.main:app --host 127.0.0.1 --port ${apiPort}`,
       cwd: './apps/api',
       url: `${apiOrigin}/api/v1/health`,
       env: { RESEARCHPATH_BOOTSTRAP_TOKEN: bootstrapToken },
@@ -53,7 +56,7 @@ export default defineConfig({
       timeout: 60_000,
     },
     {
-      command: `..\\..\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port ${environmentPort('RESEARCHPATH_E2E_PREVIEW_API_PORT', 19_998)}`,
+      command: `${pythonExecutable} -m uvicorn app.main:app --host 127.0.0.1 --port ${environmentPort('RESEARCHPATH_E2E_PREVIEW_API_PORT', 19_998)}`,
       cwd: './apps/api',
       url: `${previewOrigin()}/api/v1/health`,
       env: {

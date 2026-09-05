@@ -32,7 +32,7 @@ export function MeasurementWorkspace({
   const [formError, setFormError] = useState<string | null>(null)
   const candidates = useMemo(
     () => variables.filter((variable) =>
-      ['likert', 'ordinal', 'continuous'].includes(variable.confirmedType ?? ''),
+      ['likert', 'ordinal', 'continuous'].includes(variable.confirmedType ?? variable.inferredType),
     ),
     [variables],
   )
@@ -88,7 +88,7 @@ export function MeasurementWorkspace({
     <section className="measurement-workspace" aria-labelledby="measurement-heading">
       <div className="section-heading dictionary-heading-row">
         <div>
-          <p className="eyebrow">测量定义</p>
+          <p className="eyebrow">量表</p>
           <h2 id="measurement-heading">构念与量表</h2>
           <p className="muted">分组题项、确认理论量尺、设置反向题和有效题项规则。保存后生成新的派生数据版本。</p>
         </div>
@@ -124,7 +124,7 @@ export function MeasurementWorkspace({
       </div>
 
       {candidates.length < 2 ? (
-        <p className="method-warning">至少将两个数值变量确认为 Likert、有序或连续类型，才能建立构念。</p>
+        <p className="method-warning">至少需要两个可用的 Likert、有序或连续变量，才能建立构念；无需先确认所有无关变量。</p>
       ) : null}
 
       <div className="construct-list">
@@ -240,7 +240,7 @@ export function MeasurementWorkspace({
         disabled={measurementMutation.isPending || candidates.length < 2}
         onClick={handleSave}
       >
-        {measurementMutation.isPending ? '正在计分和测量检查…' : '保存规则并生成测量版本'}
+        {measurementMutation.isPending ? '正在计分和测量检查…' : '保存规则并生成量表版本'}
       </button>
 
       {measurement ? <MeasurementWorkspaceResults measurement={measurement} /> : null}

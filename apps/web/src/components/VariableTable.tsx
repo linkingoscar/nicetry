@@ -40,15 +40,20 @@ export function VariableTable({ variables, isSaving, onSave }: VariableTableProp
     )
   }
 
+  const inferredCount = variables.filter(variable => !variable.confirmedType).length
+
   return (
     <section className="dictionary-section" aria-labelledby="dictionary-heading">
       <div className="section-heading dictionary-heading-row">
         <div>
-          <p className="eyebrow">数据字典</p>
-          <h2 id="dictionary-heading">确认变量类型</h2>
+          <p className="eyebrow">变量视图</p>
+          <h2 id="dictionary-heading">变量类型与识别</h2>
+          <p className="muted">
+            自动识别的变量可直接用于兼容分析；只有当前方法遇到类型歧义时才需要人工确认。当前有 {inferredCount} 个变量尚未人工确认。
+          </p>
         </div>
         <button className="secondary-button" type="button" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? '正在保存…' : '确认全部变量'}
+          {isSaving ? '正在保存…' : '保存变量类型'}
         </button>
       </div>
 
@@ -59,7 +64,7 @@ export function VariableTable({ variables, isSaving, onSave }: VariableTableProp
               <th scope="col">变量</th>
               <th scope="col">数据概况</th>
               <th scope="col">系统建议</th>
-              <th scope="col">最终类型</th>
+              <th scope="col">有效类型</th>
               <th scope="col">状态</th>
             </tr>
           </thead>
@@ -87,7 +92,7 @@ export function VariableTable({ variables, isSaving, onSave }: VariableTableProp
                 </td>
                 <td>
                   <label className="sr-only" htmlFor={`type-${variable.id}`}>
-                    {variable.label}的最终类型
+                    {variable.label}的有效类型
                   </label>
                   <select
                     id={`type-${variable.id}`}
@@ -106,7 +111,7 @@ export function VariableTable({ variables, isSaving, onSave }: VariableTableProp
                 </td>
                 <td>
                   <span className={`dictionary-status ${variable.confirmedType ? 'is-confirmed' : ''}`}>
-                    {variable.confirmedType ? '已确认' : '待确认'}
+                    {variable.confirmedType ? '已人工确认' : '自动识别可用'}
                   </span>
                 </td>
               </tr>

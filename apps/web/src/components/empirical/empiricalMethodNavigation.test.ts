@@ -44,4 +44,29 @@ describe('catalog method selection', () => {
     expect(configForMethod(base, 'empirical.diary.power').diaryMultilevel?.powerAnalysis).not.toBeNull()
     expect(base.diaryMultilevel).toBeNull()
   })
+
+  it('opens traditional CLPM with the capability-catalog three-wave minimum', () => {
+    const next = configForMethod(config(), 'empirical.panel.clpm', null)
+    expect(next.longitudinalPanel?.modelType).toBe('clpm')
+    expect(next.longitudinalPanel?.waves).toHaveLength(3)
+  })
+
+  it('opens RI-CLPM with a three-wave starting point', () => {
+    const next = configForMethod(config(), 'empirical.panel.ri_clpm', null)
+    expect(next.longitudinalPanel?.modelType).toBe('ri_clpm')
+    expect(next.longitudinalPanel?.waves).toHaveLength(3)
+  })
+
+  it('opens LCM-SR with its five-wave minimum', () => {
+    const next = configForMethod(config(), 'empirical.panel.lcm_sr', null)
+    expect(next.longitudinalPanel?.modelType).toBe('lcm_sr')
+    expect(next.longitudinalPanel?.waves).toHaveLength(5)
+    expect(next.longitudinalPanel?.measurementMode).toBe('latent_items')
+  })
+
+  it('routes DSEM directly to the Bayesian diary DSEM configuration', () => {
+    const next = configForMethod(config(), 'empirical.diary.dsem', null)
+    expect(next.diaryMultilevel?.analysisType).toBe('bayesian_dsem')
+    expect(next.diaryMultilevel?.dsem).not.toBeNull()
+  })
 })

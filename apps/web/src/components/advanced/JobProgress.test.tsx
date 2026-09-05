@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { act, render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { JobProgress } from './JobProgress'
 import * as advancedApi from '../../api/advanced'
@@ -76,6 +76,50 @@ describe('JobProgress', () => {
         mockResult
       )
     })
+  })
+
+  it('keeps the result request alive while the terminal job state is being resolved', async () => {
+    const mockResult: AdvancedResultResponse = {
+      schemaVersion: '0.1.0',
+      apaReports: [],
+      plots: [],
+      run: { status: 'succeeded' },
+    }
+    vi.mocked(advancedApi.getAdvancedAnalysisStatus).mockResolvedValue({
+      ...initialJob,
+      status: 'succeeded',
+      stage: 'succeeded',
+      progress: 1,
+    })
+    let resultSignal: AbortSignal | undefined
+    let resolveResult: ((value: AdvancedResultResponse) => void) | undefined
+    vi.mocked(advancedApi.getAdvancedAnalysisResult).mockImplementation((_jobId, signal) => {
+      resultSignal = signal
+      return new Promise((resolve) => {
+        resolveResult = resolve
+      })
+    })
+    const onComplete = vi.fn()
+    render(
+      <JobProgress
+        jobId="job-123"
+        initialJob={initialJob}
+        capability={capability}
+        onComplete={onComplete}
+        onCancel={vi.fn()}
+      />
+    )
+
+    await vi.advanceTimersByTimeAsync(1500)
+    await waitFor(() => expect(resultSignal).toBeDefined())
+    expect(resultSignal?.aborted).toBe(false)
+    await act(async () => {
+      resolveResult?.(mockResult)
+    })
+    await waitFor(() => expect(onComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'succeeded' }),
+      mockResult,
+    ))
   })
 
   it('calls cancel API when cancel button is clicked', async () => {

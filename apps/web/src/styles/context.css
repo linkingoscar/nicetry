@@ -372,7 +372,8 @@
 .context-blocked-methods li { margin-block: 8px; line-height: 1.5; }
 .context-method-runner > .secondary-button { justify-self: start; }
 .context-methods-workspace .muted { color: var(--text-muted); }
-[data-theme="dark"] .context-method-status { color: var(--brand-accent); }
+[data-theme="dark"] .context-method-status { color: #aebfff; }
+[data-theme="dark"] .context-blocked-reason { color: #f6c86c; }
 [data-theme="dark"] .context-methods-workspace :focus-visible { outline-color: var(--brand-accent); }
 [data-theme="dark"] .context-invalidation { background: #352910; border-color: #d9a441; }
 [data-theme="dark"] .context-invalidation-stale { background: #3a2025; border-color: #e07878; }

@@ -79,7 +79,7 @@ export function useWorkspaceState() {
     setActiveDatasetId,
     setActiveMeasurementVersion,
   })
-  useWorkspaceViewShortcuts(analysisReady, setActiveView)
+  useWorkspaceViewShortcuts(Boolean(activeDataset), setActiveView)
 
   const {
     handleMeasurementReady,

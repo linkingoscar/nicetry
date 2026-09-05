@@ -140,7 +140,8 @@ def test_observational_workflow_entry_labels_do_not_predeclare_causality_or_mech
         / "ModelBuilderToolbar.tsx"
     ).read_text(encoding="utf-8")
     assert "纵向因果模型图" not in workspace
-    assert "label: '路径与 SEM'" in workspace
+    assert "label: '分析'" in workspace
+    assert "label: '路径与 SEM'" not in workspace
     assert "中介机制" not in toolbar
     assert "影响通过什么机制发生" not in toolbar
     assert "中介分析" in toolbar

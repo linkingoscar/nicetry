@@ -6,5 +6,6 @@
 @import './styles/model-builder.css';
 @import './styles/empirical.css';
 @import './styles/empirical-procedures.css';
-@import './styles/liquid-glass.css';
 @import './styles/model-editing.css';
+@import './styles/expert-model.css';
+@import './styles/workbench.css';

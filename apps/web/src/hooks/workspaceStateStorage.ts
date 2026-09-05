@@ -29,10 +29,14 @@ export function writeStudyContext(studyContext: StudyContext): void {
   localStorage.setItem(STUDY_CONTEXT_STORAGE_KEY, JSON.stringify(studyContext))
 }
 
+export function normalizeStoredWorkspaceView(saved: string | null): WorkspaceView {
+  if (saved === 'analyze' || saved === 'output' || saved === 'data') return saved
+  if (saved === 'empirical' || saved === 'model' || saved === 'methods' || saved === 'advanced') return 'analyze'
+  return 'data'
+}
+
 export function readActiveView(): WorkspaceView {
-  const saved = localStorage.getItem(WORKSPACE_VIEW_STORAGE_KEY)
-  if (saved === 'advanced') return 'methods'
-  return saved === 'data' || saved === 'empirical' || saved === 'model' || saved === 'methods' ? saved : 'data'
+  return normalizeStoredWorkspaceView(localStorage.getItem(WORKSPACE_VIEW_STORAGE_KEY))
 }
 
 export function writeActiveView(activeView: WorkspaceView): void {

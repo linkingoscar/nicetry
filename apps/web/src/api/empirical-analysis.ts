@@ -167,8 +167,8 @@ export function runEmpiricalAnalysis(
   )
 }
 
-export function getEmpiricalAnalysisJob(runId: string): Promise<EmpiricalAnalysisJob> {
-  return requestJson<EmpiricalAnalysisJob>(`/api/v1/analyses/${runId}`)
+export function getEmpiricalAnalysisJob(runId: string, signal?: AbortSignal): Promise<EmpiricalAnalysisJob> {
+  return requestJson<EmpiricalAnalysisJob>(`/api/v1/analyses/${runId}`, { signal })
 }
 
 export function cancelEmpiricalAnalysisJob(runId: string): Promise<EmpiricalAnalysisJob> {

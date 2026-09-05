@@ -41,6 +41,7 @@ export function AppWorkspaceTabs({
   return (
     <div
       ref={navRef}
+      id="primary-workspace-nav"
       className="workspace-nav"
       role="tablist"
       aria-label="工作区视图切换"

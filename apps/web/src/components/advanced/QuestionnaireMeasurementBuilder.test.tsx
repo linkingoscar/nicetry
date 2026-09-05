@@ -1,7 +1,11 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { QuestionnaireMeasurementSpec } from '../../types/advanced'
-import { QuestionnaireMeasurementBuilder } from './QuestionnaireMeasurementBuilder'
+import {
+  measurementModelTypesForSlice,
+  normalizeMeasurementSpecForSlice,
+  QuestionnaireMeasurementBuilder,
+} from './QuestionnaireMeasurementBuilder'
 
 const spec: QuestionnaireMeasurementSpec = {
   schemaVersion: '0.1.0',
@@ -36,5 +40,44 @@ describe('QuestionnaireMeasurementBuilder', () => {
     expect(screen.getAllByText('q1').length).toBeGreaterThan(0)
     expect(screen.queryByLabelText('分析规格 JSON')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '增加构念' })).toBeInTheDocument()
+  })
+
+  it('locks a dedicated CFA capability to CFA instead of exposing unrelated measurement methods', () => {
+    const onChange = vi.fn()
+    render(
+      <QuestionnaireMeasurementBuilder
+        spec={spec}
+        onChange={onChange}
+        sliceId="questionnaire_measurement.cfa"
+      />,
+    )
+
+    expect(screen.getByLabelText(/测量方法/)).toBeDisabled()
+    expect(screen.getByLabelText(/测量方法/)).toHaveValue('cfa')
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ modelType: 'cfa' }))
+  })
+
+  it('keeps only the registered specialist variants inside grouped advanced measurement entries', () => {
+    expect(measurementModelTypesForSlice('questionnaire_measurement.esem_bifactor_irt')).toEqual([
+      'esem_bifactor_irt',
+      'bifactor',
+      'esem',
+      'irt',
+    ])
+    expect(measurementModelTypesForSlice('questionnaire_measurement.common_method_bias')).toEqual([
+      'common_method_bias',
+      'marker_variable',
+      'ulmc',
+    ])
+  })
+
+  it('normalizes an incompatible saved model into the selected capability boundary', () => {
+    const normalized = normalizeMeasurementSpecForSlice(
+      { ...spec, modelType: 'irt', itemScale: 'ordinal', estimator: 'MML' },
+      'questionnaire_measurement.efa',
+    )
+
+    expect(normalized.modelType).toBe('efa')
+    expect(normalized.estimator).toBe('WLSMV')
   })
 })

@@ -1,12 +1,15 @@
+import { methodForCapability, type MethodDefinition } from '../../methods/methodDefinitions'
+import type { MethodLibraryDefinition } from '../../methods/methodLibraryPresets'
 import type { ApplicableCapability } from '../../types/analysis-context'
 import type { DatasetVariable } from '../../types/datasets'
 import type { AdvancedAnalysisCapability, CapabilityMaturity, PublicationEligibility } from '../../types/advanced'
+import type { EmpiricalProcedure } from '../../types/empirical-types'
 import type { WorkbenchTarget } from './workbenchNavigation'
 
 export function familyLabel(family: string): string {
   const labels: Record<string, string> = {
     empirical: '基础统计与实证',
-    model: '路径与结构方程',
+    model: '中介、调节与结构方程',
     questionnaire_measurement: '问卷与测量',
     experimental_design: '实验与组间比较',
     multilevel_model: '多层与嵌套模型',
@@ -28,27 +31,29 @@ export function publicationLabel(eligibility: PublicationEligibility): string {
 }
 
 export function toWizardVariables(variables: DatasetVariable[]) {
-  return variables.map((variable) => ({
-    id: variable.id,
-    name: variable.originalName,
-    label: variable.label,
-    type: variable.confirmedType === 'continuous'
-      ? 'numeric' as const
-      : variable.confirmedType === 'binary' || variable.confirmedType === 'nominal' || variable.confirmedType === 'ordinal' || variable.confirmedType === 'likert'
-        ? 'categorical' as const
-        : variable.confirmedType === 'text'
-          ? 'text' as const
+  return variables.map((variable) => {
+    const effectiveType = variable.confirmedType ?? variable.inferredType
+    return {
+      id: variable.id,
+      name: variable.originalName,
+      label: variable.label,
+      type: effectiveType === 'continuous'
+        ? 'numeric' as const
+        : effectiveType === 'binary' || effectiveType === 'nominal' || effectiveType === 'ordinal' || effectiveType === 'likert'
+          ? 'categorical' as const
           : 'text' as const,
-    missingRate: variable.missingRate,
-    levels: Object.keys(variable.valueLabels ?? {}),
-  }))
+      missingRate: variable.missingRate,
+      levels: Object.keys(variable.valueLabels ?? {}),
+    }
+  })
 }
 
 export function wizardCapability(capability: ApplicableCapability): AdvancedAnalysisCapability {
+  const method = methodForCapability(capability.sliceId)
   return {
     family: capability.family as AdvancedAnalysisCapability['family'],
     sliceId: capability.sliceId,
-    label: capability.label,
+    label: method?.label ?? capability.label,
     status: capability.status === 'supported' ? 'supported' : 'experimental',
     specVersion: '0.1.0',
     resultVersion: '0.1.0',
@@ -62,19 +67,50 @@ export function wizardCapability(capability: ApplicableCapability): AdvancedAnal
   }
 }
 
-export function internalWorkbenchTarget(capability: ApplicableCapability): WorkbenchTarget | null {
+function isMethodLibraryDefinition(
+  definition: MethodLibraryDefinition | MethodDefinition,
+): definition is MethodLibraryDefinition {
+  return 'libraryId' in definition
+}
+
+function defaultProcedureForAdapter(adapter: MethodDefinition['adapter']): EmpiricalProcedure | undefined {
+  if (adapter === 'empirical-longitudinal') return 'longitudinal'
+  if (adapter === 'empirical-diary') return 'diary'
+  if (adapter === 'empirical-overview') return 'descriptives'
+  if (adapter === 'empirical-measurement') return 'reliability'
+  if (adapter === 'empirical-groups') return 'groups'
+  if (adapter === 'empirical-regression') return 'regression'
+  if (adapter === 'empirical-advanced') return 'response_surface'
+  return undefined
+}
+
+export function internalWorkbenchTarget(
+  capability: ApplicableCapability,
+  definitionOverride?: MethodLibraryDefinition | MethodDefinition,
+): WorkbenchTarget | null {
   if (!capability.executionAvailable) return null
-  const method = { sliceId: capability.sliceId, label: capability.label }
-  if (capability.family === 'model') return { view: 'model', ...method }
-  if (capability.sliceId.startsWith('empirical.panel.')) return { view: 'empirical', tab: 'longitudinal', ...method }
-  if (capability.sliceId.startsWith('empirical.diary.')) return { view: 'empirical', tab: 'diary', ...method }
-  const tabs = {
-    'empirical.cross_sectional.overview': 'overview',
-    'empirical.cross_sectional.measurement': 'measurement',
-    'empirical.cross_sectional.group_comparison': 'groups',
-    'empirical.cross_sectional.hierarchical_regression': 'regression',
-    'empirical.cross_sectional.response_surface': 'advanced',
-  } as const
-  const tab = tabs[capability.sliceId as keyof typeof tabs]
-  return tab ? { view: 'empirical', tab, ...method } : null
+  const definition = definitionOverride ?? methodForCapability(capability.sliceId)
+  if (!definition || definition.adapter === 'advanced-wizard') return null
+
+  const method: Pick<WorkbenchTarget, 'sliceId' | 'methodId' | 'label' | 'procedure' | 'processModelNumber' | 'processMediatorCount'> = {
+    sliceId: capability.sliceId,
+    methodId: isMethodLibraryDefinition(definition) ? definition.libraryId : definition.id,
+    label: definition.label,
+  }
+  if (isMethodLibraryDefinition(definition)) {
+    if (definition.procedure) method.procedure = definition.procedure
+    if (definition.processModelNumber) method.processModelNumber = definition.processModelNumber
+    if (definition.processMediatorCount) method.processMediatorCount = definition.processMediatorCount
+  }
+  method.procedure ??= defaultProcedureForAdapter(definition.adapter)
+
+  if (definition.adapter === 'model') return { view: 'model', ...method }
+  if (definition.adapter === 'empirical-longitudinal') return { view: 'empirical', tab: 'longitudinal', ...method }
+  if (definition.adapter === 'empirical-diary') return { view: 'empirical', tab: 'diary', ...method }
+  if (definition.adapter === 'empirical-overview') return { view: 'empirical', tab: 'overview', ...method }
+  if (definition.adapter === 'empirical-measurement') return { view: 'empirical', tab: 'measurement', ...method }
+  if (definition.adapter === 'empirical-groups') return { view: 'empirical', tab: 'groups', ...method }
+  if (definition.adapter === 'empirical-regression') return { view: 'empirical', tab: 'regression', ...method }
+  if (definition.adapter === 'empirical-advanced') return { view: 'empirical', tab: 'advanced', ...method }
+  return null
 }

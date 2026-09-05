@@ -1,5 +1,6 @@
 from app.api.routes.advanced import router as advanced_router
 from app.api.routes.analyses import router as analyses_router
+from app.api.routes.analysis_index import router as analysis_index_router
 from app.api.routes.datasets import router as datasets_router
 from app.api.routes.models import router as models_router
 from app.api.routes.studies import router as studies_router
@@ -11,6 +12,7 @@ ROUTERS = (
     datasets_router,
     models_router,
     analyses_router,
+    analysis_index_router,
     advanced_router,
     studies_router,
     workflows_router,

@@ -135,7 +135,7 @@ export const SimpleSlopePlot = memo(function SimpleSlopePlot({ plot }: { plot: M
           return (
             <g key={pct}>
               <line x1={left} y1={yPos} x2={width - right} y2={yPos} stroke="var(--border-subtle, #e2e8f0)" strokeDasharray="3 3" opacity={0.6} />
-              <text x={left - 6} y={yPos + 4} textAnchor="end" fontSize="10" fill="var(--text-muted, #64748b)">
+              <text x={left - 6} y={yPos + 4} textAnchor="end" fontSize="10" fill="var(--text-muted, #566579)">
                 {yVal.toFixed(2)}
               </text>
             </g>
@@ -144,7 +144,7 @@ export const SimpleSlopePlot = memo(function SimpleSlopePlot({ plot }: { plot: M
 
         {/* X Axis Ticks */}
         {geometry && plot.lines[0]?.xValues.map((xVal) => (
-          <text key={xVal} x={geometry.xScale(xVal)} y={height - bottom + 16} textAnchor="middle" fontSize="10" fill="var(--text-muted, #64748b)">
+          <text key={xVal} x={geometry.xScale(xVal)} y={height - bottom + 16} textAnchor="middle" fontSize="10" fill="var(--text-muted, #566579)">
             {xVal.toFixed(2)}
           </text>
         ))}
@@ -195,7 +195,7 @@ export const SimpleSlopePlot = memo(function SimpleSlopePlot({ plot }: { plot: M
         {/* Hover Crosshair & Dot */}
         {hoverState ? (
           <g>
-            <line x1={hoverState.cx} y1={top} x2={hoverState.cx} y2={height - bottom} stroke="var(--text-muted, #64748b)" strokeDasharray="2 2" opacity={0.5} />
+            <line x1={hoverState.cx} y1={top} x2={hoverState.cx} y2={height - bottom} stroke="var(--text-muted, #566579)" strokeDasharray="2 2" opacity={0.5} />
             <circle cx={hoverState.cx} cy={hoverState.cy} r="6" fill={hoverState.color} stroke="#ffffff" strokeWidth="2" />
           </g>
         ) : null}
@@ -242,7 +242,7 @@ export const SimpleSlopePlot = memo(function SimpleSlopePlot({ plot }: { plot: M
         </div>
       ) : null}
 
-      <p style={{ fontSize: '11px', color: 'var(--text-muted, #64748b)', margin: '8px 0 0' }}>
+      <p style={{ fontSize: '11px', color: 'var(--text-muted, #566579)', margin: '8px 0 0' }}>
         横轴为 {plot.predictorLabel}；纵轴为{plot.outcomeScale === 'probability' ? '预测概率' : `${plot.outcomeLabel} 的模型预测值`}，淡色区域为 95% 置信带。
       </p>
     </div>

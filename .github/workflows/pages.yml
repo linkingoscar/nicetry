@@ -4,7 +4,7 @@ run-name: Deploy GitHub Pages
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - "pages/**"
       - "assets/branding/researchpath-icon.png"

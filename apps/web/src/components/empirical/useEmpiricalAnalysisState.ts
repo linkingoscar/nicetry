@@ -29,7 +29,12 @@ import type { EmpiricalProcedure } from '../../types/empirical-types'
 import { useJobProgress } from '../../hooks/useJobProgress'
 import type { EmpiricalAnalysisContextValue } from './EmpiricalAnalysisContext'
 import { useEmpiricalSegmentQueries } from './empiricalSegmentQueries'
-import { empiricalDraftKey, readEmpiricalDraft, saveEmpiricalDraft } from './empiricalDrafts'
+import {
+  empiricalDraftKey,
+  migrateEmpiricalDraftToAnalysis,
+  readEmpiricalDraft,
+  saveEmpiricalDraft,
+} from './empiricalDrafts'
 import { configForMethod } from './empiricalMethodNavigation'
 import { getResolvedAnalysisContext } from '../../api/analysis-context'
 
@@ -39,6 +44,8 @@ interface UseEmpiricalAnalysisStateArgs {
   tabRequest?: EmpiricalTabRequest
   researchParadigm: AnalysisParadigm
   analysisContext?: ResolvedAnalysisContext | null
+  analysisId?: string | null
+  analysisProcedure?: EmpiricalProcedure
 }
 
 export function useEmpiricalAnalysisState({
@@ -47,6 +54,8 @@ export function useEmpiricalAnalysisState({
   tabRequest,
   researchParadigm,
   analysisContext,
+  analysisId,
+  analysisProcedure,
 }: UseEmpiricalAnalysisStateArgs): EmpiricalAnalysisContextValue {
   const queryClient = useQueryClient()
   const historyKey = `researchpath.empirical.runs.v1:${dataset.id}:${(measurement?.version ?? null)}`
@@ -68,12 +77,19 @@ export function useEmpiricalAnalysisState({
     nestedContext,
   } = derived
   const crossSectionalWorkflow = researchParadigm === 'questionnaire'
-  const draftKey = empiricalDraftKey(dataset, measurement, analysisContext)
-  const [initialDraft] = useState(() => readEmpiricalDraft(draftKey))
+  const draftKey = empiricalDraftKey(dataset, measurement, analysisContext, analysisId)
+  const [initialDraft] = useState(() => {
+    if (analysisId && analysisProcedure) {
+      return migrateEmpiricalDraftToAnalysis(dataset, measurement, analysisContext, analysisId, analysisProcedure)
+    }
+    return readEmpiricalDraft(draftKey, analysisProcedure)
+  })
   const appliedTabRequest = useRef(initialDraft?.tabRequestKey)
-  const [config, setConfig] = useState<EmpiricalConfigValue>(() =>
-    initialDraft?.config ?? initialEmpiricalConfig(measurement, derived, researchParadigm),
-  )
+  const [config, setConfig] = useState<EmpiricalConfigValue>(() => {
+    if (initialDraft?.config) return initialDraft.config
+    const initial = initialEmpiricalConfig(measurement, derived, researchParadigm)
+    return analysisProcedure ? { ...initial, procedure: analysisProcedure } : initial
+  })
   const needsSampleContext = Boolean(config.sampleVersionId && config.sampleVersionId !== analysisContext?.sample?.id)
   const sampleContextQuery = useQuery({
     queryKey: ['empirical-sample-context', draftKey, config.sampleVersionId],
@@ -136,7 +152,13 @@ export function useEmpiricalAnalysisState({
       runEmpiricalAnalysis(dataset.id, (measurement?.version ?? null), options),
     onSuccess: (job, options) => {
       if (options.procedure) {
-        const next = [{ id: job.id, procedure: options.procedure, createdAt: new Date().toISOString() }, ...runHistory].slice(0, 30)
+        const next = [{
+          id: job.id,
+          procedure: options.procedure,
+          createdAt: new Date().toISOString(),
+          ...(analysisId ? { analysisId } : {}),
+          ...(tabRequest?.method?.methodId ? { methodId: tabRequest.method.methodId } : {}),
+        }, ...runHistory].slice(0, 30)
         setRunHistory(next)
         saveEmpiricalHistory(historyKey, next)
       }
@@ -220,9 +242,13 @@ export function useEmpiricalAnalysisState({
         setToastText('当前任务仍在运行，已保留配置；请在任务结束或取消后重新选择目录方法。')
         return
       }
-      const restored = readEmpiricalDraft(draftKey, target[tabRequest.tab])
-      const base = restored?.config ?? { ...initialEmpiricalConfig(measurement, derived, researchParadigm), procedure: target[tabRequest.tab] }
-      const next = tabRequest.method ? configForMethod(base, tabRequest.method.sliceId, analysisContext) : base
+      const requestedProcedure = tabRequest.method?.procedure ?? target[tabRequest.tab]
+      const targetProcedure = analysisProcedure ?? requestedProcedure
+      const restored = readEmpiricalDraft(draftKey, targetProcedure)
+        ?? (analysisId ? migrateEmpiricalDraftToAnalysis(dataset, measurement, analysisContext, analysisId, targetProcedure) : null)
+      const base = restored?.config ?? { ...initialEmpiricalConfig(measurement, derived, researchParadigm), procedure: targetProcedure }
+      const directBase = tabRequest.method?.procedure && !analysisProcedure ? { ...base, procedure: tabRequest.method.procedure } : base
+      const next = tabRequest.method ? configForMethod(directBase, tabRequest.method.sliceId, analysisContext) : directBase
       if (tabRequest.method && JSON.stringify(next) !== JSON.stringify(base)
         && !window.confirm(`进入“${tabRequest.method.label}”将调整本方法草稿的模型类型或所需选项，保留兼容的变量配置；既有结果仍属于原运行配置，不会自动重新计算。取消则保留原草稿。是否继续？`)) {
         setToastText('已取消目录方法切换，原草稿保持不变。')
@@ -231,12 +257,12 @@ export function useEmpiricalAnalysisState({
       setConfig(next)
       if (tabRequest.method) setToastText(`已进入：${tabRequest.method.label}。请检查变量与估计设置后手动运行。`)
 
-      setActiveTab(tabRequest.tab)
+      setActiveTab(procedureDefinition(targetProcedure).tab)
       setActiveRunId(restored?.activeRunId ?? null)
       setLastRunConfig(restored?.lastRunConfig ?? null)
       setConfigExpanded(true)
     }
-  }, [tabRequest, nestedContext, draftKey, measurement, derived, researchParadigm, analysisContext, isRunning, activeRunId, analysisJob, jobQuery.isFetching, config, lastRunConfig])
+  }, [tabRequest, nestedContext, draftKey, measurement, derived, researchParadigm, analysisContext, analysisId, analysisProcedure, dataset, isRunning, activeRunId, analysisJob, jobQuery.isFetching, config, lastRunConfig])
 
   const showToast = (msg: string) => {
     setToastText(msg)
@@ -274,9 +300,14 @@ export function useEmpiricalAnalysisState({
     setConfig((current) => ({ ...current, ...patch }))
   }
 
+  const analysisRunHistory = runHistory.filter((entry) =>
+    (!analysisProcedure || entry.procedure === analysisProcedure)
+    && (!analysisId || !entry.analysisId || entry.analysisId === analysisId))
+
   const onSelectProcedure = (procedure: EmpiricalProcedure) => {
-    if (isRunning) return
+    if (isRunning || (analysisProcedure && procedure !== analysisProcedure)) return
     const restored = readEmpiricalDraft(draftKey, procedure)
+      ?? (analysisId ? migrateEmpiricalDraftToAnalysis(dataset, measurement, analysisContext, analysisId, procedure) : null)
     setConfig(restored?.config ?? { ...initialEmpiricalConfig(measurement, derived, researchParadigm), procedure })
     setActiveRunId(restored?.activeRunId ?? null)
     setLastRunConfig(restored?.lastRunConfig ?? null)
@@ -285,11 +316,12 @@ export function useEmpiricalAnalysisState({
     mutation.reset()
   }
   const onSelectRun = (id: string) => {
-    const entry = runHistory.find((run) => run.id === id)
-    if (!entry || isRunning) return
+    const entry = analysisRunHistory.find((run) => run.id === id)
+    const procedure = entry?.procedure ?? analysisProcedure
+    if (!procedure || isRunning) return
     restoreRun.current = id
     setActiveRunId(id)
-    setActiveTab(procedureDefinition(entry.procedure).tab)
+    setActiveTab(procedureDefinition(procedure).tab)
     mutation.reset()
   }
   return {
@@ -299,7 +331,7 @@ export function useEmpiricalAnalysisState({
     allCandidates: [...scores, ...dataset.variables],
     analysisCandidates: [...scores, ...dataset.variables.filter((v) => ['continuous', 'ordinal', 'likert', 'binary'].includes(v.confirmedType ?? v.inferredType))],
     onSelectProcedure,
-    runHistory,
+    runHistory: analysisRunHistory,
     onSelectRun,
     activeRunId,
     measurement,

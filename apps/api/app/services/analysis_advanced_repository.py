@@ -17,10 +17,7 @@ from app.settings import Settings
 
 
 class AnalysisAdvancedRepositoryMixin:
-    """Dormant compatibility surface for workspaces created by the archived
-    OB/CB expansion. No active route calls these methods; they remain only so
-    a future targeted restore can migrate existing local runs without loss.
-    """
+    """Repository surface for advanced job state and immutable results."""
 
     settings: Settings
 
@@ -165,6 +162,38 @@ class AnalysisAdvancedRepositoryMixin:
         if state_path is not None:
             remove_known_directory(state_path.parent, "runs")
 
+    def list_advanced_jobs_for_index(self) -> list[JsonObject]:
+        """Return every readable advanced job after strict persisted-state validation."""
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, analysis_id, family, spec_hash, dataset_version_id,
+                       state_path, result_path
+                FROM advanced_analysis_jobs
+                ORDER BY created_at DESC
+                """
+            ).fetchall()
+        states: list[JsonObject] = []
+        for row in rows:
+            try:
+                path = resolve_owned_path(
+                    self.settings.state_root,
+                    row["state_path"],
+                    label="advanced index recovery state path",
+                    expected_parent=self.settings.state_root
+                    / "projects"
+                    / "default"
+                    / "runs"
+                    / row["id"],
+                    expected_name="state.json",
+                )
+                state = _read_json_safe(path)
+                self._validate_advanced_job_state_identity(row, state)
+                states.append(state)
+            except (UnsafePathError, OSError, LookupError, ValueError, json.JSONDecodeError):
+                continue
+        return states
+
     def list_unfinished_advanced_jobs(self) -> list[JsonObject]:
         with self._connect() as connection:
             rows = connection.execute(
@@ -219,7 +248,9 @@ class AnalysisAdvancedRepositoryMixin:
             # State JSON can publish `succeeded` immediately before SQLite
             # commits result_path; the result file is already committed.
             state_parent = self.settings.state_root / "projects" / "default" / "runs" / run_id
-            state_path = resolve_owned_path(self.settings.state_root, row["state_path"],
+            state_path = resolve_owned_path(
+                self.settings.state_root,
+                row["state_path"],
                 label="advanced job state path",
                 expected_parent=state_parent,
                 expected_name="state.json",
@@ -229,7 +260,9 @@ class AnalysisAdvancedRepositoryMixin:
             if state.get("status") != "succeeded" or not state.get("resultPath"):
                 raise LookupError(f"AdvancedResult 不存在: {run_id}")
             result_path = state["resultPath"]
-        path = resolve_owned_path(self.settings.state_root, result_path,
+        path = resolve_owned_path(
+            self.settings.state_root,
+            result_path,
             label="advanced result path",
             expected_parent=self.settings.state_root / "projects" / "default" / "runs" / run_id,
             expected_name="result.json",

@@ -14,9 +14,8 @@ interface BuildWorkspaceStepsInput {
 
 export function buildWorkspaceSteps({ activeDataset, analysisReady }: BuildWorkspaceStepsInput): WorkspaceStep[] {
   return [
-    { view: 'data', label: '数据准备', badge: analysisReady ? '已准备' : activeDataset ? '待确认' : '待导入' },
-    { view: 'empirical', label: '统计分析', badge: analysisReady ? '按需运行' : '待准备' },
-    { view: 'model', label: '路径与 SEM', badge: analysisReady ? '配置模型' : '待准备' },
-    { view: 'methods', label: '方法目录', badge: activeDataset ? '按结构筛选' : '待数据' },
+    { view: 'data', label: '数据', badge: activeDataset ? '当前数据' : '待导入' },
+    { view: 'analyze', label: '分析', badge: activeDataset ? (analysisReady ? '可配置' : '按方法检查') : '待数据' },
+    { view: 'output', label: '输出', badge: activeDataset ? '运行结果' : '待数据' },
   ]
 }

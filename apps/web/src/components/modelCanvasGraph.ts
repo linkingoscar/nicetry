@@ -32,7 +32,7 @@ export function markerColor(status: EvidenceStatus, moderation = false) {
   if (status === 'inference_signal') return '#2c6ecb'
   if (status === 'inference_uncertain') return '#8b6f20'
   if (status === 'running') return moderation ? '#d28b16' : '#2c6ecb'
-  return moderation ? '#bd7a0b' : '#717480'
+  return moderation ? '#bd7a0b' : '#566579'
 }
 
 export function buildRenderedNodes(

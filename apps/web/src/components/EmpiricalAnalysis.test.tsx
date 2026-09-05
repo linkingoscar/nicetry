@@ -6,6 +6,7 @@ import { listAnalysisSamples, runEmpiricalAnalysis } from '../api'
 import { getResolvedAnalysisContext } from '../api/analysis-context'
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { ResolvedAnalysisContext } from '../types/analysis-context'
+import type { EmpiricalProcedure } from '../types/empirical-types'
 import type { AnalysisParadigm } from '../types/study-context'
 import { EmpiricalAnalysis } from './EmpiricalAnalysis'
 import { empiricalProcedures } from './empirical/empiricalProcedures'
@@ -72,10 +73,15 @@ const measurement = {
   },
 } as unknown as MeasurementVersion
 
-function renderCenter(
-  analysisContext?: ResolvedAnalysisContext,
-  researchParadigm: AnalysisParadigm = 'questionnaire',
-) {
+function renderCenter({
+  analysisContext,
+  researchParadigm = 'questionnaire',
+  analysisProcedure = 'descriptives',
+}: {
+  analysisContext?: ResolvedAnalysisContext
+  researchParadigm?: AnalysisParadigm
+  analysisProcedure?: EmpiricalProcedure
+} = {}) {
   const client = new QueryClient({ defaultOptions: { mutations: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
@@ -84,6 +90,7 @@ function renderCenter(
         measurement={measurement}
         analysisContext={analysisContext}
         researchParadigm={researchParadigm}
+        analysisProcedure={analysisProcedure}
       />
     </QueryClientProvider>,
   )
@@ -111,10 +118,10 @@ describe('EmpiricalAnalysis single procedures', () => {
     })
   })
 
-  it('switches methods without executing and only submits correlation choices', async () => {
-    renderCenter()
-    fireEvent.click(screen.getByRole('button', { name: '相关分析' }))
+  it('renders the requested correlation method without a page-local switcher and submits only its choices', async () => {
+    renderCenter({ analysisProcedure: 'correlation' })
     expect(runEmpiricalAnalysis).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: '描述统计' })).not.toBeInTheDocument()
     expect(screen.queryByLabelText('EFA 旋转方法')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('checkbox', { name: '自变量' }))
     fireEvent.click(screen.getByRole('checkbox', { name: '结果变量' }))
@@ -123,42 +130,44 @@ describe('EmpiricalAnalysis single procedures', () => {
     expect(vi.mocked(runEmpiricalAnalysis).mock.calls[0]?.[2]).toMatchObject({ procedure: 'correlation', analysisVariableIds: ['scale_x', 'scale_y'], outcomeVariableId: null, predictorVariableIds: [], constructIds: [] })
   })
 
-  it('opens EFA controls only after selecting EFA and keeps CFA independent', () => {
-    renderCenter()
-    fireEvent.click(screen.getByRole('button', { name: '探索性因子分析（EFA）' }))
+  it('keeps EFA and CFA as independent method routes', () => {
+    const efaView = renderCenter({ analysisProcedure: 'efa' })
     expect(screen.getByLabelText('EFA 旋转方法')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '验证性因子分析（CFA）' }))
+    expect(runEmpiricalAnalysis).not.toHaveBeenCalled()
+
+    efaView.unmount()
+    renderCenter({ analysisProcedure: 'cfa' })
     expect(screen.queryByLabelText('EFA 旋转方法')).not.toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: '自变量（2 题）' })).toBeInTheDocument()
     expect(runEmpiricalAnalysis).not.toHaveBeenCalled()
   })
 
-  it('restores unsubmitted method drafts across navigation and remount without running', () => {
-    const view = renderCenter()
+  it('restores unsubmitted method drafts across method routes and remounts without running', () => {
+    const descriptivesView = renderCenter({ analysisProcedure: 'descriptives' })
     fireEvent.click(screen.getByRole('checkbox', { name: 'age' }))
-    fireEvent.click(screen.getByRole('button', { name: '相关分析' }))
+    descriptivesView.unmount()
+
+    const correlationView = renderCenter({ analysisProcedure: 'correlation' })
     expect(screen.getByRole('checkbox', { name: 'age' })).not.toBeChecked()
     fireEvent.click(screen.getByRole('checkbox', { name: '自变量' }))
-    fireEvent.click(screen.getByRole('button', { name: '描述统计' }))
+    correlationView.unmount()
+
+    const restoredDescriptivesView = renderCenter({ analysisProcedure: 'descriptives' })
     expect(screen.getByRole('checkbox', { name: 'age' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: '自变量' })).not.toBeChecked()
-    view.unmount()
-    renderCenter()
-    expect(screen.getByRole('checkbox', { name: 'age' })).toBeChecked()
-    fireEvent.click(screen.getByRole('button', { name: '相关分析' }))
+    restoredDescriptivesView.unmount()
+
+    renderCenter({ analysisProcedure: 'correlation' })
     expect(screen.getByRole('checkbox', { name: '自变量' })).toBeChecked()
     expect(runEmpiricalAnalysis).not.toHaveBeenCalled()
   })
 
   it.each([undefined, 'BH', 'holm', 'none'])('submits the displayed group correction %s', async (method) => {
-    const view = renderCenter()
-    fireEvent.click(screen.getByRole('button', { name: '组间差异检验' }))
+    const view = renderCenter({ analysisProcedure: 'groups' })
     expect(screen.getByLabelText('多重比较校正')).toHaveValue('holm')
     if (method) fireEvent.change(screen.getByLabelText('多重比较校正'), { target: { value: method } })
-    fireEvent.click(screen.getByRole('button', { name: '描述统计' }))
-    fireEvent.click(screen.getByRole('button', { name: '组间差异检验' }))
     view.unmount()
-    renderCenter()
+    renderCenter({ analysisProcedure: 'groups' })
     expect(screen.getByLabelText('多重比较校正')).toHaveValue(method ?? 'holm')
     fireEvent.click(screen.getByRole('checkbox', { name: '自变量' }))
     fireEvent.change(screen.getByLabelText('分组变量'), { target: { value: 'var_5_eeeeeeee' } })
@@ -170,7 +179,7 @@ describe('EmpiricalAnalysis single procedures', () => {
   it('resolves the selected sample context instead of submitting the all-case hash', async () => {
     vi.mocked(listAnalysisSamples).mockResolvedValue([{ id: 'sample_filtered', label: '筛选样本', includedCount: 20 }] as Awaited<ReturnType<typeof listAnalysisSamples>>)
     vi.mocked(getResolvedAnalysisContext).mockResolvedValue({ contextHash: 'selected_sample_hash', sample: { id: 'sample_filtered' } } as ResolvedAnalysisContext)
-    renderCenter({ contextHash: 'all_case_hash', sample: { id: 'sample_all' } } as ResolvedAnalysisContext)
+    renderCenter({ analysisContext: { contextHash: 'all_case_hash', sample: { id: 'sample_all' } } as ResolvedAnalysisContext })
     await waitFor(() => expect(screen.getByRole('option', { name: '筛选样本 · 纳入 20', hidden: true })).toBeInTheDocument())
     fireEvent.click(screen.getByRole('checkbox', { name: 'age' }))
     fireEvent.change(screen.getByLabelText('分析样本版本（可选）'), { target: { value: 'sample_filtered' } })
@@ -184,7 +193,7 @@ describe('EmpiricalAnalysis single procedures', () => {
   it('does not execute when the selected sample context cannot be resolved', async () => {
     vi.mocked(listAnalysisSamples).mockResolvedValue([{ id: 'sample_missing', label: '旧样本', includedCount: 20 }] as Awaited<ReturnType<typeof listAnalysisSamples>>)
     vi.mocked(getResolvedAnalysisContext).mockRejectedValue(new Error('样本版本不可用，请重新选择'))
-    renderCenter({ contextHash: 'all_case_hash', sample: { id: 'sample_all' } } as ResolvedAnalysisContext)
+    renderCenter({ analysisContext: { contextHash: 'all_case_hash', sample: { id: 'sample_all' } } as ResolvedAnalysisContext })
     await waitFor(() => expect(screen.getByRole('option', { name: '旧样本 · 纳入 20', hidden: true })).toBeInTheDocument())
     fireEvent.click(screen.getByRole('checkbox', { name: 'age' }))
     fireEvent.change(screen.getByLabelText('分析样本版本（可选）'), { target: { value: 'sample_missing' } })
@@ -194,18 +203,17 @@ describe('EmpiricalAnalysis single procedures', () => {
   })
 
   it('starts a separate draft when upstream context identity changes', () => {
-    const view = renderCenter({ contextHash: 'previous_context' } as ResolvedAnalysisContext)
+    const view = renderCenter({ analysisContext: { contextHash: 'previous_context' } as ResolvedAnalysisContext })
     fireEvent.click(screen.getByRole('checkbox', { name: 'age' }))
     view.unmount()
-    renderCenter({ contextHash: 'new_context' } as ResolvedAnalysisContext)
+    renderCenter({ analysisContext: { contextHash: 'new_context' } as ResolvedAnalysisContext })
     expect(screen.getByRole('checkbox', { name: 'age' })).not.toBeChecked()
-    expect(screen.getByText(/上游版本变化后使用新草稿/)).toBeInTheDocument()
+    expect(screen.getByText(/上游变化不会自动重算或覆盖旧结果/)).toBeInTheDocument()
     expect(runEmpiricalAnalysis).not.toHaveBeenCalled()
   })
 
   it('requires explicit regression roles and excludes overlapping variables', async () => {
-    renderCenter()
-    fireEvent.click(screen.getByRole('button', { name: '分层线性回归' }))
+    renderCenter({ analysisProcedure: 'regression' })
     expect(screen.getByLabelText('因变量（Y）')).toHaveValue('')
     expect(screen.getByRole('button', { name: '运行分层线性回归' })).toBeDisabled()
     fireEvent.change(screen.getByLabelText('因变量（Y）'), { target: { value: 'scale_y' } })
@@ -217,15 +225,17 @@ describe('EmpiricalAnalysis single procedures', () => {
   })
 
   it.each(['longitudinal', 'diary'] as const)('keeps %s inference controls within the data structure', (paradigm) => {
-    renderCenter(undefined, paradigm)
+    renderCenter({ researchParadigm: paradigm })
     expect(screen.queryByLabelText('因变量（Y）')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '组间差异检验' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '多项式回归与响应面' })).not.toBeInTheDocument()
   })
 
   it('keeps nested aggregation separate from group comparison', async () => {
-    renderCenter({ dataset: { id: dataset.id }, studyContext: { value: { dependenceStructure: 'nested' } }, structure: { roles: { clusterId: 'var_7_gggggggg' } } } as unknown as ResolvedAnalysisContext)
-    fireEvent.click(screen.getByRole('button', { name: 'ICC 与聚合诊断' }))
+    renderCenter({
+      analysisProcedure: 'aggregation',
+      analysisContext: { dataset: { id: dataset.id }, studyContext: { value: { dependenceStructure: 'nested' } }, structure: { roles: { clusterId: 'var_7_gggggggg' } } } as unknown as ResolvedAnalysisContext,
+    })
     expect(screen.getByLabelText('cluster 聚合变量')).toHaveValue('var_7_gggggggg')
     expect(screen.queryByRole('button', { name: '组间差异检验' })).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('checkbox', { name: '自变量（2 题）' }))

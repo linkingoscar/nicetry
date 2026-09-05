@@ -1,0 +1,287 @@
+/* ResearchPath workbench convergence: task surfaces are stable, dense and low-decoration.
+   Brand-heavy treatment may remain on the project home and expert model editor. */
+
+.app-shell {
+  background: var(--bg-app);
+}
+
+.app-shell .app-header {
+  padding-block: 9px;
+  color: var(--text-main);
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .app-header .brand { color: var(--text-main); }
+.app-shell .app-header .brand span,
+.app-shell .app-header .project-name { color: var(--text-muted); }
+
+.app-shell .app-header .header-path-button,
+.app-shell .app-header .theme-toggle-button,
+.app-shell .app-header .command-palette-trigger {
+  min-height: 36px;
+  color: var(--text-body);
+  background: var(--bg-surface);
+  border-color: var(--border-card);
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.app-shell .app-header .header-path-button:hover,
+.app-shell .app-header .theme-toggle-button:hover,
+.app-shell .app-header .command-palette-trigger:hover { background: var(--bg-hover); }
+.app-shell .app-header .command-palette-trigger kbd { color: var(--text-muted); background: var(--bg-subtle); }
+
+.app-shell .workspace-nav {
+  gap: 0;
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .workspace-nav .workspace-tab {
+  min-height: 44px;
+  margin-top: 0;
+  padding-inline: 18px;
+  border-radius: 0;
+}
+
+.app-shell .workspace-nav .workspace-tab[aria-selected="true"] {
+  color: var(--brand-primary);
+  background: transparent;
+}
+
+.app-shell .study-context-shell {
+  gap: 8px;
+  padding-block: 8px;
+  background: var(--bg-subtle);
+  background-image: none;
+  border-color: var(--border-card);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .study-context-groups fieldset,
+.app-shell .structure-setup,
+.app-shell .upload-panel,
+.app-shell .measurement-workspace,
+.app-shell .dataset-summary,
+.app-shell .context-catalog,
+.app-shell .context-method-catalog,
+.app-shell .context-readiness-panel,
+.app-shell .empirical-config,
+.app-shell .adv-wizard-panel,
+.app-shell .adv-status-card,
+.app-shell .analysis-shell-header {
+  background: var(--bg-surface);
+  background-image: none;
+  border-color: var(--border-card);
+  border-radius: 8px;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.app-shell .data-main,
+.app-shell .analysis-shell,
+.app-shell .adv-main {
+  width: min(1500px, 100%);
+  margin-inline: auto;
+  padding-top: 18px;
+}
+
+.app-shell .analysis-shell-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+}
+
+.app-shell .analysis-shell-header h1,
+.app-shell .context-catalog h2,
+.app-shell .context-method-catalog h2 { letter-spacing: -0.015em; }
+
+.app-shell .context-catalog,
+.app-shell .context-method-catalog,
+.app-shell .empirical-config,
+.app-shell .measurement-workspace { padding: 18px; }
+
+.app-shell .method-catalog-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.app-shell .method-catalog-filters > label {
+  min-width: 0;
+}
+.app-shell .method-catalog-filters input,
+.app-shell .method-catalog-filters select { width: 100%; min-width: 0; }
+
+.app-shell .method-grid,
+.app-shell .context-method-grid { gap: 10px; }
+
+.app-shell .method-card,
+.app-shell .context-method-card,
+.app-shell .construct-card {
+  min-width: 0;
+  background: var(--bg-surface);
+  background-image: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: none;
+  transform: none;
+}
+
+.app-shell .method-card:hover,
+.app-shell .context-method-card:hover {
+  border-color: var(--border-card);
+  box-shadow: none;
+  transform: none;
+}
+
+.app-shell .method-card-actions,
+.app-shell .analysis-inline-actions,
+.app-shell .section-heading-row,
+.app-shell .method-card-status-row {
+  flex-wrap: wrap;
+}
+
+.app-shell .method-card-actions button,
+.app-shell .analysis-inline-actions button { min-height: 36px; }
+
+.app-shell .method-card-status-row,
+.app-shell .context-method-status,
+.app-shell .status-badge,
+.app-shell .status-chip { border-radius: 6px; }
+
+.app-shell .run-button,
+.app-shell .secondary-button {
+  min-height: 36px;
+  border-radius: 7px;
+  box-shadow: none;
+}
+
+.app-shell input,
+.app-shell select,
+.app-shell textarea { border-radius: 7px; }
+
+.app-shell .table-wrap,
+.app-shell [role="region"][tabindex="0"] {
+  max-width: 100%;
+  overscroll-behavior-inline: contain;
+}
+
+.app-shell table {
+  font-variant-numeric: tabular-nums;
+}
+
+[data-theme="dark"] .app-shell .workspace-nav .workspace-tab[aria-selected="true"],
+[data-theme="dark"] .app-shell .workspace-tab[aria-selected="true"] .tab-badge {
+  color: #aebfff;
+  border-bottom-color: #aebfff;
+}
+
+[data-theme="dark"] .app-shell .context-method-status { color: #aebfff; }
+[data-theme="dark"] .app-shell .context-blocked-reason { color: #f6c86c; }
+
+/* Keep the expert PROCESS/SEM editor visually distinct while removing glass from daily work. */
+.app-shell .model-builder .model-toolbar,
+.app-shell .model-builder .variable-library,
+.app-shell .model-builder .model-sidebar,
+.app-shell .model-builder .canvas-panel { border-radius: 12px; }
+
+@media (max-width: 1366px) {
+  .app-shell .data-main,
+  .app-shell .analysis-shell,
+  .app-shell .adv-main { padding-inline: 22px; }
+
+  .app-shell .context-method-grid,
+  .app-shell .method-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+
+  .app-shell .analysis-shell-header { padding-block: 12px; }
+}
+
+@media (max-width: 1024px) {
+  .app-shell .app-header {
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .app-shell .header-meta { max-width: 62%; }
+  .app-shell .study-context-heading,
+  .app-shell .section-heading-row { align-items: flex-start; }
+  .app-shell .dataset-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .app-shell .construct-settings { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .app-shell .app-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 14px;
+  }
+  .app-shell .header-meta {
+    width: 100%;
+    max-width: none;
+    justify-content: flex-start;
+  }
+  .app-shell .header-meta > * { flex: 0 1 auto; }
+
+  .app-shell .workspace-nav {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    padding-inline: 0;
+  }
+  .app-shell .workspace-nav .workspace-tab {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .app-shell .workspace-tab .tab-badge { display: none; }
+
+  .app-shell .data-main,
+  .app-shell .analysis-shell,
+  .app-shell .adv-main { padding: 14px 12px 32px; }
+
+  .app-shell .analysis-shell-header,
+  .app-shell .section-heading-row,
+  .app-shell .study-context-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell .context-catalog,
+  .app-shell .context-method-catalog,
+  .app-shell .empirical-config,
+  .app-shell .measurement-workspace { padding: 14px; }
+
+  .app-shell .method-catalog-filters,
+  .app-shell .dataset-summary,
+  .app-shell .construct-settings { grid-template-columns: minmax(0, 1fr); }
+
+  .app-shell .method-card-actions,
+  .app-shell .analysis-inline-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .app-shell .method-card-actions button,
+  .app-shell .analysis-inline-actions button { width: 100%; }
+
+  .app-shell .status-badge,
+  .app-shell .status-chip { white-space: normal; }
+}
+
+@media (max-width: 420px) {
+  .app-shell .app-header .header-path-button,
+  .app-shell .app-header .theme-toggle-button,
+  .app-shell .app-header .command-palette-trigger { flex: 1 1 calc(50% - 6px); justify-content: center; }
+  .app-shell .workspace-nav .workspace-tab { font-size: 12px; }
+}

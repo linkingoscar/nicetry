@@ -25,7 +25,7 @@ export function LocalPrivacyBadge({
           borderRadius: '9999px',
           fontSize: '12px',
           fontWeight: 600,
-          color: '#d8dbe7',
+          color: 'var(--text-body)',
           background: 'rgba(255, 255, 255, 0.08)',
           border: '1px solid rgba(255, 255, 255, 0.22)',
           cursor: 'pointer',
@@ -98,7 +98,7 @@ export function LocalPrivacyBadge({
                   border: 0,
                   fontSize: '20px',
                   cursor: 'pointer',
-                  color: '#64748b',
+                  color: '#566579',
                 }}
                 onClick={() => setIsOpen(false)}
               >
@@ -123,19 +123,19 @@ export function LocalPrivacyBadge({
 
             <div style={{ display: 'grid', gap: '8px', fontSize: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>当前文件:</span>
+                <span style={{ color: '#566579' }}>当前文件:</span>
                 <strong>{datasetName}</strong>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>SHA-256 哈希防篡改摘要:</span>
+                <span style={{ color: '#566579' }}>SHA-256 哈希防篡改摘要:</span>
                 <code style={{ fontSize: '11px', color: '#0d1f5c' }}>{datasetSha256 ? `${datasetSha256.slice(0, 20)}…` : '未提供'}</code>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>处理架构:</span>
+                <span style={{ color: '#566579' }}>处理架构:</span>
                 <span style={{ color: '#052796', fontWeight: 700 }}>浏览器 + localhost API + 本机 R 进程</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '6px', borderBottom: '1px solid #e2e8f0' }}>
-                <span style={{ color: '#64748b' }}>本地状态:</span>
+                <span style={{ color: '#566579' }}>本地状态:</span>
                 <span style={{ color: '#0f172a', fontWeight: 600 }}>原始版本只读；工作区结果可持久化</span>
               </div>
             </div>

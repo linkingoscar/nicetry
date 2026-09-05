@@ -64,11 +64,7 @@ export function createWorkspaceStateHandlers({
     setActiveDatasetId(dataset.id)
     setActiveMeasurementVersion(measurement.version)
     setModelContext({ dataset, measurement })
-    setActiveView(
-      effectiveStudyContext.timeStructure === 'cross_sectional' && effectiveStudyContext.dependenceStructure === 'nested'
-        ? 'methods'
-        : 'empirical',
-    )
+    setActiveView('analyze')
   }
 
   const handleDatasetReady = (dataset: DatasetVersion) => {
@@ -111,7 +107,7 @@ export function createWorkspaceStateHandlers({
 
   const handleIntentSelect = (intent: StudyIntent) => {
     setStudyIntent(intent)
-    setActiveView(intent === 'analyze' ? 'data' : 'methods')
+    setActiveView('data')
   }
 
   const handleStudyContextChange = (next: StudyContext) => {
@@ -149,7 +145,6 @@ export function createWorkspaceStateHandlers({
       })
     studyContextSaveQueueRef.current = pending
     if (!activeDataset || (!timeStructureChanged && !dependenceChanged && !designChanged)) return
-    setActiveView('data')
     setEmpiricalTabRequest({
       tab: next.timeStructure === 'panel'
         ? 'longitudinal'

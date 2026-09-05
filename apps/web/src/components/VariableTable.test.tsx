@@ -26,14 +26,17 @@ const variables: DatasetVariable[] = [
 ]
 
 describe('VariableTable', () => {
-  it('starts from the suggestion but sends the explicit user choice', () => {
+  it('treats the inferred type as usable until the user explicitly overrides it', () => {
     const onSave = vi.fn()
     render(<VariableTable variables={variables} isSaving={false} onSave={onSave} />)
 
-    const select = screen.getByLabelText('满意度的最终类型')
+    expect(screen.getByText('自动识别可用')).toBeInTheDocument()
+    expect(screen.getByText(/1 个变量尚未人工确认/)).toBeInTheDocument()
+
+    const select = screen.getByLabelText('满意度的有效类型')
     expect(select).toHaveValue('ordinal')
     fireEvent.change(select, { target: { value: 'likert' } })
-    fireEvent.click(screen.getByRole('button', { name: '确认全部变量' }))
+    fireEvent.click(screen.getByRole('button', { name: '保存变量类型' }))
 
     expect(onSave).toHaveBeenCalledWith([
       { id: 'var_1', confirmedType: 'likert' },

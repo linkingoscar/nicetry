@@ -9,12 +9,35 @@ import { metric, probability } from './resultFormatters'
 import { SegmentLoader } from './EmpiricalBadges'
 import { UlmcDiagnostics } from './UlmcDiagnostics'
 import { ScrollableResultTable } from '../shared/ScrollableResultTable'
+import type { EmpiricalAnalysisOptions } from '../../types'
+import type { EmpiricalResultQueries } from './segmentQuery'
 
-export function EmpiricalProcedureResult() {
-  const { report, summaryQuery, correlationQuery, efaCfaQuery, validityQuery, regressionQuery,
-    datasetId, measurementVersion, showToast } = useEmpiricalAnalysisContext()
-  const p = report?.options.procedure
-  if (!report || !p) return null
+interface EmpiricalProcedureResultViewProps {
+  reportId: string
+  reportOptions: EmpiricalAnalysisOptions
+  datasetId: string
+  measurementVersion: number | null
+  queries: EmpiricalResultQueries
+  showToast: (message: string) => void
+}
+
+export function EmpiricalProcedureResultView({
+  reportId,
+  reportOptions,
+  datasetId,
+  measurementVersion,
+  queries,
+  showToast,
+}: EmpiricalProcedureResultViewProps) {
+  const p = reportOptions.procedure
+  if (!p) return null
+  const {
+    summary: summaryQuery,
+    correlation: correlationQuery,
+    efaCfa: efaCfaQuery,
+    validity: validityQuery,
+    regression: regressionQuery,
+  } = queries
   const definition = procedureDefinition(p)
   let result: import('react').ReactNode
   if (['descriptives', 'frequencies', 'missing'].includes(p)) {
@@ -47,12 +70,43 @@ export function EmpiricalProcedureResult() {
       <UlmcDiagnostics result={cmb?.ulmc} />
     </>
   } else {
-    result = <EmpiricalResultTabsView activeTab={definition.tab} reportId={report.reportId} datasetId={datasetId}
-      measurementVersion={measurementVersion} reportOptions={report.options}
+    result = <EmpiricalResultTabsView activeTab={definition.tab} reportId={reportId} datasetId={datasetId}
+      measurementVersion={measurementVersion} reportOptions={reportOptions}
       queries={{ summary: summaryQuery, correlation: correlationQuery, efaCfa: efaCfaQuery, validity: validityQuery, regression: regressionQuery }} showToast={showToast} />
   }
   return <section aria-label={`${definition.label}结果`}>
     <h2 className="procedure-result-heading" id={`empirical-tab-${definition.tab}`}>{definition.label} · 本次结果</h2>
     {result}
   </section>
+}
+
+export function EmpiricalProcedureResult() {
+  const {
+    report,
+    summaryQuery,
+    correlationQuery,
+    efaCfaQuery,
+    validityQuery,
+    regressionQuery,
+    datasetId,
+    measurementVersion,
+    showToast,
+  } = useEmpiricalAnalysisContext()
+  if (!report) return null
+  return (
+    <EmpiricalProcedureResultView
+      reportId={report.reportId}
+      reportOptions={report.options}
+      datasetId={datasetId}
+      measurementVersion={measurementVersion}
+      queries={{
+        summary: summaryQuery,
+        correlation: correlationQuery,
+        efaCfa: efaCfaQuery,
+        validity: validityQuery,
+        regression: regressionQuery,
+      }}
+      showToast={showToast}
+    />
+  )
 }

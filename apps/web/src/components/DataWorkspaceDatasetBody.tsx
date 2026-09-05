@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { UseMutationResult } from '@tanstack/react-query'
 
 import type { DatasetVersion, MeasurementVersion, StudyContext, VariableType } from '../types'
@@ -8,6 +9,7 @@ import { DatasetMergeWizard } from './empirical/DatasetMergeWizard'
 import { DataQualityWorkspace } from './DataQualityWorkspace'
 import { DataStructureSetup } from './DataStructureSetup'
 import { StructureMeasurementPreparation } from './context/StructureMeasurementPreparation'
+import { DataGridView } from './data/DataGridView'
 import { showToast } from './shared/Toast'
 import styles from './DataWorkspace.module.css'
 
@@ -40,6 +42,22 @@ interface DataWorkspaceDatasetBodyProps {
   onStructureValidityChange: (valid: boolean) => void
 }
 
+type DataSubview = 'data' | 'variables' | 'scales'
+
+const subviews: Array<{ id: DataSubview; label: string }> = [
+  { id: 'data', label: '数据视图' },
+  { id: 'variables', label: '变量视图' },
+  { id: 'scales', label: '量表' },
+]
+
+function subviewTabId(id: DataSubview) {
+  return `data-subview-tab-${id}`
+}
+
+function subviewPanelId(id: DataSubview) {
+  return `data-subview-panel-${id}`
+}
+
 export function DataWorkspaceDatasetBody({
   dataset,
   selectedFile,
@@ -64,6 +82,14 @@ export function DataWorkspaceDatasetBody({
   onContinueToAnalysis,
   onStructureValidityChange,
 }: DataWorkspaceDatasetBodyProps) {
+  const [activeSubview, setActiveSubview] = useState<DataSubview>('data')
+  const [showDataQuality, setShowDataQuality] = useState(false)
+  const [showStructure, setShowStructure] = useState(false)
+  const needsSpecialPreparation = Boolean(studyContext && (
+    studyContext.timeStructure !== 'cross_sectional'
+    || studyContext.dependenceStructure === 'nested'
+  ))
+
   return (
     <>
       {dataset.originalFile.sheetNames && dataset.originalFile.sheetNames.length > 1 && (
@@ -105,14 +131,7 @@ export function DataWorkspaceDatasetBody({
         <div><span>数据行</span><strong>{dataset.rowCount}</strong></div>
         <div><span>变量列</span><strong>{dataset.columnCount}</strong></div>
         <div><span>文件格式</span><strong>{dataset.originalFile.format.toUpperCase()}</strong></div>
-        <div><span>字典状态</span><strong>{dataset.dictionary.status === 'confirmed' ? '已确认' : '草稿'}</strong></div>
-        <button
-          type="button"
-          className={`run-button ${styles.mergeButton}`}
-          onClick={() => onShowMergeWizardChange(true)}
-        >
-          🔗 合并多波次/其他数据源
-        </button>
+        <div><span>未人工确认</span><strong>{dataset.dictionary.totalCount - dataset.dictionary.confirmedCount}</strong></div>
       </section>
 
       <div className="dataset-provenance">
@@ -126,38 +145,119 @@ export function DataWorkspaceDatasetBody({
         </div>
       </div>
 
-      <DataQualityWorkspace key={`${dataset.id}:quality`} dataset={dataset} />
+      <div className={styles.dataToolbar} role="toolbar" aria-label="数据工具">
+        <button type="button" className="secondary-button" onClick={() => onShowMergeWizardChange(true)}>
+          合并
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          aria-pressed={showDataQuality}
+          aria-controls="data-quality-tool"
+          onClick={() => setShowDataQuality(current => !current)}
+        >
+          数据检查
+        </button>
+        {studyContext ? (
+          <button
+            type="button"
+            className="secondary-button"
+            aria-pressed={showStructure}
+            aria-controls="data-structure-tool"
+            onClick={() => setShowStructure(current => !current)}
+          >
+            数据结构
+          </button>
+        ) : null}
+        {onContinueToAnalysis ? (
+          <button type="button" className={`run-button ${styles.analyzeButton}`} onClick={onContinueToAnalysis}>
+            开始分析
+          </button>
+        ) : null}
+      </div>
 
-      {dataset.warnings.map((warning) => (
-        <p className="method-warning" key={warning.message}>{warning.message}</p>
-      ))}
-
-      {studyContext ? (
-        <DataStructureSetup
-          key={`${dataset.id}:${structureKey}`}
-          datasetId={dataset.id}
-          variables={dataset.variables}
-          context={studyContext}
-          studyContextVersionId={resolvedContext?.studyContext?.id ?? null}
-          initialStructure={resolvedContext?.structure ?? null}
-          onValidityChange={onStructureValidityChange}
-          onStructureSaved={onStructureSaved}
+      {showMergeWizard ? (
+        <DatasetMergeWizard
+          primaryDataset={dataset}
+          onMergeSuccess={onMergeSuccess}
+          onCancel={() => onShowMergeWizardChange(false)}
         />
       ) : null}
 
-      <VariableTable
-        key={`${dataset.id}:${dataset.dictionary.version}`}
-        variables={dataset.variables}
-        isSaving={dictionaryMutation.isPending}
-        onSave={onDictionarySave}
-      />
+      <section id="data-quality-tool" hidden={!showDataQuality} aria-label="数据检查工具">
+        <DataQualityWorkspace key={`${dataset.id}:quality`} dataset={dataset} />
+      </section>
 
-      {dataset.dictionary.status === 'confirmed' && structureReady ? (
-        <>
-          {studyContext && (
-            studyContext.timeStructure !== 'cross_sectional'
-            || studyContext.dependenceStructure === 'nested'
-          ) ? (
+      {studyContext ? (
+        <section id="data-structure-tool" hidden={!showStructure} aria-label="数据结构工具">
+          <DataStructureSetup
+            key={`${dataset.id}:${structureKey}`}
+            datasetId={dataset.id}
+            variables={dataset.variables}
+            context={studyContext}
+            studyContextVersionId={resolvedContext?.studyContext?.id ?? null}
+            initialStructure={resolvedContext?.structure ?? null}
+            onValidityChange={onStructureValidityChange}
+            onStructureSaved={onStructureSaved}
+          />
+        </section>
+      ) : null}
+
+      <div className={styles.dataSubviewNav} role="tablist" aria-label="数据工作区子导航">
+        {subviews.map((subview) => {
+          const selected = activeSubview === subview.id
+          return (
+            <button
+              key={subview.id}
+              id={subviewTabId(subview.id)}
+              type="button"
+              role="tab"
+              className={selected ? styles.activeSubview : undefined}
+              aria-selected={selected}
+              aria-controls={subviewPanelId(subview.id)}
+              tabIndex={selected ? 0 : -1}
+              onClick={() => setActiveSubview(subview.id)}
+            >
+              {subview.label}
+            </button>
+          )
+        })}
+      </div>
+
+      <div className={styles.dataSubviewBody}>
+        <section
+          id={subviewPanelId('data')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('data')}
+          hidden={activeSubview !== 'data'}
+        >
+          <DataGridView dataset={dataset} />
+          {dataset.warnings.map((warning) => (
+            <p className="method-warning" key={`${warning.code}:${warning.message}`}>{warning.message}</p>
+          ))}
+        </section>
+
+        <section
+          id={subviewPanelId('variables')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('variables')}
+          hidden={activeSubview !== 'variables'}
+        >
+          <VariableTable
+            key={`${dataset.id}:${dataset.dictionary.version}`}
+            variables={dataset.variables}
+            isSaving={dictionaryMutation.isPending}
+            onSave={onDictionarySave}
+          />
+        </section>
+
+        <section
+          id={subviewPanelId('scales')}
+          role="tabpanel"
+          aria-labelledby={subviewTabId('scales')}
+          hidden={activeSubview !== 'scales'}
+        >
+          {needsSpecialPreparation && studyContext ? (
             <StructureMeasurementPreparation
               context={studyContext}
               roles={resolvedContext?.structure?.roles}
@@ -177,29 +277,21 @@ export function DataWorkspaceDatasetBody({
             }
             onReady={(measurement) => onMeasurementReady?.(dataset, measurement)}
           />
-        </>
-      ) : (
+        </section>
+      </div>
+
+      {!structureReady ? (
         <p className="measurement-gate">
-          {dataset.dictionary.status !== 'confirmed'
-            ? '确认全部变量类型后，才会开放构念分组和量表计分。'
-            : '确认当前数据结构所需的 ID、聚类或时间角色后，才会开放测量准备。'}
+          当前数据结构还有未完成设置；只会阻断依赖这些结构角色的方法，不影响兼容的基础分析。
         </p>
-      )}
+      ) : null}
 
-      {showMergeWizard && (
-        <DatasetMergeWizard
-          primaryDataset={dataset}
-          onMergeSuccess={onMergeSuccess}
-          onCancel={() => onShowMergeWizardChange(false)}
-        />
-      )}
-
-      {structureReady && dataset.dictionary.status === 'confirmed' && onContinueToAnalysis ? (
+      {onContinueToAnalysis ? (
         <section className="workflow-next-step" aria-label="下一步">
           <div>
-            <span className="eyebrow">下一步</span>
-            <strong>{activeMeasurement ? '数据字典与测量版本均已就绪' : '数据字典已就绪，可直接分析原始变量'}</strong>
-            <p>{activeMeasurement ? '先检查上方样本质量与量表结果；确认无误后进入实证分析。' : '描述、频数、缺失、相关和原始变量回归不要求构念计分；量表分析可稍后配置。'}</p>
+            <span className="eyebrow">按需分析</span>
+            <strong>数据已导入，可以进入统一方法库</strong>
+            <p>系统只检查当前方法和所选变量真正需要的条件；无关变量、量表或结构设置不会阻塞基础方法。</p>
           </div>
           <button type="button" className="run-button" onClick={onContinueToAnalysis}>
             {analysisLabel}

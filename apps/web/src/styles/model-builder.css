@@ -312,7 +312,7 @@
 .node-running-indicator { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; background: #2c75c9; border-radius: 50%; animation: live-pulse 1.1s ease-in-out infinite; }
 
 .react-flow__edge-path { stroke-width: 2; transition: stroke 0.25s ease, stroke-width 0.25s ease; }
-.statistical-edge { stroke: #717480; }
+.statistical-edge { stroke: #566579; }
 .statistical-edge.is-running { stroke: #2563eb; stroke-width: 2.5px; stroke-dasharray: 8 5; filter: drop-shadow(0 0 5px rgba(37, 99, 235, 0.45)); animation: edge-dash .6s linear infinite; }
 .statistical-edge.is-inference_signal { stroke: #2c6ecb; stroke-width: 3.2px; filter: drop-shadow(0 0 6px rgba(44, 110, 203, 0.35)); animation: edge-glow 2s ease-in-out infinite alternate; }
 @keyframes edge-glow { 0% { stroke-width: 2.8px; filter: drop-shadow(0 0 4px rgba(44, 110, 203, 0.25)); }
@@ -510,5 +510,4 @@
   color: #0f172a;
   border-color: #1037b9;
 }
-
 

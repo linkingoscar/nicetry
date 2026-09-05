@@ -91,9 +91,9 @@ export const GroupForestPlot = memo(function GroupForestPlot({ invarianceResult 
 
                 {/* 刻度尺 */}
                 <line x1={100} y1={svgHeight - 20} x2={460} y2={svgHeight - 20} stroke="#cbd5e1" />
-                <text x={100} y={svgHeight - 5} fontSize="11" fill="#64748b" textAnchor="middle">{minVal.toFixed(1)}</text>
-                <text x={zeroX} y={svgHeight - 5} fontSize="11" fill="#64748b" textAnchor="middle">0.0</text>
-                <text x={460} y={svgHeight - 5} fontSize="11" fill="#64748b" textAnchor="middle">{maxVal.toFixed(1)}</text>
+                <text x={100} y={svgHeight - 5} fontSize="11" fill="var(--text-muted, #566579)" textAnchor="middle">{minVal.toFixed(1)}</text>
+                <text x={zeroX} y={svgHeight - 5} fontSize="11" fill="var(--text-muted, #566579)" textAnchor="middle">0.0</text>
+                <text x={460} y={svgHeight - 5} fontSize="11" fill="var(--text-muted, #566579)" textAnchor="middle">{maxVal.toFixed(1)}</text>
 
                 {/* 群组估计点与 CI */}
                 {groupEstimates.map((ge, idx) => {
@@ -134,7 +134,7 @@ export const GroupForestPlot = memo(function GroupForestPlot({ invarianceResult 
                           </text>
                         </>
                       ) : (
-                        <text x={100} y={y + 4} fontSize="11" fill="#64748b">
+                        <text x={100} y={y + 4} fontSize="11" fill="var(--text-muted, #566579)">
                           估计值不可用
                         </text>
                       )}

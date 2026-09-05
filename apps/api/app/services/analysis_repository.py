@@ -317,6 +317,42 @@ class AnalysisRepositoryMixin(AnalysisAdvancedRepositoryMixin):
         self._validate_job_state_identity(row, state)
         return state
 
+    def list_analysis_jobs_for_index(self) -> list[JsonObject]:
+        """Return every readable analysis job after the same identity/path validation as GET.
+
+        The workspace OutputIndex consumes this only as a reconstruction source. Corrupt or
+        unowned state files are omitted rather than becoming browser-visible metadata.
+        """
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, dataset_id, model_id, model_version, state_path,
+                       job_kind, result_path
+                FROM analysis_jobs
+                ORDER BY created_at DESC
+                """
+            ).fetchall()
+        states: list[JsonObject] = []
+        for row in rows:
+            try:
+                path = resolve_owned_path(
+                    self.settings.state_root,
+                    row["state_path"],
+                    label="analysis index recovery state path",
+                    expected_parent=self.settings.state_root
+                    / "projects"
+                    / "default"
+                    / "runs"
+                    / row["id"],
+                    expected_name="state.json",
+                )
+                state = _read_json_safe(path)
+                self._validate_job_state_identity(row, state)
+                states.append(state)
+            except (UnsafePathError, OSError, LookupError, ValueError, json.JSONDecodeError):
+                continue
+        return states
+
     def list_unfinished_analysis_jobs(self) -> list[JsonObject]:
         with self._connect() as connection:
             rows = connection.execute(

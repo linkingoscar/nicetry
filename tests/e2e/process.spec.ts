@@ -1,16 +1,16 @@
 import { expect, test } from '@playwright/test'
-import { openAuthenticatedPage } from './session'
+import { openAdvancedProcessEditor, openDataWorkspace } from './session'
 import { expectNoHorizontalOverflow, expectNoSeriousAccessibilityViolations, installPageFailureMonitor } from './quality'
 
 test('@real-r @a11y supports PROCESS point assignment, safe undo, freezing and a real model run in glass themes', async ({ page }) => {
   test.setTimeout(150_000)
   const failures = await installPageFailureMonitor(page, { classifyModelCanvasResizeLoop: true })
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await openAuthenticatedPage(page)
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
+  await openDataWorkspace(page)
   await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
   await expect(page.getByText('测量层已完成 · v1')).toBeVisible()
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
 
   // One keyboard-operable assignment path also creates valid control nodes.
@@ -93,7 +93,7 @@ test('@real-r @a11y supports PROCESS point assignment, safe undo, freezing and a
   await expect(page.getByRole('complementary', { name: '变量库' })).toBeVisible()
   await expectNoHorizontalOverflow(page)
   await expectNoSeriousAccessibilityViolations(page)
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).scrollIntoViewIfNeeded()
+  await page.getByRole('heading', { name: '模型画布与预运行检查' }).scrollIntoViewIfNeeded()
   await page.screenshot({ path: 'output/playwright/process-glass-desktop.png' })
   await page.getByRole('button', { name: '明亮模式', exact: true }).click()
   await expectNoSeriousAccessibilityViolations(page)
@@ -111,10 +111,11 @@ test('@real-r @a11y supports PROCESS point assignment, safe undo, freezing and a
   await page.keyboard.press('ArrowRight')
   await expect.poll(() => diagnosticTable.evaluate(element => element.scrollLeft)).toBeGreaterThan(0)
   await expectNoSeriousAccessibilityViolations(page)
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).scrollIntoViewIfNeeded()
+  await page.getByRole('heading', { name: '模型画布与预运行检查' }).scrollIntoViewIfNeeded()
   await page.screenshot({ path: 'output/playwright/process-glass-mobile.png' })
   await page.setViewportSize({ width: 1440, height: 1000 })
   await page.reload()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByRole('heading', { name: 'PROCESS Model 4 · 本次结果' })).toBeVisible()
   await expect(page.getByRole('button', { name: '运行模型分析与估计' })).toBeDisabled()
   await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('age')
@@ -125,9 +126,7 @@ test('@real-r @a11y supports PROCESS point assignment, safe undo, freezing and a
   await page.getByRole('button', { name: '分配到所选角色', exact: true }).click()
   await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('工作自主性')
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
-  await page.getByRole('tab', { name: '方法目录', exact: true }).click()
-  await expect(page.getByRole('heading', { name: '方法目录', exact: true })).toBeVisible()
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await expect(page.getByRole('combobox', { name: 'X · 自变量', exact: true }).locator('option:checked')).toContainText('工作自主性')
   await page.getByText('更换模型 · Model 4 · 单一中介', { exact: true }).click()

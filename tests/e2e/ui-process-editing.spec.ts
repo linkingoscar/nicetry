@@ -1,13 +1,13 @@
 import { execFileSync } from 'node:child_process'
 import { resolve } from 'node:path'
 import { expect, test, type Page } from '@playwright/test'
-import { openAuthenticatedPage } from './session'
+import { configureMethod, openAdvancedProcessEditor, openDataWorkspace } from './session'
 import { expectNoHorizontalOverflow, expectNoSeriousAccessibilityViolations, installPageFailureMonitor } from './quality'
 
 async function openDemo(page: Page) {
-  await openAuthenticatedPage(page)
-  await page.getByRole('button', { name: /分析已有数据/ }).click()
+  await openDataWorkspace(page)
   await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await page.getByRole('tab', { name: '量表', exact: true }).click()
   await expect(page.getByText('测量层已完成 · v1')).toBeVisible()
 }
 
@@ -16,21 +16,24 @@ test('@a11y EFA headers and workbook import remain legible, and clearing unloads
   const failures = await installPageFailureMonitor(page)
   await page.setViewportSize({ width: 1440, height: 1000 })
   await openDemo(page)
-  await page.getByRole('tab', { name: '统计分析', exact: true }).click()
-  await page.getByRole('button', { name: '探索性因子分析（EFA）', exact: true }).click()
+  await configureMethod(page, '探索性因子分析（EFA）')
+  await expect(page.locator('.analysis-shell-header h1')).toHaveText('探索性因子分析（EFA）')
   for (const [width, theme] of [[1440, '明亮模式'], [390, '暗色模式']] as const) {
     await page.setViewportSize({ width, height: 1000 })
-    const rectangles = await page.locator('summary').evaluateAll(elements => elements.map(element => ({ height: element.getBoundingClientRect().height, titleWidth: element.querySelector('strong')?.getBoundingClientRect().width ?? 0 })))
+    const summaries = page.locator('.analysis-config-section > summary')
+    await expect(summaries).toHaveCount(2)
+    const rectangles = await summaries.evaluateAll(elements => elements.map(element => ({ height: element.getBoundingClientRect().height, titleWidth: element.querySelector('strong')?.getBoundingClientRect().width ?? 0 })))
     expect(rectangles.length).toBeGreaterThanOrEqual(2)
     expect(rectangles.every(rect => rect.height < 100 && rect.titleWidth > 110)).toBe(true)
     await expectNoHorizontalOverflow(page)
     await expectNoSeriousAccessibilityViolations(page)
-    await page.locator('summary').first().scrollIntoViewIfNeeded()
+    await summaries.first().scrollIntoViewIfNeeded()
     await page.screenshot({ path: `output/playwright/efa-headers-${width}.png` })
     await page.getByRole('button', { name: theme, exact: true }).click()
   }
   await page.setViewportSize({ width: 1440, height: 1000 })
-  await page.getByRole('tab', { name: '数据准备', exact: true }).click()
+  await page.getByRole('tab', { name: '数据', exact: true }).click()
+  await page.getByRole('button', { name: '导入 / 替换', exact: true }).click()
   const file = resolve('output/ui-process-rework/two-sheets.xlsx')
   const python = resolve(process.platform === 'win32' ? '.venv/Scripts/python.exe' : '.venv/bin/python')
   execFileSync(python, ['-c', "from openpyxl import Workbook; from pathlib import Path; import sys; p=Path(sys.argv[1]); p.parent.mkdir(parents=True, exist_ok=True); w=Workbook(); w.active.title='sheet1'; w.active.append(['score','age']); [w.active.append([i+1,20+i]) for i in range(30)]; s=w.create_sheet('sheet2'); s.append(['score','age']); [s.append([i+2,21+i]) for i in range(30)]; w.save(p)", file])
@@ -40,7 +43,7 @@ test('@a11y EFA headers and workbook import remain legible, and clearing unloads
   let dataset = await (await imported).json() as { id: string }
   const sheet = page.getByRole('combobox', { name: /检测到当前工作簿/ })
   await expect(sheet).toBeVisible()
-  await expect(page.locator('.dropzone-text')).toContainText('two-sheets.xlsx')
+  await expect(page.getByText('当前数据 · two-sheets.xlsx', { exact: true })).toBeVisible()
   await sheet.selectOption('sheet2')
   const switched = page.waitForResponse(r => r.request().method() === 'POST' && r.url().includes('/datasets/import') && r.ok())
   await page.getByRole('button', { name: '切换并重新导入', exact: true }).click()
@@ -55,15 +58,15 @@ test('@a11y EFA headers and workbook import remain legible, and clearing unloads
     await page.getByRole('button', { name: width === 1440 ? '明亮模式' : '暗色模式', exact: true }).click()
   }
   page.once('dialog', dialog => dialog.dismiss())
-  await page.getByRole('button', { name: '清空当前数据', exact: true }).click()
+  await page.getByRole('button', { name: '关闭当前数据', exact: true }).click()
   await expect(sheet).toBeVisible()
   page.once('dialog', dialog => dialog.accept())
-  await page.getByRole('button', { name: '清空当前数据', exact: true }).click()
+  await page.getByRole('button', { name: '关闭当前数据', exact: true }).click()
   await expect(sheet).toHaveCount(0)
-  await expect(page.getByRole('button', { name: '清空当前数据', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '关闭当前数据', exact: true })).toHaveCount(0)
   await expect(page.locator('input[type=file]').first()).toHaveValue('')
   await page.reload()
-  await expect(page.getByRole('button', { name: '清空当前数据', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '关闭当前数据', exact: true })).toHaveCount(0)
   const retained = await page.request.get(`/api/v1/datasets/${dataset.id}`, { headers: { 'x-researchpath-token': process.env.RESEARCHPATH_E2E_SESSION_TOKEN ?? '' } })
   expect(retained.status()).toBe(200)
   await failures.expectClean()
@@ -74,7 +77,7 @@ test('@a11y all presets are selectable and custom nodes and arrows support visib
   const failures = await installPageFailureMonitor(page, { classifyModelCanvasResizeLoop: true })
   await page.setViewportSize({ width: 1600, height: 1100 })
   await openDemo(page)
-  await page.getByRole('tab', { name: '路径与 SEM', exact: true }).click()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await page.getByText('更换模型 · Model 4 · 单一中介', { exact: true }).click()
   await expect(page.getByRole('group', { name: '官方预设编号', exact: true }).getByRole('button')).toHaveCount(55)
@@ -120,6 +123,7 @@ test('@a11y all presets are selectable and custom nodes and arrows support visib
   await expect(page.locator('.react-flow__edge')).toHaveCount(0)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await page.reload()
+  await openAdvancedProcessEditor(page)
   await expect(page.getByText('草稿已保存', { exact: true })).toBeVisible()
   await expect(page.locator('.react-flow__edge')).toHaveCount(0)
   await expect(page.getByRole('region', { name: '模型节点 M', exact: true })).toContainText('age')
