@@ -4708,7 +4708,7 @@
       "category": "draft-durability",
       "priority": "P1",
       "title": "实证 AnalysisDocument 的可编辑草稿正文仍只保存在浏览器",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "full-stack-engineering",
       "targetMilestone": "PRD Phase 4 草稿持久化",
       "evidence": [
@@ -4723,7 +4723,7 @@
       ],
       "closureEvidence": [
         "后端版本冲突/恢复专项与 AnalysisIndex 测试通过；Web 全量 92 files / 327 tests、TypeScript 与 Biome 通过。",
-        "待新的 hosted Full 在目标 Windows 环境完成后关闭。"
+        "GitHub PR #4 的 hosted quality gate run 33979521711（重试 attempt）完整通过：API、R、Web、26 条 Playwright、生产构建、依赖审计与机器证据均成功。"
       ]
     },
     {
@@ -4865,7 +4865,7 @@
       "category": "prd-experience-completion",
       "priority": "P2",
       "title": "三工作区主线已合并，但方法快捷访问、数据表、批量导出与界面降噪仍有 PRD 尾项",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "三工作区合并后的体验完善",
       "evidence": [
@@ -4885,7 +4885,7 @@
         "方法库现在记录最近 12 个方法并支持收藏/取消收藏和快捷筛选；收藏优先、最近顺序随后。",
         "数据视图从服务端读取完整 parquet 案例，支持 100 行分页、全表查找、按变量稳定升降序和固定行号列，原始数据保持只读。",
         "Output 支持选择多个最新成功结果并按既有权威导出路由逐项下载；技术 ID 与索引说明移入折叠详情。",
-        "相关 API/Web 专项、Web 全量 327 项、类型/lint、生产构建和 bundle budget 已通过；待新的 hosted Full 后关闭。"
+        "GitHub PR #4 的 hosted quality gate run 33979521711（重试 attempt）完整通过；首次 E2E 暴露的预期 404 与卡片紧凑度回归已修复并在最终 26/26 Playwright 中验证。"
       ]
     }
   ]
