@@ -5,6 +5,7 @@ export {
   getDataset,
   getMeasurement,
   mergeDatasets,
+  getDatasetRows,
 } from './dataset-management'
 export {
   runEmpiricalAnalysis,

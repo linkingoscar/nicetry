@@ -1,8 +1,13 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { describe, expect, it, vi } from 'vitest'
 
 import type { DatasetVersion } from '../../types'
 import { DataGridView } from './DataGridView'
+
+vi.mock('../../api/datasets', () => ({
+  getDatasetRows: vi.fn(() => new Promise(() => undefined)),
+}))
 
 const dataset: DatasetVersion = {
   schemaVersion: '1.0',
@@ -67,10 +72,11 @@ const dataset: DatasetVersion = {
 
 describe('DataGridView', () => {
   it('renders a read-only dataset preview using inferred effective types', () => {
-    render(<DataGridView dataset={dataset} />)
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(<QueryClientProvider client={client}><DataGridView dataset={dataset} /></QueryClientProvider>)
 
     expect(screen.getByRole('heading', { name: '当前数据' })).toBeInTheDocument()
-    expect(screen.getByText('预览 2 / 2 个案例 · 2 个变量')).toBeInTheDocument()
+    expect(screen.getByText('显示 1–2 / 2 个案例 · 2 个变量')).toBeInTheDocument()
     expect(screen.getByText('年龄')).toBeInTheDocument()
     expect(screen.getByText('工作投入题项1')).toBeInTheDocument()
     expect(screen.getByText('连续')).toBeInTheDocument()

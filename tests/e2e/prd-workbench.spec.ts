@@ -56,3 +56,27 @@ test('@smoke @a11y PRD workbench shell is keyboard-first, responsive, and free o
   await expectNoSeriousAccessibilityViolations(page)
   await failures.expectClean()
 })
+
+test('@smoke @a11y dense workspaces remain usable at PRD breakpoints', async ({ page }) => {
+  const failures = await installPageFailureMonitor(page)
+  await openAuthenticatedPage(page)
+  await page.getByRole('button', { name: /导入数据并开始分析/ }).click()
+  await page.getByRole('button', { name: '一键导入经典问卷示例项目' }).click()
+  await expect(page.getByRole('heading', { name: '当前数据' })).toBeVisible()
+
+  for (const width of [1024, 760, 420]) {
+    await page.setViewportSize({ width, height: 900 })
+    await page.getByRole('tab', { name: '数据', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '当前数据' })).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+    await page.getByRole('tab', { name: '分析', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '分析方法', exact: true })).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+    await page.getByRole('tab', { name: '输出', exact: true }).click()
+    await expect(page.getByRole('heading', { name: '输出', exact: true })).toBeVisible()
+    await expectNoHorizontalOverflow(page)
+  }
+
+  await expectNoSeriousAccessibilityViolations(page)
+  await failures.expectClean()
+})

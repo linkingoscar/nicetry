@@ -12,6 +12,7 @@ export function EmpiricalAnalysisShellHeader() {
     analysisJob,
     isConfigStale,
     isRunning,
+    draftSaveStatus,
   } = useEmpiricalAnalysisContext()
   const description = !measurement ? '直接选择原始变量进行当前分析；只有本方法需要量表时才补充量表设置。' : researchParadigm === 'longitudinal'
     ? `基于测量版本 v${measurement.version} 配置当前纵向方法所需的波次、变量和参数。`
@@ -33,6 +34,7 @@ export function EmpiricalAnalysisShellHeader() {
         <strong>{method.label}</strong>
         <span> · {draftStatus}</span>
         {analysisJob?.status === 'failed' ? <span> · 最近运行失败，历史结果未被覆盖</span> : null}
+        <span> · {draftSaveStatus === 'saving' ? '正在保存' : draftSaveStatus === 'saved' ? '已保存' : draftSaveStatus === 'failed' ? '保存失败' : draftSaveStatus === 'conflict' ? '已恢复较新版本' : '本机草稿'}</span>
       </section>
       <header className="analysis-shell-header">
         <div>

@@ -2,6 +2,10 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { getServerAnalysisIndex, patchServerAnalysisDocument } from '../api/analysis-index'
+import { downloadWithSession } from '../api/client'
+import { empiricalAnalysisExportUrl } from '../api/empirical-analysis'
+import { analysisExportUrl } from '../api/analyses'
+import { advancedAnalysisExportUrl } from '../api/advanced'
 import type { DatasetVersion, MeasurementVersion } from '../types'
 import type { EmpiricalProcedure } from '../types/empirical-types'
 import { OutputRegisteredRunDetail } from './OutputRegisteredRunDetail'
@@ -63,6 +67,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null)
   const [selectedRegisteredRunId, setSelectedRegisteredRunId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
+  const [selectedExports, setSelectedExports] = useState<Set<string>>(new Set())
+  const [exportStatus, setExportStatus] = useState<string | null>(null)
   const [registeredDocumentOverrides, setRegisteredDocumentOverrides] = useState<Record<string, {
     title?: string
     pinned?: boolean
@@ -98,6 +104,8 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     setSelectedRegisteredRunId(null)
     setRegisteredDocumentOverrides({})
     setRegisteredMetadataStatus(null)
+    setSelectedExports(new Set())
+    setExportStatus(null)
   }, [dataset, measurement])
 
   const runDetails = readAnalysisRunDetails(dataset.projectId)
@@ -161,6 +169,47 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
     ))
     : undefined
 
+  const toggleExport = (key: string) => {
+    setSelectedExports((current) => {
+      const next = new Set(current)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  const exportSelected = async () => {
+    setExportStatus('正在导出…')
+    let completed = 0
+    try {
+      for (const key of selectedExports) {
+        if (key.startsWith('empirical:')) {
+          const runId = key.slice('empirical:'.length)
+          const job = serverJobsByRun.get(runId)
+          if (!job?.reportId) continue
+          await downloadWithSession(
+            empiricalAnalysisExportUrl(job.datasetId, job.measurementVersion, job.reportId),
+            `researchpath-${runId}.xlsx`,
+          )
+          completed += 1
+        } else {
+          const runId = key.slice('registered:'.length)
+          const run = registeredRuns.find((candidate) => candidate.runId === runId)
+          if (!run) continue
+          await downloadWithSession(
+            run.source === 'model' ? analysisExportUrl(runId, false) : advancedAnalysisExportUrl(runId),
+            `researchpath-${runId}.zip`,
+          )
+          completed += 1
+        }
+      }
+      setExportStatus(`已导出 ${completed} 项结果。`)
+      setSelectedExports(new Set())
+    } catch (error) {
+      setExportStatus(`已导出 ${completed} 项；其余导出失败：${error instanceof Error ? error.message : '未知错误'}`)
+    }
+  }
+
   const updateDocument = (analysisId: string, patch: { title?: string; pinned?: boolean }) => {
     setIndex(updateAnalysisDocumentMetadata(dataset.projectId, analysisId, patch))
   }
@@ -219,11 +268,9 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
         <div>
           <p className="eyebrow">分析对象与运行</p>
           <h1 id="output-workspace-heading">输出</h1>
-          <p>统一查看当前项目的实证、PROCESS/SEM 与结构化高级分析。服务端保存分析对象与运行身份，浏览器缓存仅用于兼容和即时恢复。</p>
+          <p>统一查看、比较和导出当前项目的全部分析结果。</p>
         </div>
-        <span className="status-badge">
-          {serverIndexQuery.data ? '服务端索引已恢复' : serverIndexQuery.isError ? '兼容缓存模式' : '正在恢复服务端索引'}
-        </span>
+        <span className="status-badge">{serverIndexQuery.isError ? '部分历史暂不可用' : '结果已恢复'}</span>
       </header>
 
       {totalOutputCount ? (
@@ -248,6 +295,12 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <button type="button" className="secondary-button" disabled={!search} onClick={() => setSearch('')}>清除搜索</button>
           </div>
           <p className="catalog-result-count" role="status">显示 {filteredOutputCount} / {totalOutputCount} 项输出</p>
+          <div className="method-card-actions">
+            <button type="button" className="secondary-button" disabled={!selectedExports.size} onClick={() => void exportSelected()}>
+              批量导出（{selectedExports.size}）
+            </button>
+            {exportStatus ? <span role="status">{exportStatus}</span> : null}
+          </div>
         </section>
       ) : null}
 
@@ -350,7 +403,7 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
             <div>
               <p className="eyebrow">统一分析对象</p>
               <h2>PROCESS / SEM / 高级分析</h2>
-              <p className="muted">同一模型或高级分析的运行按 AnalysisDocument 归组；名称、固定状态和主要结果保存在服务端，结果仍从原 job/result 服务只读恢复。</p>
+              <p className="muted">每项分析保留独立运行历史，可以固定或指定主要结果。</p>
             </div>
             <span className="status-badge">{registeredDocuments.length} 项分析 · {registeredRuns.length} 次运行</span>
           </div>
@@ -374,9 +427,11 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                         <span className={`context-method-status${freshness === 'stale' ? ' method-status-needs-setup' : ''}`}>
                           {freshness === 'stale' ? '基于旧设置' : '当前数据/量表'}
                         </span>
-                        <span className="context-method-status">AnalysisDocument</span>
                       </div>
-                      <p className="muted">方法 {document.methodId} · 分析 {document.id.slice(0, 12)}</p>
+                      {latestRun ? (
+                        <label><input type="checkbox" checked={selectedExports.has(`registered:${latestRun.runId}`)} onChange={() => toggleExport(`registered:${latestRun.runId}`)} /> 选择最新结果用于批量导出</label>
+                      ) : null}
+                      <details><summary>技术详情</summary><p className="muted">方法 {document.methodId} · 分析 {document.id.slice(0, 12)}</p></details>
                     </div>
                     {runs.length ? (
                       <details>
@@ -468,9 +523,12 @@ export function OutputWorkspace({ dataset, measurement, onOpenProcedure }: Outpu
                         {draft.hasSavedDraft ? <span className="context-method-status">草稿已保存</span> : null}
                       </div>
                       {latestDetail ? (
-                        <p className="muted">运行 {latestDetail.runId.slice(0, 12)} · 草稿修订 {latestDetail.draftRevision} · {latestDetail.qualityStatus === 'warning' ? '含警告' : '无已记录警告'}</p>
+                        <details><summary>技术详情</summary><p className="muted">运行 {latestDetail.runId.slice(0, 12)} · 草稿修订 {latestDetail.draftRevision} · {latestDetail.qualityStatus === 'warning' ? '含警告' : '无已记录警告'}</p></details>
                       ) : latestRun ? (
-                        <p className="muted">最新运行 {latestRun.id.slice(0, 12)} · 由服务端 AnalysisIndex 恢复</p>
+                        <details><summary>技术详情</summary><p className="muted">最新运行 {latestRun.id.slice(0, 12)}</p></details>
+                      ) : null}
+                      {latestRun && (latestServerJob?.status ?? latestDetail?.runStatus) === 'succeeded' ? (
+                        <label><input type="checkbox" checked={selectedExports.has(`empirical:${latestRun.id}`)} onChange={() => toggleExport(`empirical:${latestRun.id}`)} /> 选择最新结果用于批量导出</label>
                       ) : null}
                     </div>
 

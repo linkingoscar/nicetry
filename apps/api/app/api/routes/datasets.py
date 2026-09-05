@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse
@@ -47,6 +47,7 @@ from app.services.dataset_repository import (
     DictionaryUpdateError,
     MeasurementNotFoundError,
 )
+from app.services.dataset_rows import read_dataset_rows
 from app.services.empirical_analysis import (
     EmpiricalAnalysisError,
     export_empirical_workbook,
@@ -95,6 +96,32 @@ def get_dataset(dataset_id: str, services: ApiServices = Depends(get_services)) 
         return dataset
     except DatasetNotFoundError as error:
         raise HTTPException(status_code=404, detail=str(error)) from error
+
+
+@router.get("/{dataset_id}/rows", include_in_schema=False)
+def get_dataset_rows(
+    dataset_id: str,
+    offset: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=500),
+    search: str | None = Query(default=None, max_length=120),
+    sort_column: str | None = Query(default=None, alias="sortColumn", max_length=240),
+    sort_direction: Literal["asc", "desc"] = Query(default="asc", alias="sortDirection"),
+    services: ApiServices = Depends(get_services),
+) -> JsonObject:
+    try:
+        return read_dataset_rows(
+            services.dataset_repository,
+            dataset_id,
+            offset=offset,
+            limit=limit,
+            search=search,
+            sort_column=sort_column,
+            sort_direction=sort_direction,
+        )
+    except DatasetNotFoundError as error:
+        raise HTTPException(status_code=404, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.post(

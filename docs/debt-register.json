@@ -4708,19 +4708,23 @@
       "category": "draft-durability",
       "priority": "P1",
       "title": "实证 AnalysisDocument 的可编辑草稿正文仍只保存在浏览器",
-      "status": "open",
+      "status": "implemented_pending_verification",
       "ownerRole": "full-stack-engineering",
       "targetMilestone": "PRD Phase 4 草稿持久化",
       "evidence": [
         "服务端 AnalysisDocument 只保存 currentDraftId；EmpiricalConfigValue、activeRunId 与 lastRunConfig 仍由 empiricalDrafts.ts 写入 localStorage。",
-        "浏览器缓存被清除或换设备后可从服务端恢复不可变运行和结果，但不能恢复尚未提交的实证配置正文。"
+        "浏览器缓存被清除或换设备后可从服务端恢复不可变运行和结果，但不能恢复尚未提交的实证配置正文。",
+        "2026-09-05：新增 EmpiricalDraftStore 与 AnalysisDocument draft GET/PUT；正文按 project/analysis 绑定、500 KB 限制、原子写入并使用 expectedRevision 拒绝旧修订。前端保留本地兼容缓存，恢复更高服务端 revision，并以串行防抖保存避免同窗口并发覆盖。"
       ],
       "acceptance": [
         "新增服务端 AnalysisDraft payload/revision 契约并按 project/analysis 授权读写，currentDraftId 指向可恢复正文。",
         "前端保存状态区分保存中、已保存、失败与版本冲突；离线兼容缓存不得覆盖更新的服务端修订。",
         "覆盖换浏览器恢复、并发修订冲突、存储失败和从旧 localStorage 安全迁移。"
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "后端版本冲突/恢复专项与 AnalysisIndex 测试通过；Web 全量 92 files / 327 tests、TypeScript 与 Biome 通过。",
+        "待新的 hosted Full 在目标 Windows 环境完成后关闭。"
+      ]
     },
     {
       "id": "DEBT-206",
@@ -4732,7 +4736,8 @@
       "targetMilestone": "PRD Phase 7 验收",
       "evidence": [
         "tests/e2e/prd-workbench.spec.ts 只覆盖应用壳、键盘 tab、无全局 glass 与 390px 横向溢出；未进入数据表、方法目录、配置工作台和 Output 历史结果等密集路由。",
-        "现有其他 E2E 多使用 1440/390，未形成 PRD 指定 1024/760/420 三档的系统性工作区回归。"
+        "现有其他 E2E 多使用 1440/390，未形成 PRD 指定 1024/760/420 三档的系统性工作区回归。",
+        "2026-09-05：prd-workbench E2E 新增 1024/760/420 三档 Data、Analyze 方法目录与 Output 工作区无横向溢出和严重无障碍检查；专用配置与历史结果已有 390px 路径，但尚未在三档逐类复跑，因此保持 open。"
       ],
       "acceptance": [
         "为数据、分析目录、实证配置、PROCESS/SEM 配置与 Output 历史结果建立可重复种子工作区场景。",
@@ -4860,7 +4865,7 @@
       "category": "prd-experience-completion",
       "priority": "P2",
       "title": "三工作区主线已合并，但方法快捷访问、数据表、批量导出与界面降噪仍有 PRD 尾项",
-      "status": "open",
+      "status": "implemented_pending_verification",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "三工作区合并后的体验完善",
       "evidence": [
@@ -4876,7 +4881,12 @@
         "Output 可选择多个独立运行批量导出，保留各自结果身份且不触发统计重算。",
         "日常输出页面以分析名称、运行时间、结果和可操作状态为主；内部 ID、索引实现和治理证据收进可展开详情。"
       ],
-      "closureEvidence": []
+      "closureEvidence": [
+        "方法库现在记录最近 12 个方法并支持收藏/取消收藏和快捷筛选；收藏优先、最近顺序随后。",
+        "数据视图从服务端读取完整 parquet 案例，支持 100 行分页、全表查找、按变量稳定升降序和固定行号列，原始数据保持只读。",
+        "Output 支持选择多个最新成功结果并按既有权威导出路由逐项下载；技术 ID 与索引说明移入折叠详情。",
+        "相关 API/Web 专项、Web 全量 327 项、类型/lint、生产构建和 bundle budget 已通过；待新的 hosted Full 后关闭。"
+      ]
     }
   ]
 }

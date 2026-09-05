@@ -115,3 +115,33 @@ def test_analysis_index_routes_are_internal_and_do_not_drift_generated_openapi()
     assert "/api/v1/projects/{project_id}/analysis-index" not in paths
     assert "/api/v1/projects/{project_id}/analysis-documents/{analysis_id}" not in paths
     assert "/api/v1/projects/{project_id}/analysis-runs" not in paths
+    assert "/api/v1/projects/{project_id}/analysis-documents/{analysis_id}/draft" not in paths
+
+
+def test_empirical_draft_persists_and_rejects_stale_revision() -> None:
+    analysis_id = "analysis_draft_versioned"
+    missing = client.get(
+        f"/api/v1/projects/default/analysis-documents/{analysis_id}/draft"
+    )
+    assert missing.status_code == 200
+    assert missing.json() is None
+
+    first = client.put(
+        f"/api/v1/projects/default/analysis-documents/{analysis_id}/draft",
+        json={"expectedRevision": 0, "payload": {"config": {"procedure": "descriptives"}}},
+    )
+    assert first.status_code == 200, first.text
+    assert first.json()["revision"] == 1
+
+    stale = client.put(
+        f"/api/v1/projects/default/analysis-documents/{analysis_id}/draft",
+        json={"expectedRevision": 0, "payload": {"config": {"procedure": "correlation"}}},
+    )
+    assert stale.status_code == 409
+
+    restored = client.get(
+        f"/api/v1/projects/default/analysis-documents/{analysis_id}/draft"
+    )
+    assert restored.status_code == 200
+    assert restored.json()["payload"]["config"]["procedure"] == "descriptives"
+    assert restored.json()["revision"] == 1
