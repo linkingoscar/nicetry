@@ -1,14 +1,14 @@
 # ResearchPath UX / IA PRD 收口验收
 
-> 状态日期：2026-09-04  
+> 状态日期：2026-09-05
 > 范围：`ResearchPath_UX_IA_Reorganization_PRD_v1.0` 的 Phase 0–7。  
 > 原则：只记录活动代码可证明的实现；自动化检查不冒充真实参与者用户研究。
 
 ## 1. 收口结论
 
-Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；Phase 7 的视觉、响应式、键盘/屏读基础、文档同步和迁移清理已实现。当前提交是三轮 hosted release-validation 之后的第四个最终 PRD 收口候选；只有对应最终门禁实际成功后，才能把自动化发布验收标记为通过。
+Data / Analyze / Output 主线已通过 PR #3 合并到 main；PR #2 的全部提交包含在 #3 中，GitHub 同时将 #2 标记为已合并。最终实现已有完整 hosted Full 检查与依赖审计成功记录。本次直接复用已有验证，没有为合并重跑测试或增加检查条件。
 
-唯一不能由仓库自动完成的 PRD 工作项是**真实参与者用户测试**。当前自动化覆盖任务可达性、键盘、axe、响应式和页面错误，但没有真实参与者的任务完成率、完成时间、错误率或主观量表，因此人工用户测试保持“需要外部参与者”的外部验收项。
+主线合并不等于两份 PRD 已逐条完成。下表“已实现”表示该阶段核心迁移已落地，细节差距见第 10 节；草稿持久化与密集页面适配覆盖也仍有已登记尾项。真实参与者用户测试尚未执行，自动化结果不能替代实际任务完成率、时间和主观体验。
 
 ## 2. Phase 0–7 验收矩阵
 
@@ -21,7 +21,7 @@ Phase 0–6 的仓库内实现已迁移到新 Data / Analyze / Output 架构；P
 | 4 Output / AnalysisDocument | 稳定分析对象、不可变运行、stale、复制、server/rebuild index | `AnalysisIndexService`、`AnalysisIndexRecoveryMixin`、hidden analysis-index routes、`OutputWorkspace`、server/local bridge | 已实现 |
 | 5 PROCESS/SEM 表单 | 常见 PROCESS + 基础 SEM 表单，复杂模型回高级编辑 | Model 1/4/6/7/14 common forms、parallel Model 4、`SemQuickSetupForm` | 已实现 |
 | 6 高级方法迁移 | 统一发现/标题/运行检查/Output，保留专用配置器 | experiment/multilevel/power/MI/measurement/longitudinal/diary method-scoped adapters | 已实现 |
-| 7 视觉/A11y/发布 | 去大面积 glass、响应式、键盘/屏读、文档、发布证据、迁移清理 | `workbench.css`、`expert-model.css`、删除 `liquid-glass.css`、skip link、forced colors、PRD E2E | 实现完成；等待本候选最终门禁 |
+| 7 视觉/A11y/发布 | 去大面积 glass、响应式、键盘/屏读、文档、发布证据、迁移清理 | `workbench.css`、`expert-model.css`、删除 `liquid-glass.css`、skip link、forced colors、PRD E2E | 核心迁移与现有自动化检查通过；完整体验验收见第 10 节 |
 
 ## 3. Phase 4：最终 Output 架构
 
@@ -96,8 +96,23 @@ ICC/rwg、两层 Gaussian LMM、实验、解析功效等高频方法使用 commo
 
 第四候选将 persisted `options` 只读取一次，并在后续访问前明确窄化为非空 `JsonObject`。这覆盖第三轮全部新增 Optional 诊断，不改变 job 重建语义，也不调整 Pyright baseline。
 
-### 9.4 当前最终候选
+### 9.4 已合并实现的验证
 
-- Full / hosted quality gate：**由当前非 `[skip ci]` 收口提交重新触发；结果以 PR #3 当前 head 的实际 GitHub Actions 检查为准。**
-- 自动化 PRD workbench E2E：**纳入上述最终质量门禁；不得在运行完成前预写通过。**
+- [最终实现的 GitHub Actions](https://github.com/linkingoscar/nicetry/actions/runs/33880125546) 已成功完成 `scripts/test.ps1`、依赖审计、构建证据生成与上传；这是 Full 检查及审计记录，不冒称额外执行了完整 Release 模式。
+- 自动化 PRD workbench E2E 已包含在该成功运行中。DEBT-202/203/204/208/209/210/211 据此关闭，不再列为待验证工作。
 - 真实参与者用户测试：**未执行；需要外部参与者，不能由代码仓库自动补造。**
+
+## 10. 合并后的实际尾项
+
+本次对照两份 PRD 和活动代码确认以下差距；这是明确发现的待办清单，不是逐条验收全部需求的完成率统计。这些尾项不阻止已验证的主线合并。
+
+| 尾项 | 当前边界 | 跟踪 |
+| --- | --- | --- |
+| 方法快捷访问 | 已有搜索、分类与筛选；最近方法和收藏方法尚无入口 | DEBT-212 |
+| 完整数据表体验 | 当前只读展示 `dataset.preview`；完整案例浏览、查找/排序与列操作尚未补齐 | DEBT-212 |
+| 多结果批量导出 | 单项导出保留；Output 尚无多选运行批量导出入口 | DEBT-212 |
+| 日常界面降噪 | 输出页仍常驻索引实现、内部 ID 等技术说明，尚未全部收进详情 | DEBT-212 |
+| 可编辑草稿持久化 | 运行结果可从服务端恢复；未提交草稿正文仍依赖浏览器缓存 | DEBT-205 |
+| 密集页面适配与试用 | 部分关键宽度/密集页面尚缺覆盖；真实用户试用尚未完成 | DEBT-206 / 外部参与者 |
+
+后续优先补未提交草稿的可靠保存及实际使用障碍。无需重做三工作区、统计引擎或再安排一次重复合并。

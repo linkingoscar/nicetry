@@ -2,7 +2,7 @@
   "$schema": "./debt-register.schema.json",
   "schemaVersion": "1.0.0",
   "project": "ResearchPath",
-  "asOf": "2026-09-04",
+  "asOf": "2026-09-05",
   "statusVocabulary": [
     "open",
     "in_progress",
@@ -4639,7 +4639,7 @@
       "category": "web-regression-tests",
       "priority": "P1",
       "title": "统一方法入口重构后 Web 回归仍依赖已删除的页内方法切换",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "PR #3 质量门禁恢复",
       "evidence": [
@@ -4653,7 +4653,8 @@
       ],
       "closureEvidence": [
         "EmpiricalAnalysis 回归改为方法作用域挂载；useEmpiricalAnalysisState 通过 readEmpiricalDraft(draftKey, analysisProcedure) 精确恢复草稿；原 14 个失败已本地变为 32/32 通过。",
-        "完整 Web Vitest 本地为 91 files、325 tests 全部通过；本地可运行的 TypeScript 5 严格检查零错误。"
+        "完整 Web Vitest 本地为 91 files、325 tests 全部通过；本地可运行的 TypeScript 5 严格检查零错误。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4661,7 +4662,7 @@
       "category": "output-history-recovery",
       "priority": "P1",
       "title": "Output 无法在浏览器缓存缺失时恢复旧数据版本实证结果",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "PRD Phase 4 输出工作区",
       "evidence": [
@@ -4675,7 +4676,8 @@
       ],
       "closureEvidence": [
         "Output 现在优先恢复选中 run 并使用 job 自身上游身份；新增旧 dataset/measurement 的 Output 路由回归。",
-        "EmpiricalProcedureResult 拆出可复用只读视图，Output 覆盖描述、相关、信效度、组间/聚合、回归/高级、纵向与日记全部 procedure；相关局部测试 43/43 通过。"
+        "EmpiricalProcedureResult 拆出可复用只读视图，Output 覆盖描述、相关、信效度、组间/聚合、回归/高级、纵向与日记全部 procedure；相关局部测试 43/43 通过。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4683,7 +4685,7 @@
       "category": "analysis-document-parity",
       "priority": "P1",
       "title": "PROCESS、SEM 与高级分析仍以扁平运行卡片展示而非 AnalysisDocument",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "PRD Phase 4 输出工作区",
       "evidence": [
@@ -4697,7 +4699,8 @@
       ],
       "closureEvidence": [
         "新增 registered document 合并与运行归组；本地旧 run 自动补稳定 analysisId，同一 modelId 重复运行保持同一身份。",
-        "Output 对 model/advanced 展示分析对象、运行历史、固定、重命名和主要结果；PATCH 失败会回滚并显示 alert；相关局部测试 12/12 通过。"
+        "Output 对 model/advanced 展示分析对象、运行历史、固定、重命名和主要结果；PATCH 失败会回滚并显示 alert；相关局部测试 12/12 通过。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4762,7 +4765,7 @@
       "category": "web-bundle-performance",
       "priority": "P1",
       "title": "Output 完整结果渲染若静态进入首屏会突破 JavaScript 预算",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "PR #3 质量门禁恢复",
       "evidence": [
@@ -4775,7 +4778,8 @@
       ],
       "closureEvidence": [
         "OutputEmpiricalRunPreview、OutputWorkspace 与 DataWorkspace 已按需加载；生产构建后 initial JavaScript 为 93.1 KiB gzip，largest async 为 91.5 KiB gzip。",
-        "完整 Web Vitest 在代码分割后仍为 91 files、325 tests 全部通过。"
+        "完整 Web Vitest 在代码分割后仍为 91 files、325 tests 全部通过。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4783,7 +4787,7 @@
       "category": "prd-e2e-migration",
       "priority": "P1",
       "title": "完整 Playwright 旅程仍依赖三工作区重构前的首屏与四页签导航",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "test-engineering",
       "targetMilestone": "PR #3 质量门禁恢复",
       "evidence": [
@@ -4802,7 +4806,8 @@
         "hosted run 33867817730 已确认旧首屏/四页签定位器不再是失败原因；剩余 21 条集中于方法确认框默认取消、旧量表按钮文案、非唯一标题和真实 axe 对比度，并已按运行日志逐项修正。",
         "hosted run 33872039653 的 API/R 654+20 项、Web 325 项和生产构建通过，Playwright 提升为 18/25；剩余 7 条收敛到暗色主题 token、SEM dialog 监听生命周期、基础 SEM 提示文案和高级向导变量 ID，并已逐项修正，待下一次完整 hosted run 验证。",
         "hosted run 33875140371 再提升到 23/25；暗色 axe、SEM dialog、方法路由和变量 ID 失败均已清零，最后两条分别是已卸载导入框的旧 CSS 定位器和高级分析终态结果请求竞态。",
-        "hosted run 33877732159 为 24/25；高级分析终态结果与 Excel 当前数据标题已通过，唯一失败收敛到 DataWorkspace CSS Module 的暗色选中子页签，并已增加模块内高对比度覆盖。"
+        "hosted run 33877732159 为 24/25；高级分析终态结果与 Excel 当前数据标题已通过，唯一失败收敛到 DataWorkspace CSS Module 的暗色选中子页签，并已增加模块内高对比度覆盖。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4810,7 +4815,7 @@
       "category": "ci-trigger-efficiency",
       "priority": "P2",
       "title": "PR 分支同时触发 push 与 pull_request 两套完整 Windows/R 门禁",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "release-engineering",
       "targetMilestone": "PR #3 质量门禁恢复",
       "evidence": [
@@ -4824,7 +4829,8 @@
       "closureEvidence": [
         "ci.yml 已将 push.branches 限定为 main，并保留 pull_request、workflow_dispatch 与 schedule。",
         "test_supply_chain_governance.py 新增触发器回归，锁定 main push 与 pull_request 同时存在。",
-        "提交 c26e7cca224f3c1f0617e5727305982ec0114c19 的 PR 同步只产生 pull_request run 33867817730，未再生成重复 push run；待同一单运行完整成功后关闭。"
+        "提交 c26e7cca224f3c1f0617e5727305982ec0114c19 的 PR 同步只产生 pull_request run 33867817730，未再生成重复 push run；待同一单运行完整成功后关闭。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
     },
     {
@@ -4832,7 +4838,7 @@
       "category": "advanced-job-terminal-race",
       "priority": "P1",
       "title": "高级分析任务成功时结果请求可能被终态 effect cleanup 中止",
-      "status": "implemented_pending_verification",
+      "status": "closed",
       "ownerRole": "frontend-engineering",
       "targetMilestone": "PR #3 质量门禁恢复",
       "evidence": [
@@ -4845,8 +4851,32 @@
       ],
       "closureEvidence": [
         "JobProgress 将 succeeded 分支的 setJob 移到 getAdvancedAnalysisResult 成功之后，失败、取消和运行中分支仍各自更新可见状态。",
-        "JobProgress.test.tsx 新增终态结果请求存活回归，定向 4/4 通过；hosted run 33877732159 中 ICC 与聚合诊断最终结果标题已呈现，完整 PR 门禁成功后关闭。"
+        "JobProgress.test.tsx 新增终态结果请求存活回归，定向 4/4 通过；hosted run 33877732159 中 ICC 与聚合诊断最终结果标题已呈现，完整 PR 门禁成功后关闭。",
+        "2026-09-05 复核：PR #3 最终实现的 GitHub Actions https://github.com/linkingoscar/nicetry/actions/runs/33880125546 已完整成功；quality job 的 scripts/test.ps1、依赖审计、构建证据生成与上传均 success。该实现已通过 PR #3 合并至 main；本次复用实际完成的验证，没有重新运行全套测试。"
       ]
+    },
+    {
+      "id": "DEBT-212",
+      "category": "prd-experience-completion",
+      "priority": "P2",
+      "title": "三工作区主线已合并，但方法快捷访问、数据表、批量导出与界面降噪仍有 PRD 尾项",
+      "status": "open",
+      "ownerRole": "frontend-engineering",
+      "targetMilestone": "三工作区合并后的体验完善",
+      "evidence": [
+        "两份 2026-09-03 PRD 的共同主线已在 PR #3 实现；本项记录合并时静态核对明确看到的差距，不将主线迁移等同于逐条 PRD 完成。",
+        "ResearchPath_UX_IA_Reorganization_PRD_v1.0 的 ANALYSIS-LIB-005 与点按式 PRD 第 33 章要求最近方法/收藏；ContextCapabilityCatalog.tsx 只有搜索、分类、状态、层级筛选，没有最近方法记录或收藏方法操作。Output 的固定分析不等于收藏方法。",
+        "DATA-GRID-001 要求虚拟化、固定列、调整列宽、查找和排序预览；DataGridView.tsx 目前只渲染 dataset.preview，没有完整数据浏览与上述表格操作。",
+        "OUTPUT-EXPORT-002 要求勾选多个独立结果批量导出；OutputWorkspace.tsx 目前没有多选结果与批量导出入口。已有单项导出能力不等同于批量导出。",
+        "HC-007 要求治理证据在详情中查询；OutputWorkspace.tsx 主屏仍常驻服务端索引、兼容缓存、AnalysisDocument、方法/分析内部 ID 等实现文案。"
+      ],
+      "acceptance": [
+        "方法库提供持久保存的最近方法与收藏操作，并保持现有方法身份和运行路径。",
+        "数据视图支持完整案例浏览、必要的表格查找/排序/列操作与大表性能处理，同时保持原始数据只读。",
+        "Output 可选择多个独立运行批量导出，保留各自结果身份且不触发统计重算。",
+        "日常输出页面以分析名称、运行时间、结果和可操作状态为主；内部 ID、索引实现和治理证据收进可展开详情。"
+      ],
+      "closureEvidence": []
     }
   ]
 }
