@@ -46,6 +46,7 @@ export interface EmpiricalAnalysisContextValue {
   analysisJob?: EmpiricalAnalysisJob
   cancelPending: boolean
   error: string | null
+  draftSaveStatus: 'local' | 'saving' | 'saved' | 'conflict' | 'failed'
   onConfigChange: (patch: Partial<EmpiricalConfigValue>) => void
   onToggleExpanded: () => void
   onRun: () => void

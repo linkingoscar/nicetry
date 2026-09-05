@@ -1,5 +1,6 @@
 import type { EmpiricalProcedure } from '../types/empirical-types'
 import { requestJson } from './client'
+import type { EmpiricalDraft } from '../components/empirical/empiricalDrafts'
 
 export type ServerAnalysisSource = 'empirical' | 'model' | 'advanced'
 
@@ -45,6 +46,16 @@ export interface ServerAnalysisIndex {
   documents: ServerAnalysisDocument[]
   runs: ServerAnalysisRun[]
   rebuiltFromServerJobs: boolean
+}
+
+export interface ServerEmpiricalDraft {
+  schemaVersion: '1.0.0'
+  projectId: string
+  analysisId: string
+  revision: number
+  createdAt: string
+  updatedAt: string
+  payload: EmpiricalDraft
 }
 
 export interface RegisterServerAnalysisRunInput {
@@ -107,4 +118,26 @@ export function registerServerAnalysisRun(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(run),
   })
+}
+
+export function getServerEmpiricalDraft(projectId: string, analysisId: string): Promise<ServerEmpiricalDraft | null> {
+  return requestJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/analysis-documents/${encodeURIComponent(analysisId)}/draft`,
+  )
+}
+
+export function saveServerEmpiricalDraft(
+  projectId: string,
+  analysisId: string,
+  payload: EmpiricalDraft,
+  expectedRevision: number,
+): Promise<ServerEmpiricalDraft> {
+  return requestJson(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/analysis-documents/${encodeURIComponent(analysisId)}/draft`,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ expectedRevision, payload }),
+    },
+  )
 }

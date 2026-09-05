@@ -13,6 +13,24 @@ import { requestJson } from './client'
 
 const MAX_UPLOAD_BYTES = 50 * 1024 * 1024
 
+export interface DatasetRowPage {
+  offset: number
+  limit: number
+  total: number
+  rows: Array<Record<string, string | number | boolean | null>>
+}
+
+export function getDatasetRows(
+  datasetId: string,
+  options: { offset: number; limit: number; search?: string; sortColumn?: string; sortDirection?: 'asc' | 'desc' },
+): Promise<DatasetRowPage> {
+  const query = new URLSearchParams({ offset: String(options.offset), limit: String(options.limit) })
+  if (options.search) query.set('search', options.search)
+  if (options.sortColumn) query.set('sortColumn', options.sortColumn)
+  if (options.sortDirection) query.set('sortDirection', options.sortDirection)
+  return requestJson(`/api/v1/datasets/${encodeURIComponent(datasetId)}/rows?${query}`)
+}
+
 export function importDataset(file: File, selectedSheet?: string): Promise<DatasetVersion> {
   if (file.size > MAX_UPLOAD_BYTES) {
     return Promise.reject(new Error('上传文件超过 50 MB 限制'))

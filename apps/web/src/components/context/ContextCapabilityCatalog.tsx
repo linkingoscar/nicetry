@@ -7,6 +7,7 @@ import { METHOD_CATEGORY_ORDER, methodCategoryLabel } from '../../methods/method
 import { methodSearchText } from '../../methods/methodDefinitions'
 import { libraryMethodsForCapability, type MethodLibraryDefinition } from '../../methods/methodLibraryPresets'
 import { resolveMethodAvailability, type MethodAvailability } from '../../methods/resolveMethodAvailability'
+import { readMethodPreferences, recordRecentMethod, toggleFavoriteMethod } from '../../methods/methodPreferences'
 import type { ApplicableCapability, ResolvedAnalysisContext } from '../../types/analysis-context'
 import type { DatasetVariable } from '../../types/datasets'
 import type { AdvancedAnalysisCapability, AdvancedJobResponse, AdvancedResultResponse } from '../../types/advanced'
@@ -40,10 +41,16 @@ interface CatalogEntry {
 type DraftSelection = Pick<CatalogEntry, 'capability' | 'method'>
 type AvailabilityFilter = 'all' | 'ready' | 'needs-setup' | 'not-applicable'
 type TierFilter = 'all' | 'common' | 'advanced'
+type ShortcutFilter = 'all' | 'recent' | 'favorites'
 
 function categoryRank(categoryId: string): number {
   const index = METHOD_CATEGORY_ORDER.indexOf(categoryId as (typeof METHOD_CATEGORY_ORDER)[number])
   return index < 0 ? METHOD_CATEGORY_ORDER.length : index
+}
+
+function recentRank(recent: string[], methodId: string): number {
+  const index = recent.indexOf(methodId)
+  return index < 0 ? recent.length : index
 }
 
 export function ContextCapabilityCatalog({ context, variables = [], onNavigate, onPrepare }: ContextCapabilityCatalogProps) {
@@ -53,6 +60,8 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [availabilityFilter, setAvailabilityFilter] = useState<AvailabilityFilter>('all')
   const [tierFilter, setTierFilter] = useState<TierFilter>('all')
+  const [shortcutFilter, setShortcutFilter] = useState<ShortcutFilter>('all')
+  const [methodPreferences, setMethodPreferences] = useState(readMethodPreferences)
   const runnerHeadingRef = useRef<HTMLHeadingElement>(null)
   const returnButtonRef = useRef<HTMLButtonElement | null>(null)
   const [selectedDraft, setSelectedDraft] = useState<string | null>(null)
@@ -88,9 +97,11 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
       method,
       availability: resolveMethodAvailability(capability),
     })))
-    .sort((a, b) => categoryRank(a.method.categoryId) - categoryRank(b.method.categoryId)
+    .sort((a, b) => Number(methodPreferences.favorites.includes(b.method.libraryId)) - Number(methodPreferences.favorites.includes(a.method.libraryId))
+      || recentRank(methodPreferences.recent, a.method.libraryId) - recentRank(methodPreferences.recent, b.method.libraryId)
+      || categoryRank(a.method.categoryId) - categoryRank(b.method.categoryId)
       || a.method.label.localeCompare(b.method.label, 'zh-CN')),
-  [allCapabilities])
+  [allCapabilities, methodPreferences])
 
   const categories = useMemo(
     () => Array.from(new Set(catalogEntries.map((entry) => entry.method.categoryId)))
@@ -104,6 +115,8 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
     if (availabilityFilter !== 'all' && availability.state !== availabilityFilter) return false
     if (tierFilter === 'common' && method.visibilityTier !== 'common') return false
     if (tierFilter === 'advanced' && !method.advanced) return false
+    if (shortcutFilter === 'favorites' && !methodPreferences.favorites.includes(method.libraryId)) return false
+    if (shortcutFilter === 'recent' && !methodPreferences.recent.includes(method.libraryId)) return false
     if (!normalizedSearch) return true
     return `${methodSearchText(method)} ${capability.supportBoundary}`.toLocaleLowerCase().includes(normalizedSearch)
   })
@@ -147,6 +160,7 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
     setSelectedCategory('all')
     setAvailabilityFilter('all')
     setTierFilter('all')
+    setShortcutFilter('all')
   }
 
   return (
@@ -271,6 +285,14 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
             </select>
           </label>
           <label>
+            快捷访问
+            <select value={shortcutFilter} onChange={(event) => setShortcutFilter(event.target.value as ShortcutFilter)}>
+              <option value="all">全部方法</option>
+              <option value="recent">最近使用</option>
+              <option value="favorites">已收藏</option>
+            </select>
+          </label>
+          <label>
             方法层级
             <select value={tierFilter} onChange={(event) => setTierFilter(event.target.value as TierFilter)}>
               <option value="all">全部方法</option>
@@ -281,7 +303,7 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
           <button
             type="button"
             className="secondary-button"
-            disabled={!search && effectiveCategory === 'all' && availabilityFilter === 'all' && tierFilter === 'all'}
+            disabled={!search && effectiveCategory === 'all' && availabilityFilter === 'all' && tierFilter === 'all' && shortcutFilter === 'all'}
             onClick={clearFilters}
           >
             清除筛选
@@ -313,6 +335,14 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
                     <article key={method.libraryId} className="context-method-card" aria-label={method.label}>
                       <div>
                         <h3>{method.label}</h3>
+                        <button
+                          type="button"
+                          className="text-button method-favorite-button"
+                          aria-label={`${methodPreferences.favorites.includes(method.libraryId) ? '取消收藏' : '收藏'}${method.label}`}
+                          onClick={() => setMethodPreferences(toggleFavoriteMethod(method.libraryId))}
+                        >
+                          {methodPreferences.favorites.includes(method.libraryId) ? '★ 已收藏' : '☆ 收藏'}
+                        </button>
                         <div className="method-card-status-row">
                           <span className={`context-method-status method-status-${availability.state}`}>{availability.label}</span>
                           {capability.maturityLevel === 'experimental' || method.experimental ? (
@@ -330,7 +360,10 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
                             type="button"
                             className="run-button"
                             aria-label={`配置${method.label}`}
-                            onClick={() => onNavigate?.(target)}
+                            onClick={() => {
+                              setMethodPreferences(recordRecentMethod(method.libraryId))
+                              onNavigate?.(target)
+                            }}
                             disabled={!onNavigate}
                           >
                             选择变量与参数 →
@@ -342,6 +375,7 @@ export function ContextCapabilityCatalog({ context, variables = [], onNavigate, 
                             aria-label={`配置${method.label}`}
                             onClick={(event) => {
                               returnButtonRef.current = event.currentTarget
+                              setMethodPreferences(recordRecentMethod(method.libraryId))
                               draftMutation.mutate({ capability, method })
                             }}
                             disabled={draftMutation.isPending}

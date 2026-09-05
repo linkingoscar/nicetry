@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.api.dependencies import ApiServices, get_services
 from app.services.analysis_index import AnalysisIndexService
+from app.services.empirical_draft_store import EmpiricalDraftConflictError, EmpiricalDraftStore
 from app.services.repository_io import JsonObject
 
 router = APIRouter(tags=["analysis-index"])
@@ -61,8 +62,57 @@ class AnalysisRunIndexRequest(_IndexModel):
     created_at: str | None = Field(default=None, alias="createdAt")
 
 
+class EmpiricalDraftSaveRequest(_IndexModel):
+    expected_revision: int | None = Field(default=None, alias="expectedRevision", ge=0)
+    payload: dict[str, object]
+
+
 def _service(services: ApiServices) -> AnalysisIndexService:
     return AnalysisIndexService(services.dataset_repository, services.settings)
+
+
+def _draft_store(services: ApiServices) -> EmpiricalDraftStore:
+    return EmpiricalDraftStore(services.settings)
+
+
+@router.get(
+    "/projects/{project_id}/analysis-documents/{analysis_id}/draft",
+    include_in_schema=False,
+)
+def get_empirical_draft(
+    project_id: str,
+    analysis_id: str,
+    services: ApiServices = Depends(get_services),
+) -> JsonObject | None:
+    try:
+        return _draft_store(services).read(project_id, analysis_id)
+    except LookupError:
+        return None
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+
+
+@router.put(
+    "/projects/{project_id}/analysis-documents/{analysis_id}/draft",
+    include_in_schema=False,
+)
+def save_empirical_draft(
+    project_id: str,
+    analysis_id: str,
+    request: EmpiricalDraftSaveRequest,
+    services: ApiServices = Depends(get_services),
+) -> JsonObject:
+    try:
+        return _draft_store(services).save(
+            project_id,
+            analysis_id,
+            request.payload,
+            request.expected_revision,
+        )
+    except EmpiricalDraftConflictError as error:
+        raise HTTPException(status_code=409, detail=str(error)) from error
+    except ValueError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
 
 
 @router.get("/projects/{project_id}/analysis-index", include_in_schema=False)

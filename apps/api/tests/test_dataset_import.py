@@ -120,6 +120,33 @@ def test_api_imports_xlsx_after_reader_releases_windows_file_handle(tmp_path) ->
     assert (settings.state_root / dataset["storage"]["raw"]).read_bytes() == path.read_bytes()
 
 
+def test_dataset_rows_support_paging_search_and_sort() -> None:
+    response = client.post(
+        "/api/v1/datasets/import",
+        files={"file": ("rows.csv", BytesIO(b"name,score\nbeta,2\nalpha,3\ngamma,1\n"), "text/csv")},
+    )
+    assert response.status_code == 201, response.text
+    dataset = response.json()
+    score_id = next(variable["id"] for variable in dataset["variables"] if variable["originalName"] == "score")
+
+    sorted_page = client.get(
+        f"/api/v1/datasets/{dataset['id']}/rows",
+        params={"offset": 0, "limit": 2, "sortColumn": score_id, "sortDirection": "desc"},
+    )
+    assert sorted_page.status_code == 200, sorted_page.text
+    assert sorted_page.json()["total"] == 3
+    assert [row["score"] for row in sorted_page.json()["rows"]] == [3, 2]
+
+    searched = client.get(
+        f"/api/v1/datasets/{dataset['id']}/rows",
+        params={"search": "GAMMA"},
+    )
+    assert searched.status_code == 200, searched.text
+    assert searched.json()["total"] == 1
+    assert searched.json()["rows"][0]["name"] == "gamma"
+    assert "/api/v1/datasets/{dataset_id}/rows" not in client.get("/api/openapi.json").json()["paths"]
+
+
 def test_invalid_xlsx_returns_actionable_client_error_instead_of_500() -> None:
     response = client.post(
         "/api/v1/datasets/import",

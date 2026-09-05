@@ -37,6 +37,9 @@ import {
 } from './empiricalDrafts'
 import { configForMethod } from './empiricalMethodNavigation'
 import { getResolvedAnalysisContext } from '../../api/analysis-context'
+import { getServerEmpiricalDraft, saveServerEmpiricalDraft } from '../../api/analysis-index'
+import { ApiError } from '../../api/client'
+import { isEmpiricalDraft, type EmpiricalDraft } from './empiricalDrafts'
 
 interface UseEmpiricalAnalysisStateArgs {
   dataset: DatasetVersion
@@ -102,13 +105,79 @@ export function useEmpiricalAnalysisState({
   const procedures = availableProcedures(capabilitiesQuery.data?.capabilities ?? [], researchParadigm, nestedContext)
   const [activeRunId, setActiveRunId] = useState<string | null>(initialDraft?.activeRunId ?? null)
   const [lastRunConfig, setLastRunConfig] = useState<EmpiricalConfigValue | null>(initialDraft?.lastRunConfig ?? null)
-  const [draftSaveFailed, setDraftSaveFailed] = useState(false)
+  const [draftSaveStatus, setDraftSaveStatus] = useState<'local' | 'saving' | 'saved' | 'conflict' | 'failed'>('local')
+  const serverRevision = useRef(initialDraft?.serverRevision ?? 0)
+  const serverDraftHydrated = useRef(false)
+  const serverSaveChain = useRef(Promise.resolve())
   const [configExpanded, setConfigExpanded] = useState(true)
   const resultsRef = useRef<HTMLDivElement>(null)
 
+  const serverDraftQuery = useQuery({
+    queryKey: ['empirical-analysis-draft', dataset.projectId, analysisId],
+    queryFn: () => getServerEmpiricalDraft(dataset.projectId, analysisId ?? ''),
+    enabled: Boolean(analysisId),
+    retry: false,
+  })
+
   useEffect(() => {
-    setDraftSaveFailed(!saveEmpiricalDraft(draftKey, { config, activeRunId, lastRunConfig, tabRequestKey: appliedTabRequest.current }))
-  }, [draftKey, config, activeRunId, lastRunConfig])
+    if (!analysisId || serverDraftHydrated.current || !serverDraftQuery.isFetched) return
+    const restored = serverDraftQuery.data
+    if (restored && isEmpiricalDraft(restored.payload) && restored.revision > serverRevision.current) {
+      setConfig(restored.payload.config)
+      setActiveRunId(restored.payload.activeRunId)
+      setLastRunConfig(restored.payload.lastRunConfig)
+      appliedTabRequest.current = restored.payload.tabRequestKey
+      serverRevision.current = restored.revision
+      saveEmpiricalDraft(draftKey, { ...restored.payload, serverRevision: restored.revision })
+    }
+    serverDraftHydrated.current = true
+    setDraftSaveStatus(restored ? 'saved' : 'local')
+  }, [analysisId, draftKey, serverDraftQuery.data, serverDraftQuery.isFetched])
+
+  useEffect(() => {
+    const draft: EmpiricalDraft = {
+      config,
+      activeRunId,
+      lastRunConfig,
+      tabRequestKey: appliedTabRequest.current,
+      serverRevision: serverRevision.current,
+    }
+    if (!saveEmpiricalDraft(draftKey, draft)) {
+      setDraftSaveStatus('failed')
+      return
+    }
+    if (!analysisId || !serverDraftHydrated.current) return
+    setDraftSaveStatus('saving')
+    const timeout = window.setTimeout(() => {
+      serverSaveChain.current = serverSaveChain.current.then(() => saveServerEmpiricalDraft(
+        dataset.projectId,
+        analysisId,
+        draft,
+        serverRevision.current,
+      )
+        .then((saved) => {
+          serverRevision.current = saved.revision
+          saveEmpiricalDraft(draftKey, { ...draft, serverRevision: saved.revision })
+          setDraftSaveStatus('saved')
+        })
+        .catch(async (error: unknown) => {
+          if (error instanceof ApiError && error.status === 409) {
+            setDraftSaveStatus('conflict')
+            const current = await getServerEmpiricalDraft(dataset.projectId, analysisId).catch(() => null)
+            if (current && isEmpiricalDraft(current.payload)) {
+              serverRevision.current = current.revision
+              setConfig(current.payload.config)
+              setActiveRunId(current.payload.activeRunId)
+              setLastRunConfig(current.payload.lastRunConfig)
+              saveEmpiricalDraft(draftKey, { ...current.payload, serverRevision: current.revision })
+            }
+            return
+          }
+          setDraftSaveStatus('failed')
+        }))
+    }, 500)
+    return () => window.clearTimeout(timeout)
+  }, [analysisId, dataset.projectId, draftKey, config, activeRunId, lastRunConfig])
 
   useEffect(() => {
     if (!nestedContext || !boundClusterId) return
@@ -164,7 +233,7 @@ export function useEmpiricalAnalysisState({
       }
       // A workspace switch may unmount this hook before the accepted response arrives.
       // Persist here as well as in the effect so returning can reconnect to that job.
-      setDraftSaveFailed(!saveEmpiricalDraft(draftKey, { config, activeRunId: job.id, lastRunConfig: config, tabRequestKey: appliedTabRequest.current }))
+      if (!saveEmpiricalDraft(draftKey, { config, activeRunId: job.id, lastRunConfig: config, tabRequestKey: appliedTabRequest.current, serverRevision: serverRevision.current })) setDraftSaveStatus('failed')
       setActiveRunId(job.id)
       queryClient.setQueryData(['empirical-analysis-job', job.id], job)
     },
@@ -235,7 +304,7 @@ export function useEmpiricalAnalysisState({
     if (tabRequest && tabRequest.key !== appliedTabRequest.current) {
       if (activeRunId && !analysisJob && jobQuery.isFetching) return
       appliedTabRequest.current = tabRequest.key
-      setDraftSaveFailed(!saveEmpiricalDraft(draftKey, { config, activeRunId, lastRunConfig, tabRequestKey: tabRequest.key }))
+      if (!saveEmpiricalDraft(draftKey, { config, activeRunId, lastRunConfig, tabRequestKey: tabRequest.key, serverRevision: serverRevision.current })) setDraftSaveStatus('failed')
       const target = { overview: 'descriptives', correlation: 'correlation', measurement: 'reliability', groups: nestedContext ? 'aggregation' : 'groups', regression: 'regression', advanced: 'response_surface', longitudinal: 'longitudinal', diary: 'diary' } as const
       if (tabRequest.method && tabRequest.method.contextHash !== analysisContext?.contextHash) return
       if (isRunning) {
@@ -355,7 +424,8 @@ export function useEmpiricalAnalysisState({
     error:
       mutation.error?.message
       ?? sampleContextQuery.error?.message
-      ?? (draftSaveFailed ? '浏览器未能保存分析草稿；请勿刷新或离开页面。已提交任务仍保存在服务端。' : null)
+      ?? (draftSaveStatus === 'failed' ? '分析草稿暂时无法保存；已提交任务仍保存在服务端。' : null)
+      ?? (draftSaveStatus === 'conflict' ? '检测到其他窗口保存了更新版本，已恢复较新的服务端草稿。' : null)
       ?? jobQuery.error?.message
       ?? ((analysisJob?.status === 'failed' || analysisJob?.status === 'cancelled')
         ? analysisJob.error ?? (analysisJob.status === 'cancelled' ? '分析已取消' : '分析失败')
@@ -382,5 +452,6 @@ export function useEmpiricalAnalysisState({
     showToast,
     toastText,
     resultsRef,
+    draftSaveStatus,
   }
 }

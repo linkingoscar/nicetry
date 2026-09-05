@@ -9,6 +9,7 @@ export interface EmpiricalDraft {
   activeRunId: string | null
   lastRunConfig: EmpiricalConfigValue | null
   tabRequestKey?: number
+  serverRevision?: number
 }
 
 const ANALYSIS_ID_PATTERN = /^[A-Za-z0-9_-]{1,128}$/
@@ -59,6 +60,15 @@ export function saveEmpiricalDraft(key: string, draft: EmpiricalDraft): boolean 
     localStorage.setItem(`${key}:selected`, draft.config.procedure)
     return true
   } catch { return false }
+}
+
+export function isEmpiricalDraft(value: unknown): value is EmpiricalDraft {
+  if (!value || typeof value !== 'object') return false
+  const draft = value as Partial<EmpiricalDraft>
+  return validConfig(draft.config)
+    && (draft.lastRunConfig === null || validConfig(draft.lastRunConfig))
+    && (draft.activeRunId === null || typeof draft.activeRunId === 'string')
+    && (draft.serverRevision === undefined || Number.isSafeInteger(draft.serverRevision))
 }
 
 export function migrateEmpiricalDraftToAnalysis(
